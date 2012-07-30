@@ -1,4 +1,4 @@
-// -*- C++ -*-
+ // -*- C++ -*-
 //
 // Package:    RutgersJetAnalyzer
 // Class:      RutgersJetAnalyzer
@@ -13,7 +13,7 @@
 //
 // Original Author:  Dinko Ferencek
 //         Created:  Fri Jul 20 12:32:38 CDT 2012
-// $Id$
+// $Id: RutgersJetAnalyzer.cc,v 1.1 2012/07/20 22:46:30 ferencek Exp $
 //
 //
 
@@ -31,6 +31,8 @@
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/EDAnalyzer.h"
 
+#include <cmath>
+
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
 
@@ -39,6 +41,9 @@
 #include "DataFormats/Candidate/interface/Candidate.h"
 #include "DataFormats/Candidate/interface/CandidateFwd.h"
 #include "DataFormats/JetReco/interface/GenJetCollection.h"
+#include "TH1.h"
+#include "FWCore/ServiceRegistry/interface/Service.h"
+#include "CommonTools/UtilAlgos/interface/TFileService.h"
 
 //
 // class declaration
@@ -74,6 +79,17 @@ class RutgersJetAnalyzer : public edm::EDAnalyzer {
       const double        jetPtMin;         // minimum jet pT
       JetDefPtr           jetDefinitionAK;  // Anti-kT jet definition
       JetDefPtr           jetDefinitionKT;  // kT jet definition
+      edm::Service<TFileService> fs;
+      TH1D *hT1;
+      TH1D *hT2;
+      TH1D *hT2byT1;
+      TH1D *hpt_nocut;
+      TH1D *hpt_cut;
+      TH1D *heta_nocut;
+      TH1D *heta_cut;
+      TH1D *hmass_nocut;
+      TH1D *hmass_cut;
+  
 };
 
 //
@@ -96,6 +112,7 @@ RutgersJetAnalyzer::RutgersJetAnalyzer(const edm::ParameterSet& iConfig):
    //now do what ever initialization is needed
    jetDefinitionAK = JetDefPtr( new fastjet::JetDefinition(fastjet::antikt_algorithm, 1.2) );
    jetDefinitionKT = JetDefPtr( new fastjet::JetDefinition(fastjet::kt_algorithm, 1.4) );
+
 }
 
 
@@ -104,6 +121,10 @@ RutgersJetAnalyzer::~RutgersJetAnalyzer()
  
    // do anything here that needs to be done at desctruction time
    // (e.g. close files, deallocate resources etc.)
+
+  //hT1->Write();
+  //hT2->Write();
+  //hT2byT1->Write();
 
 }
 
@@ -125,10 +146,25 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
      for ( size_t j = 0; j < 2; ++j )
      {
        //std::cout << "Jet " << i << " has " << genJets->at(i).getJetConstituents().size() << " constituents" << std::endl;
+       
 
        std::vector<edm::Ptr<reco::Candidate> > inputs; // inputs for subjet clustering
        inputs = genJets->at(j).getJetConstituents();
-
+       reco::GenJet genjet = genJets->at(j);
+       fastjet::PseudoJet *genjetfast = new fastjet::PseudoJet(genjet.px(),genjet.py(),genjet.pz(),genjet.energy());
+         if (genjetfast->pt() > 30) {
+       hpt_nocut->Fill(genjetfast->pt());
+       heta_nocut->Fill(genjetfast->eta());
+       hmass_nocut->Fill(genjetfast->m());
+       if (115 < genjetfast->m() && genjetfast->m() < 125)
+	 hpt_cut->Fill(genjetfast->pt());
+       if (genjetfast->pt() > 200) {
+	 hmass_cut->Fill(genjetfast->m());
+	 if (115 < genjetfast->m() && genjetfast->m() < 125)
+	   heta_cut->Fill(genjetfast->eta());
+       }
+         }
+	 if(genjetfast->pt() > 200 && abs(genjetfast->eta())<2.5 && 115 < genjetfast->m() && genjetfast->m()<125){
        std::vector<fastjet::PseudoJet> fjInputs; // FastJet inputs for jet clustering
 
        // convert candidates to fastjet::PseudoJets
@@ -155,12 +191,33 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
        if ( fjInputs.size() >= 2 && kTJets.size() >=1 ) {
 
          std::vector<fastjet::PseudoJet> subJets = fastjet::sorted_by_pt(kTJets[0].exclusive_subjets(2));
-
-         std::cout << "dR(subjet1,subjet2) for Jet" << j << ": " << subJets[0].delta_R(subJets[1]) << std::endl;
+	 long double T1sum=0;
+	 long double d0=0;
+	 double R1=1.2;
+	 long double T2sum=0;
+	 for(int k=0; k < (int)fjInputs.size(); k++){
+	   long double dR = genjetfast->delta_R(fjInputs[k]);
+	   long double dR1 = subJets[0].delta_R(fjInputs[k]);
+	   long double dR2 = subJets[1].delta_R(fjInputs[k]);
+	   if(dR1 < dR2)
+	     T2sum += dR1*fjInputs[k].pt();
+	   else
+	     T2sum += dR2*fjInputs[k].pt();
+	   T1sum += dR*fjInputs[k].pt();
+	   d0 += fjInputs[k].pt()*R1;
+	 }
+	 double T1=T1sum/d0;
+	 double T2=T2sum/d0;
+	 double ratio = T2/T1;
+	 //std:: cout << T1 << " " << T2 << " " << ratio << std::endl;
+	 hT1->Fill(T1);
+	 hT2->Fill(T2);
+	 hT2byT1->Fill(ratio);
        }
+	 } //end boosted & higgs mass conditions
+         //std::cout << "dR(subjet1,subjet2) for Jet" << j << ": " << subJets[0].delta_R(subJets[1]) << std::endl;
      } // end for ()
-   } // end i f()
-
+} // end if()
    //############################################################################################
    //## This section demonstrates how to cluster jets from scratch
    //##
@@ -207,12 +264,24 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
 void 
 RutgersJetAnalyzer::beginJob()
 {
+  hT1 = fs->make<TH1D>("hT1" , "T_1" , 100 , 0 , 1 );
+  hT2 = fs->make<TH1D>("hT2" , "T_2" , 100 , 0 , 1 );
+  hT2byT1 = fs->make<TH1D>("hT2/T1" , "T_2/T_1" , 100 , 0 , 1 );
+  hpt_nocut = fs->make<TH1D>("hpt_nocut","Jet pT with no cuts",250,0,450);
+  hpt_cut = fs->make<TH1D>("hpt_cut","Jet pT with inv mass cut",250,0,450);
+  heta_nocut = fs->make<TH1D>("heta_nocut","Jet eta with no cuts",450,-5,5);
+  heta_cut = fs->make<TH1D>("heta_cut","Jet eta with cuts",200,-5,5);
+  hmass_nocut = fs->make<TH1D>("hmass_nocut","Jet mass with no cuts",300,0,300);
+  hmass_cut = fs->make<TH1D>("hmass_cut","Jet mass with cuts",300,0,300);
+ 
 }
 
 // ------------ method called once each job just after ending the event loop  ------------
 void 
 RutgersJetAnalyzer::endJob() 
 {
+  
+
 }
 
 // ------------ method called when starting to processes a run  ------------

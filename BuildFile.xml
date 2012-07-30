@@ -2,5 +2,12 @@
 <use name="FWCore/PluginManager"/>
 <use name="FWCore/ParameterSet"/>
 <use name="DataFormats/Candidate"/>
+<use name="DataFormats/TrackReco"/>
+<use name="CommonTools/UtilAlgos"/>
+<use name="PhysicsTools/UtilAlgos"/>
 <use name="fastjet"/>
+<use name="FWCore/ServiceRegistry"/>
 <flags EDM_PLUGIN="1"/>
+<export>
+   <lib name="1"/>
+</export>

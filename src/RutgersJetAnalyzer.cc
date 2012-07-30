@@ -13,7 +13,7 @@
 //
 // Original Author:  Dinko Ferencek
 //         Created:  Fri Jul 20 12:32:38 CDT 2012
-// $Id: RutgersJetAnalyzer.cc,v 1.1 2012/07/20 22:46:30 ferencek Exp $
+// $Id: RutgersJetAnalyzer.cc,v 1.2 2012/07/30 17:31:27 skaplan Exp $
 //
 //
 
@@ -273,7 +273,7 @@ RutgersJetAnalyzer::beginJob()
   heta_cut = fs->make<TH1D>("heta_cut","Jet eta with cuts",200,-5,5);
   hmass_nocut = fs->make<TH1D>("hmass_nocut","Jet mass with no cuts",300,0,300);
   hmass_cut = fs->make<TH1D>("hmass_cut","Jet mass with cuts",300,0,300);
- 
+ //this is a comment.
 }
 
 // ------------ method called once each job just after ending the event loop  ------------

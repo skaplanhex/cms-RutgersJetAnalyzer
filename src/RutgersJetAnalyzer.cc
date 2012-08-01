@@ -13,14 +13,13 @@
 //
 // Original Author:  Dinko Ferencek
 //         Created:  Fri Jul 20 12:32:38 CDT 2012
-// $Id: RutgersJetAnalyzer.cc,v 1.2 2012/07/30 17:31:27 skaplan Exp $
+// $Id: RutgersJetAnalyzer.cc,v 1.2.2.1 2012/07/30 18:20:36 mzientek Exp $
 //
 //
 
 
 // system include files
 #include <memory>
-#include <boost/shared_ptr.hpp>
 
 // FastJet include files
 #include "fastjet/JetDefinition.hh"
@@ -28,22 +27,19 @@
 #include "fastjet/PseudoJet.hh"
 
 // user include files
+#include <boost/shared_ptr.hpp>
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/EDAnalyzer.h"
-
-#include <cmath>
-
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
-
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
-
 #include "DataFormats/Candidate/interface/Candidate.h"
 #include "DataFormats/Candidate/interface/CandidateFwd.h"
 #include "DataFormats/JetReco/interface/GenJetCollection.h"
-#include "TH1.h"
 #include "FWCore/ServiceRegistry/interface/Service.h"
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
+#include "RutgersSandbox/RutgersJetAnalyzer/plugins/NjettinessPlugin.hh"
+#include "RutgersSandbox/RutgersJetAnalyzer/plugins/Nsubjettiness.hh"
 
 //
 // class declaration
@@ -89,6 +85,9 @@ class RutgersJetAnalyzer : public edm::EDAnalyzer {
       TH1D *heta_cut;
       TH1D *hmass_nocut;
       TH1D *hmass_cut;
+      TH1D *hpt_nocut_cluster;
+      TH1D *heta_nocut_cluster;
+      TH1D *hmass_nocut_cluster;
   
 };
 
@@ -152,10 +151,10 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
        inputs = genJets->at(j).getJetConstituents();
        reco::GenJet genjet = genJets->at(j);
        fastjet::PseudoJet *genjetfast = new fastjet::PseudoJet(genjet.px(),genjet.py(),genjet.pz(),genjet.energy());
-         if (genjetfast->pt() > 30) {
-       hpt_nocut->Fill(genjetfast->pt());
-       heta_nocut->Fill(genjetfast->eta());
-       hmass_nocut->Fill(genjetfast->m());
+       if (genjetfast->pt() > 30) {
+         hpt_nocut->Fill(genjetfast->pt());
+         heta_nocut->Fill(genjetfast->eta());
+         hmass_nocut->Fill(genjetfast->m());
        if (115 < genjetfast->m() && genjetfast->m() < 125)
 	 hpt_cut->Fill(genjetfast->pt());
        if (genjetfast->pt() > 200) {
@@ -199,10 +198,12 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
 	   long double dR = genjetfast->delta_R(fjInputs[k]);
 	   long double dR1 = subJets[0].delta_R(fjInputs[k]);
 	   long double dR2 = subJets[1].delta_R(fjInputs[k]);
-	   if(dR1 < dR2)
+	   if(dR1 < dR2){
 	     T2sum += dR1*fjInputs[k].pt();
-	   else
+	   }
+	   else{
 	     T2sum += dR2*fjInputs[k].pt();
+	   }
 	   T1sum += dR*fjInputs[k].pt();
 	   d0 += fjInputs[k].pt()*R1;
 	 }
@@ -221,40 +222,65 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
    //############################################################################################
    //## This section demonstrates how to cluster jets from scratch
    //##
-//    edm::Handle<reco::CandidateView> inputsHandle;
-//    iEvent.getByLabel(inputsTag, inputsHandle);
-// 
-//    std::cout << "Number of GenParticles: " << inputsHandle->size() << std::endl;
-// 
-//    std::vector<edm::Ptr<reco::Candidate> > inputs; // inputs for jet clustering
-// 
-//    for (size_t i = 0; i < inputsHandle->size(); ++i) inputs.push_back(inputsHandle->ptrAt(i));
-// 
-//    std::vector<fastjet::PseudoJet> fjInputs; // FastJet inputs for jet clustering
-// 
-//    // convert candidates to fastjet::PseudoJets
-//    std::vector<edm::Ptr<reco::Candidate> >::const_iterator inBegin = inputs.begin(),
-//      inEnd = inputs.end(), i = inBegin;
-//    for (; i != inEnd; ++i )
-//    {
-//      reco::CandidatePtr input = *i;
-//      if (input->pt() < inputPtMin) continue;
-//      if (input->pt() == 0) {
-//        edm::LogError("NullTransverseMomentum") << "dropping input candidate with pt=0";
-//        continue;
-//      }
-// 
-//      fjInputs.push_back(fastjet::PseudoJet(input->px(),input->py(),input->pz(), input->energy()));
-//      fjInputs.back().set_user_index(i - inBegin);
-//    }
-// 
-//    // define clustering sequence
-//    ClusterSequencePtr clusterSeqAK = ClusterSequencePtr( new fastjet::ClusterSequence( fjInputs, *jetDefinitionAK ) );
-// 
-//    // get clustered jets
-//    std::vector<fastjet::PseudoJet> jetsAK = fastjet::sorted_by_pt(clusterSeqAK->inclusive_jets(jetPtMin));
-// 
-//    std::cout << "Number of GenJets: " << jetsAK.size() << std::endl;
+    edm::Handle<reco::CandidateView> inputsHandle;
+    iEvent.getByLabel(inputsTag, inputsHandle);
+ 
+    //std::cout << "Number of GenParticles: " << inputsHandle->size() << std::endl;
+    std::vector<edm::Ptr<reco::Candidate> > inputs2; // inputs for jet clustering
+
+    for (size_t i = 0; i < inputsHandle->size(); ++i) inputs2.push_back(inputsHandle->ptrAt(i));
+
+    std::vector<fastjet::PseudoJet> fjInputs2; // FastJet inputs for jet clustering
+ 
+    // convert candidates to fastjet::PseudoJets
+    std::vector<edm::Ptr<reco::Candidate> >::const_iterator inBegin2 = inputs2.begin(),
+      inEnd = inputs2.end(), i = inBegin2;
+    for (; i != inEnd; ++i )
+    {
+      reco::CandidatePtr input2 = *i;
+      if (input2->pt() < inputPtMin) continue;
+      if (input2->pt() == 0) {
+        edm::LogError("NullTransverseMomentum") << "dropping input candidate with pt=0";
+        continue;
+      }
+
+      fjInputs2.push_back(fastjet::PseudoJet(input2->px(),input2->py(),input2->pz(), input2->energy()));
+      fjInputs2.back().set_user_index(i - inBegin2);
+    }
+ 
+    // define clustering sequence
+    ClusterSequencePtr clusterSeqAK = ClusterSequencePtr( new fastjet::ClusterSequence( fjInputs2, *jetDefinitionAK ) );
+ 
+    // get clustered jets
+    std::vector<fastjet::PseudoJet> jetsAK = fastjet::sorted_by_pt(clusterSeqAK->inclusive_jets(jetPtMin));
+    //std::cout << "Number of GenJets: " << jetsAK.size() << std::endl;
+
+   if ( jetsAK.size() >= 2 )
+   {
+     // loop over two leading GenJets
+     for ( size_t j = 0; j < 2; ++j )
+     { 
+       fastjet::PseudoJet *genjet_cluster = new fastjet::PseudoJet(jetsAK[j].px(),jetsAK[j].py(),jetsAK[j].pz(),jetsAK[j].E());
+       if (genjet_cluster->pt() > 30)
+	{
+	  hpt_nocut_cluster->Fill(genjet_cluster->pt());
+	  heta_nocut_cluster->Fill(genjet_cluster->eta());
+	  hmass_nocut_cluster->Fill(genjet_cluster->m());
+	}
+     }
+   }
+
+   //##
+   //############################################################################################
+
+   //############################################################################################
+   //## This section demonstrates how to initialize N-subjettiness
+   //##
+   double beta = 1.0; // power for angular dependence, e.g. beta = 1 --> linear k-means, beta = 2 --> quadratic/classic k-means
+   double R0 = 1.2; // Characteristic jet radius for normalization
+   double Rcut = 1.4; // maximum R particles can be from axis to be included in jet
+   fastjet::Nsubjettiness nSub2OnePass(2, Njettiness::onepass_kt_axes, beta, R0, Rcut);
+   JetDefPtr nsubOnepass_jetDef = JetDefPtr( new fastjet::JetDefinition(new fastjet::NjettinessPlugin(3, Njettiness::onepass_kt_axes, beta, R0, Rcut)) );
    //##
    //############################################################################################
 }
@@ -273,15 +299,15 @@ RutgersJetAnalyzer::beginJob()
   heta_cut = fs->make<TH1D>("heta_cut","Jet eta with cuts",200,-5,5);
   hmass_nocut = fs->make<TH1D>("hmass_nocut","Jet mass with no cuts",300,0,300);
   hmass_cut = fs->make<TH1D>("hmass_cut","Jet mass with cuts",300,0,300);
- //this is a comment.
+  hpt_nocut_cluster = fs->make<TH1D>("hpt_nocut_cluster","Jet pT with no cuts",250,0,450);
+  heta_nocut_cluster = fs->make<TH1D>("heta_nocut_cluster","Jet eta with no cuts",450,-5,5);
+  hmass_nocut_cluster = fs->make<TH1D>("hmass_nocut_cluster","Jet mass with no cuts",300,0,300);  
 }
 
 // ------------ method called once each job just after ending the event loop  ------------
 void 
 RutgersJetAnalyzer::endJob() 
 {
-  
-
 }
 
 // ------------ method called when starting to processes a run  ------------

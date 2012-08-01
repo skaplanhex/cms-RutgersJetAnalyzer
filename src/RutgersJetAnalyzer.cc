@@ -13,14 +13,13 @@
 //
 // Original Author:  Dinko Ferencek
 //         Created:  Fri Jul 20 12:32:38 CDT 2012
-// $Id: RutgersJetAnalyzer.cc,v 1.2 2012/07/30 17:31:27 skaplan Exp $
+// $Id: RutgersJetAnalyzer.cc,v 1.3 2012/07/30 18:16:55 mzientek Exp $
 //
 //
 
 
 // system include files
 #include <memory>
-#include <boost/shared_ptr.hpp>
 
 // FastJet include files
 #include "fastjet/JetDefinition.hh"
@@ -28,23 +27,19 @@
 #include "fastjet/PseudoJet.hh"
 
 // user include files
+#include <boost/shared_ptr.hpp>
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/EDAnalyzer.h"
-
-#include <cmath>
-
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
-
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
-
 #include "DataFormats/Candidate/interface/Candidate.h"
 #include "DataFormats/Candidate/interface/CandidateFwd.h"
 #include "DataFormats/JetReco/interface/GenJetCollection.h"
-#include "TH1.h"
 #include "FWCore/ServiceRegistry/interface/Service.h"
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
-
+#include "RutgersSandbox/RutgersJetAnalyzer/plugins/NjettinessPlugin.hh"
+#include "RutgersSandbox/RutgersJetAnalyzer/plugins/Nsubjettiness.hh"
 //
 // class declaration
 //
@@ -146,7 +141,6 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
      for ( size_t j = 0; j < 2; ++j )
      {
        //std::cout << "Jet " << i << " has " << genJets->at(i).getJetConstituents().size() << " constituents" << std::endl;
-       
 
        std::vector<edm::Ptr<reco::Candidate> > inputs; // inputs for subjet clustering
        inputs = genJets->at(j).getJetConstituents();
@@ -257,6 +251,17 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
 //    std::cout << "Number of GenJets: " << jetsAK.size() << std::endl;
    //##
    //############################################################################################
+
+   //############################################################################################
+   //## This section demonstrates how to initialize N-subjettiness
+   //##
+//    double beta = 1.0; // power for angular dependence, e.g. beta = 1 --> linear k-means, beta = 2 --> quadratic/classic k-means
+//    double R0 = 1.2; // Characteristic jet radius for normalization
+//    double Rcut = 1.4; // maximum R particles can be from axis to be included in jet
+//    fastjet::Nsubjettiness nSub2OnePass(2, Njettiness::onepass_kt_axes, beta, R0, Rcut);
+//    JetDefPtr nsubOnepass_jetDef = JetDefPtr( new fastjet::JetDefinition(new fastjet::NjettinessPlugin(3, Njettiness::onepass_kt_axes, beta, R0, Rcut)) );
+   //##
+   //############################################################################################
 }
 
 
@@ -273,7 +278,6 @@ RutgersJetAnalyzer::beginJob()
   heta_cut = fs->make<TH1D>("heta_cut","Jet eta with cuts",200,-5,5);
   hmass_nocut = fs->make<TH1D>("hmass_nocut","Jet mass with no cuts",300,0,300);
   hmass_cut = fs->make<TH1D>("hmass_cut","Jet mass with cuts",300,0,300);
- //this is a comment.
 }
 
 // ------------ method called once each job just after ending the event loop  ------------

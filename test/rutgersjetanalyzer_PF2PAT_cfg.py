@@ -12,7 +12,7 @@ options.register('runOnData',
     "Run this on real data"
 )
 options.register('globalTag',
-    'START52_V9::All',
+    'START52_V9D::All',
     VarParsing.multiplicity.singleton,
     VarParsing.varType.string,
     "Global tag to be used"
@@ -22,6 +22,12 @@ options.register('reportEvery',
     VarParsing.multiplicity.singleton,
     VarParsing.varType.int,
     "Report every N events (default is N=10)"
+)
+options.register('wantSummary',
+    False,
+    VarParsing.multiplicity.singleton,
+    VarParsing.varType.bool,
+    "Print out trigger and timing summary"
 )
 options.register('usePFchs',
     True,
@@ -68,12 +74,12 @@ process.GlobalTag.globaltag = options.globalTag
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(options.maxEvents) )
 
 ## Options and Output Report
-process.options   = cms.untracked.PSet( wantSummary = cms.untracked.bool(False) )
+process.options   = cms.untracked.PSet( wantSummary = cms.untracked.bool(options.wantSummary) )
 
 ## Input files
 process.source = cms.Source("PoolSource",
     fileNames = cms.untracked.vstring(
-        '/store/mc/Summer12/ZH_ZToNuNu_HToBB_M-125_8TeV-powheg-herwigpp/AODSIM/PU_S7_START52_V9-v1/0000/FA40039F-03B4-E111-A081-0030486790BE.root'
+        '/store/mc/Summer12/WWtoAnything_ptmin500_TuneZ2Star_8TeV-pythia6-tauola/AODSIM/PU_S7_START52_V9-v1/0000/FC07A5F9-8495-E111-9E8E-00304867903E.root'
     )
 )
 
@@ -83,13 +89,14 @@ process.load("PhysicsTools.PatAlgos.patSequences_cff")
 ## Output Module Configuration (expects a path 'p')
 from PhysicsTools.PatAlgos.patEventContent_cff import patEventContent
 process.out = cms.OutputModule("PoolOutputModule",
-                               fileName = cms.untracked.string('patTuple_PF2PAT.root'),
-                               # save only events passing the full path
-                               SelectEvents   = cms.untracked.PSet( SelectEvents = cms.vstring('p') ),
-                               # save PAT Layer 1 output; you need a '*' to
-                               # unpack the list of commands 'patEventContent'
-                               outputCommands = cms.untracked.vstring('drop *', *patEventContent )
-                               )
+    fileName = cms.untracked.string('patTuple_PF2PAT.root'),
+    # save only events passing the full path
+    SelectEvents   = cms.untracked.PSet( SelectEvents = cms.vstring('p') ),
+    # save PAT Layer 1 output; you need a '*' to
+    # unpack the list of commands 'patEventContent'
+    outputCommands = cms.untracked.vstring('drop *', *patEventContent )
+)
+
 ## Define Endpath
 process.outpath = cms.EndPath(process.out)
 
@@ -109,13 +116,11 @@ getattr(process,"pfNoElectron"+postfix).enable = True
 getattr(process,"pfNoTau"+postfix).enable = False
 getattr(process,"pfNoJet"+postfix).enable = True
 
-## Load GenJetParticles
-process.load('RecoJets.Configuration.GenJetParticles_cff')
-
 ## Define AK6 jets (GEN and RECO)
-from RecoJets.Configuration.RecoGenJets_cff import ak5GenJetsNoNu
-process.ak6GenJetsNoNu = ak5GenJetsNoNu.clone( rParam = 0.6 )
+process.ak6GenJetsNoNu = process.ak5GenJetsNoNu.clone( rParam = 0.6 )
 process.ak6PFlow = process.pfJetsPFlow.clone( rParam = 0.6 )
+
+from PhysicsTools.PatAlgos.tools.jetTools import *
 ## Add AK6 jets to PAT
 addJetCollection(
     process,
@@ -133,9 +138,12 @@ addJetCollection(
 
 ## Define a sequence for RECO jets and append it to the PF2PAT sequence
 process.jetSeq = cms.Sequence(
+    process.ak6GenJetsNoNu+
     process.ak6PFlow
 )
-process.PFBRECOPFlow *= process.jetSeq
+
+## Explicitly specify JEC levels for the default PAT jets (otherwise, the code will crash since it looks for L5Flavor and L7Parton which are not available in the latest JECs)
+getattr(process,"patJetCorrFactors").levels = cms.vstring('L1Offset','L2Relative','L3Absolute')
 
 ## Produce a collection of good primary vertices
 from PhysicsTools.SelectorUtils.pvSelector_cfi import pvSelector
@@ -150,12 +158,10 @@ process.goodOfflinePrimaryVertices = cms.EDFilter("PrimaryVertexObjectFilter",
 
 ## Path definition
 process.p = cms.Path(
-    (
-    process.genParticlesForJetsNoNu*
-    process.ak6GenJetsNoNu+
-    process.goodOfflinePrimaryVertices
-    )*
-    getattr(process,"patPF2PATSequence"+postfix)
+    process.goodOfflinePrimaryVertices*
+    getattr(process,"patPF2PATSequence"+postfix)*
+    process.jetSeq*
+    process.patDefaultSequence
 )
 
 ### Add PF2PAT output to the created file

@@ -44,9 +44,12 @@ if not options.usePFchs:
     inputJetCorrLabelAK5 = ('AK5PF', ['L1FastJet', 'L2Relative', 'L3Absolute'])
     inputJetCorrLabelAK7 = ('AK7PF', ['L1FastJet', 'L2Relative', 'L3Absolute'])
 
-## Starting with a skeleton process which gets imported with the following line
-from PhysicsTools.PatAlgos.patTemplate_cfg import *
+import FWCore.ParameterSet.Config as cms
 
+process = cms.Process("PAT")
+
+## MessageLogger
+process.load("FWCore.MessageLogger.MessageLogger_cfi")
 ############## IMPORTANT ########################################
 # If you run over many samples and you save the log, remember to reduce
 # the size of the output by prescaling the report of the event number
@@ -54,19 +57,41 @@ process.MessageLogger.cerr.FwkReport.reportEvery = options.reportEvery
 process.MessageLogger.cerr.default.limit = 10
 #################################################################
 
+## Geometry and Detector Conditions (needed for a few patTuple production steps)
+process.load("Configuration.StandardSequences.Geometry_cff")
+process.load("Configuration.StandardSequences.MagneticField_cff")
+process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff")
 ## Make sure a correct global tag is used (please refer to https://twiki.cern.ch/twiki/bin/view/CMSPublic/SWGuideFrontierConditions#Valid_Global_Tags_by_Release)
 process.GlobalTag.globaltag = options.globalTag
 
 ## Events to process
-process.maxEvents.input = options.maxEvents
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(options.maxEvents) )
 
 ## Options and Output Report
-process.options.wantSummary = False
+process.options   = cms.untracked.PSet( wantSummary = cms.untracked.bool(False) )
 
 ## Input files
-process.source.fileNames = [
-    '/store/mc/Summer12/ZH_ZToNuNu_HToBB_M-125_8TeV-powheg-herwigpp/AODSIM/PU_S7_START52_V9-v1/0000/FA40039F-03B4-E111-A081-0030486790BE.root'
-]
+process.source = cms.Source("PoolSource",
+    fileNames = cms.untracked.vstring(
+        '/store/mc/Summer12/ZH_ZToNuNu_HToBB_M-125_8TeV-powheg-herwigpp/AODSIM/PU_S7_START52_V9-v1/0000/FA40039F-03B4-E111-A081-0030486790BE.root'
+    )
+)
+
+## Standard PAT Configuration File
+process.load("PhysicsTools.PatAlgos.patSequences_cff")
+
+## Output Module Configuration (expects a path 'p')
+from PhysicsTools.PatAlgos.patEventContent_cff import patEventContent
+process.out = cms.OutputModule("PoolOutputModule",
+                               fileName = cms.untracked.string('patTuple_PF2PAT.root'),
+                               # save only events passing the full path
+                               SelectEvents   = cms.untracked.PSet( SelectEvents = cms.vstring('p') ),
+                               # save PAT Layer 1 output; you need a '*' to
+                               # unpack the list of commands 'patEventContent'
+                               outputCommands = cms.untracked.vstring('drop *', *patEventContent )
+                               )
+## Define Endpath
+process.outpath = cms.EndPath(process.out)
 
 ## Configure PAT to use PF2PAT instead of AOD sources
 ## this function will modify the PAT sequences.
@@ -140,8 +165,6 @@ process.p = cms.Path(
 #process.out.outputCommands = cms.untracked.vstring('drop *',
                                                    #'keep recoPFCandidates_particleFlow_*_*',
                                                    #*patEventContentNoCleaning )
-
-#process.out.fileName = 'patTuple_PF2PAT.root'
 
 ## Delete predefined Endpath (needed for running with CRAB)
 del process.out

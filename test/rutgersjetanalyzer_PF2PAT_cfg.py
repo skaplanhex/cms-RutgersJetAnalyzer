@@ -116,15 +116,30 @@ getattr(process,"pfNoElectron"+postfix).enable = True
 getattr(process,"pfNoTau"+postfix).enable = False
 getattr(process,"pfNoJet"+postfix).enable = True
 
-## Define AK6 jets (GEN and RECO)
+## Define AK6 jets and subjets (GEN and RECO)
 process.ak6GenJetsNoNu = process.ak5GenJetsNoNu.clone( rParam = 0.6 )
-process.ak6PFlow = process.pfJetsPFlow.clone( rParam = 0.6 )
+process.ak6PFJets = process.pfJetsPFlow.clone( rParam = 0.6 )
+
+from RutgersSandbox.RutgersSubJetAlgorithm.ak5GenJetsRU_cfi import ak5GenJetsRU
+process.ak6GenJetsNoNuRU = ak5GenJetsRU.clone(
+    rParam = cms.double(0.6),
+    src = process.ak5GenJetsNoNu.src,
+    srcPVs = process.ak5GenJetsNoNu.srcPVs
+)
+
+from RutgersSandbox.RutgersSubJetAlgorithm.ak5PFJetsRU_cfi import ak5PFJetsRU
+process.ak6PFJetsRU = ak5PFJetsRU.clone(
+    rParam = cms.double(0.6),
+    src = process.pfJetsPFlow.src,
+    srcPVs = process.pfJetsPFlow.srcPVs,
+    doAreaFastjet = process.pfJetsPFlow.doAreaFastjet
+)
 
 from PhysicsTools.PatAlgos.tools.jetTools import *
 ## Add AK6 jets to PAT
 addJetCollection(
     process,
-    cms.InputTag('ak6PFlow'),
+    cms.InputTag('ak6PFJets'),
     'AK6', 'PF',
     doJTA=True,
     doBTagging=True,
@@ -135,15 +150,28 @@ addJetCollection(
     doJetID = False,
     genJetCollection = cms.InputTag("ak6GenJetsNoNu")
 )
+## Add subjets of AK6 jets to PAT
+addJetCollection(
+    process,
+    cms.InputTag('ak6PFJetsRU','SubJets'),
+    'AK6Sub', 'PF',
+    doJTA=True,
+    doBTagging=True,
+    jetCorrLabel=inputJetCorrLabelAK5,
+    doType1MET=False,
+    doL1Cleaning=False,
+    doL1Counters=False,
+    doJetID = False,
+    genJetCollection = cms.InputTag('ak6GenJetsNoNuRU','SubJets')
+)
 
 ## Define a sequence for RECO jets and append it to the PF2PAT sequence
 process.jetSeq = cms.Sequence(
     process.ak6GenJetsNoNu+
-    process.ak6PFlow
+    process.ak6GenJetsNoNuRU+
+    process.ak6PFJets+
+    process.ak6PFJetsRU
 )
-
-## Explicitly specify JEC levels for the default PAT jets (otherwise, the code will crash since it looks for L5Flavor and L7Parton which are not available in the latest JECs)
-getattr(process,"patJetCorrFactors").levels = cms.vstring('L1Offset','L2Relative','L3Absolute')
 
 ## Produce a collection of good primary vertices
 from PhysicsTools.SelectorUtils.pvSelector_cfi import pvSelector

@@ -17,6 +17,18 @@ options.register('globalTag',
     VarParsing.varType.string,
     "Global tag to be used"
 )
+options.register('outfilename',
+    "outfile.root",
+    VarParsing.multiplicity.singleton,
+    VarParsing.varType.string,
+    "output file name"
+)
+options.register('jetCollection',
+    "selectedPatJetsAK6PF",
+    VarParsing.multiplicity.singleton,
+    VarParsing.varType.string,
+    "Jet collection used in analysis"
+)
 options.register('reportEvery',
     10,
     VarParsing.multiplicity.singleton,
@@ -116,30 +128,15 @@ getattr(process,"pfNoElectron"+postfix).enable = True
 getattr(process,"pfNoTau"+postfix).enable = False
 getattr(process,"pfNoJet"+postfix).enable = True
 
-## Define AK6 jets and subjets (GEN and RECO)
+## Define AK6 jets (GEN and RECO)
 process.ak6GenJetsNoNu = process.ak5GenJetsNoNu.clone( rParam = 0.6 )
-process.ak6PFJets = process.pfJetsPFlow.clone( rParam = 0.6 )
-
-from RutgersSandbox.RutgersSubJetAlgorithm.ak5GenJetsRU_cfi import ak5GenJetsRU
-process.ak6GenJetsNoNuRU = ak5GenJetsRU.clone(
-    rParam = cms.double(0.6),
-    src = process.ak5GenJetsNoNu.src,
-    srcPVs = process.ak5GenJetsNoNu.srcPVs
-)
-
-from RutgersSandbox.RutgersSubJetAlgorithm.ak5PFJetsRU_cfi import ak5PFJetsRU
-process.ak6PFJetsRU = ak5PFJetsRU.clone(
-    rParam = cms.double(0.6),
-    src = process.pfJetsPFlow.src,
-    srcPVs = process.pfJetsPFlow.srcPVs,
-    doAreaFastjet = process.pfJetsPFlow.doAreaFastjet
-)
+process.ak6PFlow = process.pfJetsPFlow.clone( rParam = 0.6 )
 
 from PhysicsTools.PatAlgos.tools.jetTools import *
 ## Add AK6 jets to PAT
 addJetCollection(
     process,
-    cms.InputTag('ak6PFJets'),
+    cms.InputTag('ak6PFlow'),
     'AK6', 'PF',
     doJTA=True,
     doBTagging=True,
@@ -150,28 +147,38 @@ addJetCollection(
     doJetID = False,
     genJetCollection = cms.InputTag("ak6GenJetsNoNu")
 )
-## Add subjets of AK6 jets to PAT
-addJetCollection(
-    process,
-    cms.InputTag('ak6PFJetsRU','SubJets'),
-    'AK6Sub', 'PF',
-    doJTA=True,
-    doBTagging=True,
-    jetCorrLabel=inputJetCorrLabelAK5,
-    doType1MET=False,
-    doL1Cleaning=False,
-    doL1Counters=False,
-    doJetID = False,
-    genJetCollection = cms.InputTag('ak6GenJetsNoNuRU','SubJets')
-)
+
+##AK6 jets groomed
+
+from RecoJets.JetProducers.ak5PFJetsTrimmed_cfi import ak5PFJetsTrimmed
+process.ak6TrimmedPFlow = ak5PFJetsTrimmed.clone(
+    src = process.pfJetsPFlow.src,
+    doAreaFastjet = cms.bool(True),
+    rParam = cms.double(0.6)
+    )
+
+from RecoJets.JetProducers.ak5PFJetsFiltered_cfi import ak5PFJetsFiltered
+process.ak6FilteredPFlow = ak5PFJetsFiltered.clone(
+    src = process.pfJetsPFlow.src,
+    doAreaFastjet = cms.bool(True),
+    rParam = cms.double(0.6)
+    )
+
+from RecoJets.JetProducers.ak5PFJetsPruned_cfi import ak5PFJetsPruned
+process.ak6PrunedPFlow = ak5PFJetsPruned.clone(
+    src = process.pfJetsPFlow.src,
+    doAreaFastjet = cms.bool(True),
+    rParam = cms.double(0.6)
+    )
 
 ## Define a sequence for RECO jets and append it to the PF2PAT sequence
 process.jetSeq = cms.Sequence(
     process.ak6GenJetsNoNu+
-    process.ak6GenJetsNoNuRU+
-    process.ak6PFJets+
-    process.ak6PFJetsRU
+    process.ak6PFlow
 )
+
+## Explicitly specify JEC levels for the default PAT jets (otherwise, the code will crash since it looks for L5Flavor and L7Parton which are not available in the latest JECs)
+getattr(process,"patJetCorrFactors").levels = cms.vstring('L1Offset','L2Relative','L3Absolute')
 
 ## Produce a collection of good primary vertices
 from PhysicsTools.SelectorUtils.pvSelector_cfi import pvSelector
@@ -184,12 +191,27 @@ process.goodOfflinePrimaryVertices = cms.EDFilter("PrimaryVertexObjectFilter",
     src = cms.InputTag('offlinePrimaryVertices')
 )
 
+process.TFileService = cms.Service("TFileService",
+    fileName = cms.string(options.outfilename)
+)
+
+process.rutgersJetAnalyzer = cms.EDAnalyzer('RutgersJetAnalyzer',
+    GenJetsTag = cms.InputTag('ak12GenJets'),
+    GenParticleTag = cms.InputTag('genParticles'),
+    InputsTag = cms.InputTag('genParticlesForJets'),
+    JetsTag = cms.InputTag(options.jetCollection),
+    pvtag = cms.InputTag('goodOfflinePrimaryVertices'),
+    InputPtMin = cms.double(0.0),
+    JetPtMin = cms.double(0.0)
+)
+
 ## Path definition
 process.p = cms.Path(
     process.goodOfflinePrimaryVertices*
     getattr(process,"patPF2PATSequence"+postfix)*
     process.jetSeq*
-    process.patDefaultSequence
+    process.patDefaultSequence*
+    process.rutgersJetAnalyzer
 )
 
 ### Add PF2PAT output to the created file

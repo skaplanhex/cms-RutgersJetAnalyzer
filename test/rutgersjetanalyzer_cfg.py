@@ -14,16 +14,14 @@ options.register('reportEvery',
     "Report every N events (default is N=1)"
 )
 
-options.register('QCDjets',
-		 "QCDjets.root",
+options.register('outputfile',
+		 "outputfile.root",
 		 VarParsing.multiplicity.singleton,
 		 VarParsing.varType.string,
-		 "QCDjets"
+		 "outputfile"
 		 )
 ## 'maxEvents' is already registered by the Framework, changing default value
 options.setDefault('maxEvents', 30000)
-
-options.parseArguments()
 
 process = cms.Process("USER")
 
@@ -109,5 +107,5 @@ process.rutgersJetAnalyzer = cms.EDAnalyzer('RutgersJetAnalyzer',
 process.p = cms.Path(process.genParticlesForJetsNoNu*process.ak6GenJets*process.rutgersJetAnalyzer)
 #Output histograms to root file
 process.TFileService = cms.Service("TFileService",
-    fileName = cms.string(options.QCDjets)
+    fileName = cms.string(options.outputfile)
     )

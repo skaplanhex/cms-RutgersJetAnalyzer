@@ -50,8 +50,6 @@ options.register('usePFchs',
 ## 'maxEvents' is already registered by the Framework, changing default value
 options.setDefault('maxEvents', 10)
 
-options.parseArguments()
-
 print "Running on data: %s"%('True' if options.runOnData else 'False')
 print "Using PFchs: %s"%('True' if options.usePFchs else 'False')
 

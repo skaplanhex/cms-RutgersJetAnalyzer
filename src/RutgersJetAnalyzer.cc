@@ -13,7 +13,7 @@
 //
 // Original Author:  Dinko Ferencek
 //         Created:  Fri Jul 20 12:32:38 CDT 2012
-// $Id: RutgersJetAnalyzer.cc,v 1.4 2012/08/01 22:53:59 ferencek Exp $
+// $Id: RutgersJetAnalyzer.cc,v 1.5 2012/08/14 22:07:58 skaplan Exp $
 //
 //
 
@@ -77,6 +77,7 @@ private:
     const edm::InputTag pvtag;
     const double        inputPtMin;       // minimum pT of input constituents
     const double        jetPtMin;         // minimum jet pT
+    bool                useUncorrectedJets;
     JetDefPtr           jetDefinitionAK;  // Anti-kT jet definition
     JetDefPtr           jetDefinitionKT;  // kT jet definition
     edm::Service<TFileService> fs;
@@ -125,16 +126,19 @@ RutgersJetAnalyzer::RutgersJetAnalyzer(const edm::ParameterSet& iConfig):
 genJetsTag(iConfig.getParameter<edm::InputTag>("GenJetsTag")),
 genParticleTag(iConfig.getParameter<edm::InputTag>("GenParticleTag")),
 inputsTag(iConfig.getParameter<edm::InputTag>("InputsTag")),
+JetsTag(iConfig.getParameter<edm::InputTag>("JetsTag")),
+pvtag(iConfig.getParameter<edm::InputTag>("pvtag")),
 inputPtMin(iConfig.getParameter<double>("InputPtMin")),
 jetPtMin(iConfig.getParameter<double>("JetPtMin")),
-JetsTag(iConfig.getParameter<edm::InputTag>("JetsTag")),
-pvtag(iConfig.getParameter<edm::InputTag>("pvtag"))
+useUncorrectedJets(false)
 
 {
     //now do what ever initialization is needed
     jetDefinitionAK = JetDefPtr( new fastjet::JetDefinition(fastjet::antikt_algorithm, 1.2) );
     jetDefinitionKT = JetDefPtr( new fastjet::JetDefinition(fastjet::kt_algorithm, 1.4) );
-    
+
+    if ( iConfig.exists("useUncorrectedJets") )
+      useUncorrectedJets = iConfig.getParameter<bool>("useUncorrectedJets");
 }
 
 
@@ -178,7 +182,6 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
     double fixDeltaR = 0.3;
     int numPVs = (int)PVs->size();
     
-    
     for(reco::GenParticleCollection::const_iterator iter = genParticles->begin(); iter != genParticles->end(); ++iter){
         if( abs(iter->pdgId()) == 24 ){
             fastjet::PseudoJet *temppart = new fastjet::PseudoJet(iter->px(),iter->py(),iter->pz(),iter->energy());
@@ -188,7 +191,13 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
     //convert ak6 pat::Jets to PseudoJets and store in vectors
     for(int i=0; i<(int)patjets->size(); i++){
         pat::Jet ijet = patjets->at(i);
-        fastjet::PseudoJet *tempjet = new fastjet::PseudoJet(ijet.px(),ijet.py(),ijet.pz(),ijet.energy());
+
+        double px = ijet.px(), py = ijet.py(), pz = ijet.pz(), energy = ijet.energy();
+	if( useUncorrectedJets ) {
+          px = ijet.correctedJet("Uncorrected").px(); py = ijet.correctedJet("Uncorrected").py(); pz = ijet.correctedJet("Uncorrected").pz(); energy = ijet.correctedJet("Uncorrected").energy();
+	}
+	
+        fastjet::PseudoJet *tempjet = new fastjet::PseudoJet(px,py,pz,energy);
         fjjets.push_back(*tempjet);
     }
     int numWr = fjws.size();

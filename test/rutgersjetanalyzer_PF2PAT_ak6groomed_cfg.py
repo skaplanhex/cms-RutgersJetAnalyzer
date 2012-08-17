@@ -325,6 +325,10 @@ process.rutgersJetAnalyzerak6Pruned = cms.EDAnalyzer('RutgersJetAnalyzer',
     JetPtMin = cms.double(0.0)
 )
 
+process.rutgersJetAnalyzerak6TrimmedUncorrected = process.rutgersJetAnalyzerak6Trimmed.clone( useUncorrectedJets = cms.bool(True) )
+process.rutgersJetAnalyzerak6FilteredUncorrected = process.rutgersJetAnalyzerak6Filtered.clone( useUncorrectedJets = cms.bool(True) )
+process.rutgersJetAnalyzerak6PrunedUncorrected = process.rutgersJetAnalyzerak6Pruned.clone( useUncorrectedJets = cms.bool(True) )
+
 ## Path definition
 process.p = cms.Path(
     process.goodOfflinePrimaryVertices*
@@ -334,7 +338,10 @@ process.p = cms.Path(
     process.rutgersJetAnalyzerak6*
     process.rutgersJetAnalyzerak6Trimmed*
     process.rutgersJetAnalyzerak6Filtered*
-    process.rutgersJetAnalyzerak6Pruned
+    process.rutgersJetAnalyzerak6Pruned*
+    process.rutgersJetAnalyzerak6TrimmedUncorrected*
+    process.rutgersJetAnalyzerak6FilteredUncorrected*
+    process.rutgersJetAnalyzerak6PrunedUncorrected
 )
 
 ### Add PF2PAT output to the created file

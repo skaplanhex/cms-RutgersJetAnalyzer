@@ -13,7 +13,7 @@
 //
 // Original Author:  Dinko Ferencek
 //         Created:  Fri Jul 20 12:32:38 CDT 2012
-// $Id: RutgersJetAnalyzer.cc,v 1.2 2012/07/30 17:31:27 skaplan Exp $
+// $Id: RutgersJetAnalyzer.cc,v 1.2.2.3 2012/08/15 20:25:18 mzientek Exp $
 //
 //
 
@@ -84,6 +84,8 @@ class RutgersJetAnalyzer : public edm::EDAnalyzer {
       const edm::InputTag inputsTag;
       const double        inputPtMin;       // minimum pT of input constituents
       const double        jetPtMin;         // minimum jet pT
+      const double	  matching;	    // parameter for deciding if matching on or off
+      const double	  radius;	    // radius for jet clustering
       JetDefPtr           jetDefinitionAK;  // Anti-kT jet definition
       JetDefPtr           jetDefinitionKT;  // kT jet definition
       edm::Service<TFileService> fs;
@@ -111,6 +113,10 @@ class RutgersJetAnalyzer : public edm::EDAnalyzer {
       TH1D *h_invmass_06;
       TH1D *h_invmass_04;
       TH1D *h_invmass_02;
+      TH1D *h_pt_300_449;
+      TH1D *h_m_300_449;
+      TH1D *h_pt_450_599;
+      TH1D *h_m_450_599;
 
 };
 
@@ -134,11 +140,13 @@ RutgersJetAnalyzer::RutgersJetAnalyzer(const edm::ParameterSet& iConfig):
    genParticleTag(iConfig.getParameter<edm::InputTag>("GenParticleTag")),
    inputsTag(iConfig.getParameter<edm::InputTag>("InputsTag")),
    inputPtMin(iConfig.getParameter<double>("InputPtMin")),
-   jetPtMin(iConfig.getParameter<double>("JetPtMin"))
+   jetPtMin(iConfig.getParameter<double>("JetPtMin")),
+   matching(iConfig.getParameter<double>("Matching")),
+   radius(iConfig.getParameter<double>("Radius"))
 {
    //now do what ever initialization is needed
-   jetDefinitionAK = JetDefPtr( new fastjet::JetDefinition(fastjet::antikt_algorithm, 0.6) );
-   jetDefinitionKT = JetDefPtr( new fastjet::JetDefinition(fastjet::kt_algorithm, 0.8) );
+   jetDefinitionAK = JetDefPtr( new fastjet::JetDefinition(fastjet::antikt_algorithm, 0.8) );
+   jetDefinitionKT = JetDefPtr( new fastjet::JetDefinition(fastjet::kt_algorithm, 1.0) );
 }
 
 
@@ -198,6 +206,8 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
        fastjet::PseudoJet *genjetfast = new fastjet::PseudoJet(genjet.px(),genjet.py(),genjet.pz(),genjet.energy());
        //double rap = genjetfast->rap();
        //double phi = genjetfast->phi();
+       if (matching==1)
+       {
        for (int k=0; k < numW; k++)
 	{
 	  if (genjetfast->delta_R(allWs[k])<=fixDeltaR && genjetfast->delta_R(allWs[k])<=dR[j]) //match to W & look for closer W
@@ -206,15 +216,26 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
 	      matchedindex[j] = 24; //if matched index = 24 (W pdgID)
 	    }
 	}
-       if (genjetfast->pt() > 30) 
+       }
+       if (matching==0) matchedindex[j] = 5; //no real matching done, just change index so will still be analyzed
+       if (genjetfast->pt() > 30 && (matchedindex[j]!=-1) ) 
 	{
           hpt_nocut->Fill(genjetfast->pt());
           heta_nocut->Fill(genjetfast->eta());
           hmass_nocut->Fill(genjetfast->m());
         }
-
-       if (genjetfast->pt()>ptcut && fabs(genjetfast->eta())<etacut /*&& (matchedindex[j]!=-1)*/)
+       if (genjetfast->pt()>ptcut && fabs(genjetfast->eta())<etacut && (matchedindex[j]!=-1))
 	{
+	  if (genjetfast->pt()>=300 && genjetfast->pt()<450)
+	    {
+	      h_pt_300_449->Fill(genjetfast->pt());
+	      h_m_300_449->Fill(genjetfast->m());
+	    }
+	  if (genjetfast->pt()>=450 && genjetfast->pt()<600)
+	    {
+	      h_pt_450_599->Fill(genjetfast->pt());
+	      h_m_450_599->Fill(genjetfast->m());
+	    }
 	  std::vector<fastjet::PseudoJet> noMfj;
 	  std::vector<edm::Ptr<reco::Candidate> >::const_iterator inBegin = inputs.begin(),
             inEnd = inputs.end(), i = inBegin;
@@ -233,7 +254,7 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
 	  ClusterSequencePtr clusterSeqKT1 = ClusterSequencePtr( new fastjet::ClusterSequence( noMfj, *jetDefinitionKT ) );
 	  std::vector<fastjet::PseudoJet> kTJets1 = fastjet::sorted_by_pt(clusterSeqKT1->inclusive_jets(jetPtMin)); // kT jets
 	  double beta = 1.0;
-	  double R0 = 0.6;
+	  double R0 = radius;
 	  double Rcut = R0+0.2;
 	  fastjet::Nsubjettiness nSub1OnePass_gen1(1, Njettiness::onepass_kt_axes, beta, R0, Rcut);
 	  double tau1onepass_gen1 = nSub1OnePass_gen1(kTJets1[0]);
@@ -244,7 +265,7 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
 	     h_T2T1_pt_noM_gen->Fill(kTJets1[0].pt(),(tau2onepass_gen1/tau1onepass_gen1));
 	   }
 	}
-       if(genjetfast->pt()>ptcut && fabs(genjetfast->eta())<etacut && massmin<genjetfast->m() && genjetfast->m()<massmax /*&& (matchedindex[j]!=-1)*/ )
+       if(genjetfast->pt()>ptcut && fabs(genjetfast->eta())<etacut && massmin<genjetfast->m() && genjetfast->m()<massmax && (matchedindex[j]!=-1) )
 	{
        std::vector<fastjet::PseudoJet> fjInputs; // FastJet inputs for jet clustering
 
@@ -268,7 +289,7 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
        std::vector<fastjet::PseudoJet> kTJets = fastjet::sorted_by_pt(clusterSeqKT->inclusive_jets(jetPtMin)); // kT jets
        //Nsubjettiness plugin calculates Tau values:
        double beta = 1.0;
-       double R0 = 0.6;
+       double R0 = radius;
        double Rcut = R0+0.2;
        fastjet::Nsubjettiness nSub1OnePass_gen(1, Njettiness::onepass_kt_axes, beta, R0, Rcut);
        double tau1onepass_gen = nSub1OnePass_gen(kTJets[0]);
@@ -432,6 +453,10 @@ RutgersJetAnalyzer::beginJob()
   h_invmass_06 = fs->make<TH1D>("h_invmass_06","Jet Inv Mass for Tau2/Tau1 < 0.6",80,40,120);
   h_invmass_04 = fs->make<TH1D>("h_invmass_04","Jet Inv Mass for Tau2/Tau1 < 0.4",80,40,120);
   h_invmass_02 = fs->make<TH1D>("h_invmass_02","Jet Inv Mass for Tau2/Tau1 < 0.2",80,40,120);
+  h_pt_300_449 = fs->make<TH1D>("h_pt_300_449","Jet pT for pT 300 - 449",150,300,450);
+  h_m_300_449 = fs->make<TH1D>("h_m_300_449","Jet Inv Mass for pT 300 - 449",150,300,450);
+  h_pt_450_599 = fs->make<TH1D>("h_pt_450_599","Jet pT for pT 450 - 600",150,450,600);
+  h_m_450_599 = fs->make<TH1D>("h_m_450_599","Jet Inv Mass for pT 450 - 600",150,450,600);
 }
 
 // ------------ method called once each job just after ending the event loop  ------------

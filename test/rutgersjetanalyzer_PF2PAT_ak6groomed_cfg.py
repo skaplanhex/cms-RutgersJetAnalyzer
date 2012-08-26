@@ -130,25 +130,25 @@ getattr(process,"pfNoJet"+postfix).enable = True
 
 ## Define AK6 jets (GEN and RECO)
 process.ak6GenJetsNoNu = process.ak5GenJetsNoNu.clone( rParam = 0.6 )
-process.ak6PFlow = process.pfJetsPFlow.clone( rParam = 0.6 )
+process.ak6PFJets = process.pfJetsPFlow.clone( rParam = 0.6 )
 
 ## AK6 groomed jets
 from RecoJets.JetProducers.ak5PFJetsTrimmed_cfi import ak5PFJetsTrimmed
-process.ak6TrimmedPFlow = ak5PFJetsTrimmed.clone(
+process.ak6PFJetsTrimmed = ak5PFJetsTrimmed.clone(
     src = process.pfJetsPFlow.src,
     doAreaFastjet = cms.bool(True),
     rParam = cms.double(0.6)
 )
 
 from RecoJets.JetProducers.ak5PFJetsFiltered_cfi import ak5PFJetsFiltered
-process.ak6FilteredPFlow = ak5PFJetsFiltered.clone(
+process.ak6PFJetsFiltered = ak5PFJetsFiltered.clone(
     src = process.pfJetsPFlow.src,
     doAreaFastjet = cms.bool(True),
     rParam = cms.double(0.6)
 )
 
 from RecoJets.JetProducers.ak5PFJetsPruned_cfi import ak5PFJetsPruned
-process.ak6PrunedPFlow = ak5PFJetsPruned.clone(
+process.ak6PFJetsPruned = ak5PFJetsPruned.clone(
     src = process.pfJetsPFlow.src,
     doAreaFastjet = cms.bool(True),
     rParam = cms.double(0.6)
@@ -158,7 +158,7 @@ from PhysicsTools.PatAlgos.tools.jetTools import *
 ## Add AK6 jets to PAT
 addJetCollection(
     process,
-    cms.InputTag('ak6PFlow'),
+    cms.InputTag('ak6PFJets'),
     'AK6', 'PF',
     doJTA=True,
     doBTagging=True,
@@ -172,7 +172,7 @@ addJetCollection(
 ## Add AK6 Trimmed jets to PAT
 addJetCollection(
     process,
-    cms.InputTag('ak6TrimmedPFlow'),
+    cms.InputTag('ak6PFJetsTrimmed'),
     'AK6Trimmed','PF',
     doJTA=True,
     doBTagging=True,
@@ -183,11 +183,10 @@ addJetCollection(
     doJetID = False,
     genJetCollection = cms.InputTag("ak6GenJetsNoNu")
 )
-
 ## Add AK6 Filtered jets to PAT
 addJetCollection(
     process,
-    cms.InputTag('ak6FilteredPFlow'),
+    cms.InputTag('ak6PFJetsFiltered'),
     'AK6Filtered','PF',
     doJTA=True,
     doBTagging=True,
@@ -201,7 +200,7 @@ addJetCollection(
 ## Add AK6 Pruned jets to PAT
 addJetCollection(
     process,
-    cms.InputTag('ak6PrunedPFlow'),
+    cms.InputTag('ak6PFJetsPruned'),
     'AK6Pruned','PF',
     doJTA=True,
     doBTagging=True,
@@ -216,10 +215,10 @@ addJetCollection(
 ## Define a sequence for RECO jets and append it to the PF2PAT sequence
 process.jetSeq = cms.Sequence(
     process.ak6GenJetsNoNu+
-    process.ak6PFlow+
-    process.ak6TrimmedPFlow+
-    process.ak6FilteredPFlow+
-    process.ak6PrunedPFlow
+    process.ak6PFJets+
+    process.ak6PFJetsTrimmed+
+    process.ak6PFJetsFiltered+
+    process.ak6PFJetsPruned
 )
 
 ## Produce a collection of good primary vertices
@@ -237,7 +236,7 @@ process.TFileService = cms.Service("TFileService",
     fileName = cms.string(options.outfilename)
 )
 
-process.rutgersJetAnalyzerak6 = cms.EDAnalyzer('RutgersJetAnalyzer',
+process.rutgersJetAnalyzerAK6 = cms.EDAnalyzer('RutgersJetAnalyzer',
     GenJetsTag = cms.InputTag('ak12GenJets'),
     GenParticleTag = cms.InputTag('genParticles'),
     InputsTag = cms.InputTag('genParticlesForJets'),
@@ -246,7 +245,7 @@ process.rutgersJetAnalyzerak6 = cms.EDAnalyzer('RutgersJetAnalyzer',
     InputPtMin = cms.double(0.0),
     JetPtMin = cms.double(0.0)
 )
-process.rutgersJetAnalyzerak6Trimmed = cms.EDAnalyzer('RutgersJetAnalyzer',
+process.rutgersJetAnalyzerAK6Trimmed = cms.EDAnalyzer('RutgersJetAnalyzer',
     GenJetsTag = cms.InputTag('ak12GenJets'),
     GenParticleTag = cms.InputTag('genParticles'),
     InputsTag = cms.InputTag('genParticlesForJets'),
@@ -255,7 +254,7 @@ process.rutgersJetAnalyzerak6Trimmed = cms.EDAnalyzer('RutgersJetAnalyzer',
     InputPtMin = cms.double(0.0),
     JetPtMin = cms.double(0.0)
 )
-process.rutgersJetAnalyzerak6Filtered = cms.EDAnalyzer('RutgersJetAnalyzer',
+process.rutgersJetAnalyzerAK6Filtered = cms.EDAnalyzer('RutgersJetAnalyzer',
     GenJetsTag = cms.InputTag('ak12GenJets'),
     GenParticleTag = cms.InputTag('genParticles'),
     InputsTag = cms.InputTag('genParticlesForJets'),
@@ -264,7 +263,7 @@ process.rutgersJetAnalyzerak6Filtered = cms.EDAnalyzer('RutgersJetAnalyzer',
     InputPtMin = cms.double(0.0),
     JetPtMin = cms.double(0.0)
 )
-process.rutgersJetAnalyzerak6Pruned = cms.EDAnalyzer('RutgersJetAnalyzer',
+process.rutgersJetAnalyzerAK6Pruned = cms.EDAnalyzer('RutgersJetAnalyzer',
     GenJetsTag = cms.InputTag('ak12GenJets'),
     GenParticleTag = cms.InputTag('genParticles'),
     InputsTag = cms.InputTag('genParticlesForJets'),
@@ -273,9 +272,9 @@ process.rutgersJetAnalyzerak6Pruned = cms.EDAnalyzer('RutgersJetAnalyzer',
     InputPtMin = cms.double(0.0),
     JetPtMin = cms.double(0.0)
 )
-process.rutgersJetAnalyzerak6TrimmedUncorrected = process.rutgersJetAnalyzerak6Trimmed.clone( useUncorrectedJets = cms.bool(True) )
-process.rutgersJetAnalyzerak6FilteredUncorrected = process.rutgersJetAnalyzerak6Filtered.clone( useUncorrectedJets = cms.bool(True) )
-process.rutgersJetAnalyzerak6PrunedUncorrected = process.rutgersJetAnalyzerak6Pruned.clone( useUncorrectedJets = cms.bool(True) )
+process.rutgersJetAnalyzerAK6TrimmedUncorrected = process.rutgersJetAnalyzerAK6Trimmed.clone( useUncorrectedJets = cms.bool(True) )
+process.rutgersJetAnalyzerAK6FilteredUncorrected = process.rutgersJetAnalyzerAK6Filtered.clone( useUncorrectedJets = cms.bool(True) )
+process.rutgersJetAnalyzerAK6PrunedUncorrected = process.rutgersJetAnalyzerAK6Pruned.clone( useUncorrectedJets = cms.bool(True) )
 
 ## Path definition
 process.p = cms.Path(
@@ -283,13 +282,13 @@ process.p = cms.Path(
     getattr(process,"patPF2PATSequence"+postfix)*
     process.jetSeq*
     process.patDefaultSequence*
-    process.rutgersJetAnalyzerak6*
-    process.rutgersJetAnalyzerak6Trimmed*
-    process.rutgersJetAnalyzerak6Filtered*
-    process.rutgersJetAnalyzerak6Pruned*
-    process.rutgersJetAnalyzerak6TrimmedUncorrected*
-    process.rutgersJetAnalyzerak6FilteredUncorrected*
-    process.rutgersJetAnalyzerak6PrunedUncorrected
+    process.rutgersJetAnalyzerAK6*
+    process.rutgersJetAnalyzerAK6Trimmed*
+    process.rutgersJetAnalyzerAK6Filtered*
+    process.rutgersJetAnalyzerAK6Pruned*
+    process.rutgersJetAnalyzerAK6TrimmedUncorrected*
+    process.rutgersJetAnalyzerAK6FilteredUncorrected*
+    process.rutgersJetAnalyzerAK6PrunedUncorrected
 )
 
 ### Add PF2PAT output to the created file

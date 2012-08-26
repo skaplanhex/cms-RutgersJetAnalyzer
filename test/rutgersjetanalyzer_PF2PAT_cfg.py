@@ -130,13 +130,19 @@ getattr(process,"pfNoJet"+postfix).enable = True
 
 ## Define AK6 jets (GEN and RECO)
 process.ak6GenJetsNoNu = process.ak5GenJetsNoNu.clone( rParam = 0.6 )
-process.ak6PFlow = process.pfJetsPFlow.clone( rParam = 0.6 )
+process.ak6PFJets = process.pfJetsPFlow.clone( rParam = 0.6 )
+## Define AK8 jets (GEN and RECO)
+process.ak8GenJetsNoNu = process.ak5GenJetsNoNu.clone( rParam = 0.8 )
+process.ak8PFJets = process.pfJetsPFlow.clone( rParam = 0.8 )
+## Define AK10 jets (GEN and RECO)
+process.ak10GenJetsNoNu = process.ak5GenJetsNoNu.clone( rParam = 1.0 )
+process.ak10PFJets = process.pfJetsPFlow.clone( rParam = 1.0 )
 
 from PhysicsTools.PatAlgos.tools.jetTools import *
 ## Add AK6 jets to PAT
 addJetCollection(
     process,
-    cms.InputTag('ak6PFlow'),
+    cms.InputTag('ak6PFJets'),
     'AK6', 'PF',
     doJTA=True,
     doBTagging=True,
@@ -147,53 +153,43 @@ addJetCollection(
     doJetID = False,
     genJetCollection = cms.InputTag("ak6GenJetsNoNu")
 )
-## Define AK8 jets (GEN and RECO)
-process.ak8GenJetsNoNu = process.ak5GenJetsNoNu.clone( rParam = 0.8 )
-process.ak8PFlow = process.pfJetsPFlow.clone( rParam = 0.8 )
-
-from PhysicsTools.PatAlgos.tools.jetTools import *
 ## Add AK8 jets to PAT
 addJetCollection(
-                 process,
-                 cms.InputTag('ak8PFlow'),
-                 'AK8', 'PF',
-                 doJTA=True,
-                 doBTagging=True,
-                 jetCorrLabel=inputJetCorrLabelAK5,
-                 doType1MET=False,
-                 doL1Cleaning=False,
-                 doL1Counters=False,
-                 doJetID = False,
-                 genJetCollection = cms.InputTag("ak8GenJetsNoNu")
-                 )
-## Define AK10 jets (GEN and RECO)
-process.ak10GenJetsNoNu = process.ak5GenJetsNoNu.clone( rParam = 1.0 )
-process.ak10PFlow = process.pfJetsPFlow.clone( rParam = 1.0 )
-
-from PhysicsTools.PatAlgos.tools.jetTools import *
+    process,
+    cms.InputTag('ak8PFJets'),
+    'AK8', 'PF',
+    doJTA=True,
+    doBTagging=True,
+    jetCorrLabel=inputJetCorrLabelAK7,
+    doType1MET=False,
+    doL1Cleaning=False,
+    doL1Counters=False,
+    doJetID = False,
+    genJetCollection = cms.InputTag("ak8GenJetsNoNu")
+)
 ## Add AK10 jets to PAT
 addJetCollection(
-                 process,
-                 cms.InputTag('ak10PFlow'),
-                 'AK10', 'PF',
-                 doJTA=True,
-                 doBTagging=True,
-                 jetCorrLabel=inputJetCorrLabelAK5,
-                 doType1MET=False,
-                 doL1Cleaning=False,
-                 doL1Counters=False,
-                 doJetID = False,
-                 genJetCollection = cms.InputTag("ak10GenJetsNoNu")
-                 )
+    process,
+    cms.InputTag('ak10PFJets'),
+    'AK10', 'PF',
+    doJTA=True,
+    doBTagging=True,
+    jetCorrLabel=inputJetCorrLabelAK7,
+    doType1MET=False,
+    doL1Cleaning=False,
+    doL1Counters=False,
+    doJetID = False,
+    genJetCollection = cms.InputTag("ak10GenJetsNoNu")
+)
 
 ## Define a sequence for RECO jets and append it to the PF2PAT sequence
 process.jetSeq = cms.Sequence(
     process.ak6GenJetsNoNu+
-    process.ak6PFlow+
+    process.ak6PFJets+
     process.ak8GenJetsNoNu+
-    process.ak8PFlow+
+    process.ak8PFJets+
     process.ak10GenJetsNoNu+
-    process.ak10PFlow
+    process.ak10PFJets
 )
 
 ## Produce a collection of good primary vertices
@@ -211,7 +207,7 @@ process.TFileService = cms.Service("TFileService",
     fileName = cms.string(options.outfilename)
 )
 
-process.rutgersJetAnalyzerak6 = cms.EDAnalyzer('RutgersJetAnalyzer',
+process.rutgersJetAnalyzerAK6 = cms.EDAnalyzer('RutgersJetAnalyzer',
     GenJetsTag = cms.InputTag('ak12GenJets'),
     GenParticleTag = cms.InputTag('genParticles'),
     InputsTag = cms.InputTag('genParticlesForJets'),
@@ -220,7 +216,7 @@ process.rutgersJetAnalyzerak6 = cms.EDAnalyzer('RutgersJetAnalyzer',
     InputPtMin = cms.double(0.0),
     JetPtMin = cms.double(0.0)
 )
-process.rutgersJetAnalyzerak7 = cms.EDAnalyzer('RutgersJetAnalyzer',
+process.rutgersJetAnalyzerAK7 = cms.EDAnalyzer('RutgersJetAnalyzer',
     GenJetsTag = cms.InputTag('ak12GenJets'),
     GenParticleTag = cms.InputTag('genParticles'),
     InputsTag = cms.InputTag('genParticlesForJets'),
@@ -229,7 +225,7 @@ process.rutgersJetAnalyzerak7 = cms.EDAnalyzer('RutgersJetAnalyzer',
     InputPtMin = cms.double(0.0),
     JetPtMin = cms.double(0.0)
 )
-process.rutgersJetAnalyzerak8 = cms.EDAnalyzer('RutgersJetAnalyzer',
+process.rutgersJetAnalyzerAK8 = cms.EDAnalyzer('RutgersJetAnalyzer',
     GenJetsTag = cms.InputTag('ak12GenJets'),
     GenParticleTag = cms.InputTag('genParticles'),
     InputsTag = cms.InputTag('genParticlesForJets'),
@@ -238,7 +234,7 @@ process.rutgersJetAnalyzerak8 = cms.EDAnalyzer('RutgersJetAnalyzer',
     InputPtMin = cms.double(0.0),
     JetPtMin = cms.double(0.0)
 )
-process.rutgersJetAnalyzerak10 = cms.EDAnalyzer('RutgersJetAnalyzer',
+process.rutgersJetAnalyzerAK10 = cms.EDAnalyzer('RutgersJetAnalyzer',
     GenJetsTag = cms.InputTag('ak12GenJets'),
     GenParticleTag = cms.InputTag('genParticles'),
     InputsTag = cms.InputTag('genParticlesForJets'),
@@ -253,10 +249,10 @@ process.p = cms.Path(
     getattr(process,"patPF2PATSequence"+postfix)*
     process.jetSeq*
     process.patDefaultSequence*
-    process.rutgersJetAnalyzerak6*
-    process.rutgersJetAnalyzerak7*
-    process.rutgersJetAnalyzerak8*
-    process.rutgersJetAnalyzerak10
+    process.rutgersJetAnalyzerAK6*
+    process.rutgersJetAnalyzerAK7*
+    process.rutgersJetAnalyzerAK8*
+    process.rutgersJetAnalyzerAK10
 )
 
 ### Add PF2PAT output to the created file

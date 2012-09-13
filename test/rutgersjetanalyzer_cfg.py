@@ -44,6 +44,8 @@ process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(options.maxE
 # Input files
 process.source = cms.Source("PoolSource",
     fileNames = cms.untracked.vstring(
+	'file:/uscmst1b_scratch/lpc1/lpcphys/ferencek/Higgs/CMSSW_5_2_5/src/RutgersSandbox/RutgersJetAnalyzer/test/patTuple_PF2PAT.root'
+
 
 #flat QCD sample -------
        #'/store/mc/Summer12/QCD_Pt-15to3000_TuneZ2star_Flat_8TeV_pythia6/AODSIM/PU_S7_START52_V9-v5/0000/FE6F3A25-D998-E111-B776-0030487D5E45.root',
@@ -58,7 +60,7 @@ process.source = cms.Source("PoolSource",
        #'/store/mc/Summer12/QCD_Pt-15to3000_TuneZ2star_Flat_8TeV_pythia6/AODSIM/PU_S7_START52_V9-v5/0000/F087AC48-DA98-E111-95EE-003048C692C0.root'
 
 #WW events -------------
-	'/store/mc/Summer12/WWtoAnything_ptmin500_TuneZ2Star_8TeV-pythia6-tauola/AODSIM/PU_S7_START52_V9-v1/0000/36B20258-8A95-E111-A646-0026189438BC.root',
+	#'/store/mc/Summer12/WWtoAnything_ptmin500_TuneZ2Star_8TeV-pythia6-tauola/AODSIM/PU_S7_START52_V9-v1/0000/36B20258-8A95-E111-A646-0026189438BC.root',
 	#'/store/mc/Summer12/WWtoAnything_ptmin500_TuneZ2Star_8TeV-pythia6-tauola/AODSIM/PU_S7_START52_V9-v1/0000/38E44AE5-8595-E111-A05F-0030486790BE.root',
 	#'/store/mc/Summer12/WWtoAnything_ptmin500_TuneZ2Star_8TeV-pythia6-tauola/AODSIM/PU_S7_START52_V9-v1/0000/36EDDBA8-D495-E111-8FF1-0026189438D4.root',
 	#'/store/mc/Summer12/WWtoAnything_ptmin500_TuneZ2Star_8TeV-pythia6-tauola/AODSIM/PU_S7_START52_V9-v1/0000/0AD250E5-9C95-E111-93DA-003048D15E02.root',
@@ -97,8 +99,8 @@ process.ak6GenJets = ak5GenJets.clone( rParam = 0.6, src = cms.InputTag("genPart
 # Initialize RutgersJetAnalyzer
 process.rutgersJetAnalyzer = cms.EDAnalyzer('RutgersJetAnalyzer',
     GenJetsTag = cms.InputTag('ak6GenJets'),
+    PrunedGenParticleTag = cms.InputTag('prunedGenParticles'),
     InputsTag = cms.InputTag('genParticlesForJetsNoNu'),
-    GenParticleTag = cms.InputTag('genParticles'),
     InputPtMin = cms.double(0.0),
     JetPtMin = cms.double(0.0),
     Matching = cms.double(1.0),

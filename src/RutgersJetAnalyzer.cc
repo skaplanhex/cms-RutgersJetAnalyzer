@@ -1,4 +1,4 @@
- // -*- C++ -*-
+// -*- C++ -*-
 //
 // Package:    RutgersJetAnalyzer
 // Class:      RutgersJetAnalyzer
@@ -13,7 +13,7 @@
 //
 // Original Author:  Dinko Ferencek
 //         Created:  Fri Jul 20 12:32:38 CDT 2012
-// $Id: RutgersJetAnalyzer.cc,v 1.2.2.3 2012/08/15 20:25:18 mzientek Exp $
+// $Id: RutgersJetAnalyzer.cc,v 1.2.2.4 2012/08/20 15:18:22 mzientek Exp $
 //
 //
 
@@ -30,24 +30,19 @@
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/EDAnalyzer.h"
-
 #include <cmath>
-
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
-
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
-
 #include "DataFormats/Candidate/interface/Candidate.h"
+#include "DataFormats/PatCandidates/interface/Jet.h"
 #include "DataFormats/Candidate/interface/CandidateFwd.h"
 #include "DataFormats/JetReco/interface/GenJetCollection.h"
 #include "DataFormats/HepMCCandidate/interface/GenParticle.h"
-
 #include "TH1.h"
 #include "TH2.h"
 #include "FWCore/ServiceRegistry/interface/Service.h"
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
-
 #include "RutgersSandbox/RutgersJetAnalyzer/plugins/Nsubjettiness.hh"
 #include "RutgersSandbox/RutgersJetAnalyzer/plugins/NjettinessPlugin.hh"
 
@@ -82,6 +77,8 @@ class RutgersJetAnalyzer : public edm::EDAnalyzer {
       const edm::InputTag genJetsTag;
       const edm::InputTag genParticleTag;
       const edm::InputTag inputsTag;
+      const edm::InputTag jetsTag;
+      const edm::InputTag pvtag;
       const double        inputPtMin;       // minimum pT of input constituents
       const double        jetPtMin;         // minimum jet pT
       const double	  matching;	    // parameter for deciding if matching on or off
@@ -92,31 +89,42 @@ class RutgersJetAnalyzer : public edm::EDAnalyzer {
       //TH1D *hT1;
       //TH1D *hT2;
       //TH1D *hT2byT1;
-      TH1D *hpt_nocut;
+      //TH1D *hpt_nocut;
       //TH1D *hpt_cut;
-      TH1D *heta_nocut;
+      //TH1D *heta_nocut;
       //TH1D *heta_cut;
-      TH1D *hmass_nocut;
+      //TH1D *hmass_nocut;
       //TH1D *hmass_cut;
       //TH1D *hpt_nocut_cluster;
       //TH1D *heta_nocut_cluster;
       //TH1D *hmass_nocut_cluster;
-      TH1D *h_tau1onepass_gen;
+      /*TH1D *h_tau1onepass_gen;
       TH1D *h_tau2onepass_gen;
       TH1D *h_T2T1onepass_gen; 
       TH2D *h_T2_T1_gen; 
       TH2D *h_tau1_pt_gen;
       TH2D *h_tau2_pt_gen;
       TH2D *h_T2T1_pt_gen;
-      TH2D *h_T2T1_pt_noM_gen;
-      TH1D *h_invmass_all;
+      TH2D *h_T2T1_pt_noM_gen;*/
+      /*TH1D *h_invmass_all;
       TH1D *h_invmass_06;
       TH1D *h_invmass_04;
       TH1D *h_invmass_02;
       TH1D *h_pt_300_449;
       TH1D *h_m_300_449;
       TH1D *h_pt_450_599;
-      TH1D *h_m_450_599;
+      TH1D *h_m_450_599;*/
+      TH1D *h_tau1_reco;
+      TH1D *h_tau2_reco;
+      TH1D *h_T2T1_reco;
+      TH2D *h_tau1_pt_reco;
+      TH2D *h_tau2_pt_reco;
+      TH2D *h_T2T1_pt_mcut_reco;
+      TH2D *h_T2T1_pt_nomcut_reco;
+      TH2D *h_T2T1_pv_mcut_reco;
+      TH2D *h_T2T1_pv_nomcut_reco;
+      TH2D *h_T2T1_pv_mcut_reco2;
+      TH2D *h_T2T1_pv_nomcut_reco2;
 
 };
 
@@ -139,14 +147,17 @@ RutgersJetAnalyzer::RutgersJetAnalyzer(const edm::ParameterSet& iConfig):
    genJetsTag(iConfig.getParameter<edm::InputTag>("GenJetsTag")),
    genParticleTag(iConfig.getParameter<edm::InputTag>("GenParticleTag")),
    inputsTag(iConfig.getParameter<edm::InputTag>("InputsTag")),
+   jetsTag(iConfig.getParameter<edm::InputTag>("JetsTag")),
+   pvtag(iConfig.getParameter<edm::InputTag>("Pvtag")),
    inputPtMin(iConfig.getParameter<double>("InputPtMin")),
    jetPtMin(iConfig.getParameter<double>("JetPtMin")),
    matching(iConfig.getParameter<double>("Matching")),
    radius(iConfig.getParameter<double>("Radius"))
+
 {
    //now do what ever initialization is needed
-   jetDefinitionAK = JetDefPtr( new fastjet::JetDefinition(fastjet::antikt_algorithm, 0.8) );
-   jetDefinitionKT = JetDefPtr( new fastjet::JetDefinition(fastjet::kt_algorithm, 1.0) );
+   jetDefinitionAK = JetDefPtr( new fastjet::JetDefinition(fastjet::antikt_algorithm, radius) );
+   jetDefinitionKT = JetDefPtr( new fastjet::JetDefinition(fastjet::kt_algorithm, radius+0.2) );
 }
 
 
@@ -171,6 +182,7 @@ RutgersJetAnalyzer::~RutgersJetAnalyzer()
 void
 RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
+    //Loop over gen particles to find Ws (pdgId = +-24), Zs (pdgId = 23), Hs (pdgId = 25) and b-quarks (pdgId = +-5)
     edm::Handle<reco::GenParticleCollection> genHandle;
     iEvent.getByLabel(genParticleTag, genHandle);
     //std::cout << "Number of GenParticles: " << genHandle->size() << std::endl;
@@ -188,7 +200,298 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
 	}
      }
    int numW = allWs.size();
+   /*std::vector <fastjet::PseudoJet> allZs;
+   for( reco::GenParticleCollection::const_iterator  iter3 = genHandle->begin(); iter3 != genHandle->end(); ++iter3 )
+     {
+       if( abs(iter3->pdgId()) == 23 )
+	{
+	  fastjet::PseudoJet temp3 = fastjet::PseudoJet(iter3->px(),iter3->py(),iter3->pz(),iter3->energy());
+	  allZs.push_back(temp3);
+	}
+     }
+   int numZ = allZs.size();
+   std::vector <fastjet::PseudoJet> allHs;
+   for( reco::GenParticleCollection::const_iterator  iter4 = genHandle->begin(); iter4 != genHandle->end(); ++iter4 )
+     {
+       if( abs(iter4->pdgId()) == 25 )
+	{
+	  fastjet::PseudoJet temp4 = fastjet::PseudoJet(iter4->px(),iter4->py(),iter4->pz(),iter4->energy());
+	  allHs.push_back(temp4);
+	}
+     }
+   int numH = allHs.size();
+   std::vector <fastjet::PseudoJet> allbs;
+   for( reco::GenParticleCollection::const_iterator iter2 = genHandle->begin(); iter2 != genHandle->end(); ++iter2 )
+     {
+       if( abs(iter2->pdgId()) == 5 )
+	{
+	  fastjet::PseudoJet temp2 = fastjet::PseudoJet(iter2->px(),iter2->py(),iter2->pz(),iter2->energy());
+	  allbs.push_back(temp2);
+	}
+     }
+   int numb = allbs.size();*/
 
+   //RECONSTRUCTED JET LEVEL (PAT JETS)
+   edm::Handle< std::vector<reco::Vertex> > PVs;
+   iEvent.getByLabel(pvtag,PVs);
+   int numPVs = (int) PVs->size();
+
+   //convert patjets to fastjet PseudoJets
+   std::vector<fastjet::PseudoJet> fjpatjets;
+   edm::Handle< std::vector<pat::Jet> > patjets;
+   iEvent.getByLabel(jetsTag,patjets);
+   double numJets = patjets->size();
+   std::vector<double> dR_r(numJets,99); //vector for remembering distance to closest W
+   std::vector<int> matchedindex_r(numJets,-1); //matched if index is not -1
+   for (int i=0; i < numJets; i++)
+     {
+	pat::Jet ijet = patjets->at(i);
+	std::vector<edm::Ptr<reco::Candidate> > recoConstit;
+	recoConstit = patjets->at(i).getJetConstituents();
+	double patpx=ijet.px(), patpy=ijet.py(), patpz=ijet.pz(), patE=ijet.energy();
+	fastjet::PseudoJet *tempjet = new fastjet::PseudoJet(patpx,patpy,patpz,patE);
+	fjpatjets.push_back(*tempjet);
+        if (matching==1)
+          {
+	    for (int k=0; k<numW; k++) //match to W
+	      {
+	        if (tempjet->delta_R(allWs[k]) <= fixDeltaR && tempjet->delta_R(allWs[k]) <= dR_r[i])
+	          {
+		    dR_r[i] = tempjet->delta_R(allWs[k]);
+		    matchedindex_r[i] = 24; //W jet
+		    /*for (int l=0; l<numZ; l++) //look for closer Z
+		      {
+			if (tempjet->delta_R(allZs[l]) <= fixDeltaR && tempjet->delta_R(allZs[l]) <= dR_r[i])
+			  {
+			    dR_r[i] = tempjet->delta_R(allZs[l]);
+			    matchedindex_r[i] = 23; //Z jet
+			    for (int m=0; m<numH; m++) //look for closer H
+			      {
+				if (tempjet->delta_R(allHs[m]) <= fixDeltaR && tempjet->delta_R(allHs[m]) <= dR_r[i])
+				  {
+				    dR_r[i] = tempjet->delta_R(allHs[m]);
+				    matchedindex_r[i] = 25; //H jet
+				  }
+			      }
+			  }
+		      }*/
+	          }
+	      }
+          }
+        if (matching==0) matchedindex_r[i] = 7; //no matching applied for QCD
+        if (tempjet->pt()>ptcut && fabs(tempjet->eta())<etacut && matchedindex_r[i]!=-1)
+          {
+	     std::vector<fastjet::PseudoJet> noMcutfj;
+	     std::vector<edm::Ptr<reco::Candidate> >::const_iterator inBegin = recoConstit.begin(),
+             inEnd = recoConstit.end(), m = inBegin;
+	     for ( ; m != inEnd; ++m )
+	     {
+	       reco::CandidatePtr recoConstitP = *m;
+	       if (recoConstit->pt() < inputPtMin) continue;
+	       if (recoConstit->pt() == 0)
+	       	{
+		  edm::LogError("NullTransverseMomentum") << "dropping input candidate with pt=0";
+		  continue;
+		}
+	       noMcutfj.push_back(fastjet::PseudoJet(recoConstit->px(),recoConstit->py(),recoConstit->pz(),recoConstit->energy()));
+	       noMcutfj.back().set_user_index(m - inBegin);
+	     }
+	     ClusterSequencePtr clusterSeqKT_r1 = ClusterSequencePtr( new fastjet::ClusterSequence( noMcutfj, *jetDefinitionKT ));
+	     std::vector<fastjet::PseudoJet> kTJets_r1 = fastjet::sorted_by_pt(clusterSeqKT_r1->inclusive_jets(jetPtMin));
+	     std::vector<fastjet::PseudoJet> subJets1 = fastjet::sorted_by_pt(kTJets_r1[0].exclusive_subjets(2));
+	     double beta = 1.0;
+	     double R0 = radius;
+	     double Rcut = R0+0.2;
+	     fastjet::Nsubjettiness nSub1OnePass_reco1(1, Njettiness::onepass_kt_axes, beta, R0, Rcut);
+	     double tau1onepass_reco1 = nSub1OnePass_reco1(kTJets_r1[0]);
+	     fastjet::Nsubjettiness nSub2OnePass_reco1(2, Njettiness::onepass_kt_axes, beta, R0, Rcut);
+	     double tau2onepass_reco1 = nSub2OnePass_reco1(kTJets_r1[0]);
+	     if (tau1onepass_reco1 != 0 || tau2onepass_reco1 !=0)
+	      {
+	        h_T2T1_pv_nomcut_reco->Fill(numPVs,(tau2onepass_reco1/tau1onepass_reco1));
+	        h_T2T1_pt_nomcut_reco->Fill(kTJets_r1[0].pt(),(tau2onepass_reco1/tau1onepass_reco1));
+	      }
+	     std::vector<double> dR_sub1(2,99); //vector for remembering distance to closest b
+	     std::vector<int> matchedindex_sub1(2,-1); //subjet matched if index is not -1
+	     /*for (int h=0; h<numb; h++) //match subjets to b-quarks
+	      {
+		if (subJets1[0].delta_R(allbs[h]) <= fixDeltaR && subJets1[0].delta_R(allbs[h]) <= dR_sub1[0])
+		  {
+		    dR_sub1[0] = subJets1[0].delta_R(allbs[h]);
+		    matchedindex_sub1[0] = 5;
+		  }
+		if (subJets1[1].delta_R(allbs[h]) <= fixDeltaR && subJets1[1].delta_R(allbs[h]) <= dR_sub1[1])
+		  {
+		    dR_sub1[1] = subJets1[1].delta_R(allbs[h]);
+		    matchedindex_sub1[1] = 5;
+		  }
+	      }*/
+          }
+        if (tempjet->pt()>ptcut && fabs(tempjet->eta())<etacut && tempjet->m()>massmin && tempjet->m()<massmax && matchedindex_r[i]!=-1)
+          {
+	    std::vector<fastjet::PseudoJet> Mcutfj;
+	    std::vector<edm::Ptr<reco::Candidate> >::const_iterator inBegin = recoConstit.begin(),
+            inEnd = recoConstit.end(), m = inBegin;
+	    for ( ; m != inEnd; ++m )
+	    {
+	      reco::CandidatePtr recoConstit = *m;
+	      if (recoConstit->pt() < inputPtMin) continue;
+	      if (recoConstit->pt() == 0)
+	      	{
+		  edm::LogError("NullTransverseMomentum") << "dropping input candidate with pt=0";
+		  continue;
+		}
+	      Mcutfj.push_back(fastjet::PseudoJet(recoConstit->px(),recoConstit->py(),recoConstit->pz(),recoConstit->energy()));
+	      Mcutfj.back().set_user_index(m - inBegin);
+	    }
+ 	     ClusterSequencePtr clusterSeqKT_r2 = ClusterSequencePtr( new fastjet::ClusterSequence( Mcutfj, *jetDefinitionKT ));
+	     std::vector<fastjet::PseudoJet> kTJets_r2 = fastjet::sorted_by_pt(clusterSeqKT_r2->inclusive_jets(jetPtMin));
+	     double beta = 1.0;
+	     double R0 = radius;
+	     double Rcut = R0+0.2;
+	     fastjet::Nsubjettiness nSub1OnePass_reco2(1, Njettiness::onepass_kt_axes, beta, R0, Rcut);
+	     double tau1onepass_reco2 = nSub1OnePass_reco2(kTJets_r2[0]);
+	     fastjet::Nsubjettiness nSub2OnePass_reco2(2, Njettiness::onepass_kt_axes, beta, R0, Rcut);
+	     double tau2onepass_reco2 = nSub2OnePass_reco2(kTJets_r2[0]);
+	     if (tau1onepass_reco2 != 0 || tau2onepass_reco2 !=0)
+	      {
+		h_tau1_reco->Fill(tau1onepass_reco2);
+		h_tau2_reco->Fill(tau2onepass_reco2);
+		h_T2T1_reco->Fill(tau2onepass_reco2/tau1onepass_reco2);
+		h_tau1_pt_reco->Fill(kTJets_r2[0].pt(),tau1onepass_reco2);
+		h_tau2_pt_reco->Fill(kTJets_r2[0].pt(),tau2onepass_reco2);
+	        h_T2T1_pv_mcut_reco->Fill(numPVs,(tau2onepass_reco2/tau1onepass_reco2));
+	        h_T2T1_pt_mcut_reco->Fill(kTJets_r2[0].pt(),(tau2onepass_reco2/tau1onepass_reco2));
+	      }
+          }
+        if (tempjet->pt()>=700 && tempjet->pt()<900 && fabs(tempjet->eta())<etacut && tempjet->m()>massmin && tempjet->m()<massmax && matchedindex_r[i]!=-1)
+          {  
+	    std::vector<fastjet::PseudoJet> Mcutfj2;
+	    std::vector<edm::Ptr<reco::Candidate> >::const_iterator inBegin = recoConstit.begin(),
+            inEnd = recoConstit.end(), m = inBegin;
+	    for ( ; m != inEnd; ++m )
+	    {
+	      reco::CandidatePtr recoConstit = *m;
+	      if (recoConstit->pt() < inputPtMin) continue;
+	      if (recoConstit->pt() == 0)
+	      	{
+		  edm::LogError("NullTransverseMomentum") << "dropping input candidate with pt=0";
+		  continue;
+		}
+	      Mcutfj2.push_back(fastjet::PseudoJet(recoConstit->px(),recoConstit->py(),recoConstit->pz(),recoConstit->energy()));
+	      Mcutfj2.back().set_user_index(m - inBegin);
+	    }
+ 	     ClusterSequencePtr clusterSeqKT_r3 = ClusterSequencePtr( new fastjet::ClusterSequence( Mcutfj2, *jetDefinitionKT ));
+	     std::vector<fastjet::PseudoJet> kTJets_r3 = fastjet::sorted_by_pt(clusterSeqKT_r3->inclusive_jets(jetPtMin));
+	     double beta = 1.0;
+	     double R0 = radius;
+	     double Rcut = R0+0.2;
+	     fastjet::Nsubjettiness nSub1OnePass_reco3(1, Njettiness::onepass_kt_axes, beta, R0, Rcut);
+	     double tau1onepass_reco3 = nSub1OnePass_reco3(kTJets_r3[0]);
+	     fastjet::Nsubjettiness nSub2OnePass_reco3(2, Njettiness::onepass_kt_axes, beta, R0, Rcut);
+	     double tau2onepass_reco3 = nSub2OnePass_reco3(kTJets_r3[0]);
+	     if (tau1onepass_reco3 != 0 || tau2onepass_reco3 !=0)
+	      {
+		h_T2T1_pv_mcut_reco->Fill(numPVs,(tau2onepass_reco3/tau1onepass_reco3));
+	      }
+	  }
+        if (tempjet->pt()>=700 && tempjet->pt()<900 && fabs(tempjet->eta())<etacut && matchedindex_r[i]!=-1)
+          {  
+	    std::vector<fastjet::PseudoJet> noMcutfj4;
+	    std::vector<edm::Ptr<reco::Candidate> >::const_iterator inBegin = recoConstit.begin(),
+            inEnd = recoConstit.end(), m = inBegin;
+	    for ( ; m != inEnd; ++m )
+	    {
+	      reco::CandidatePtr recoConstit = *m;
+	      if (recoConstit->pt() < inputPtMin) continue;
+	      if (recoConstit->pt() == 0)
+	      	{
+		  edm::LogError("NullTransverseMomentum") << "dropping input candidate with pt=0";
+		  continue;
+		}
+	      noMcutfj4.push_back(fastjet::PseudoJet(recoConstit->px(),recoConstit->py(),recoConstit->pz(),recoConstit->energy()));
+	      noMcutfj4.back().set_user_index(m - inBegin);
+	    }
+ 	     ClusterSequencePtr clusterSeqKT_r4 = ClusterSequencePtr( new fastjet::ClusterSequence(noMcutfj4, *jetDefinitionKT ));
+	     std::vector<fastjet::PseudoJet> kTJets_r4 = fastjet::sorted_by_pt(clusterSeqKT_r4->inclusive_jets(jetPtMin));
+	     double beta = 1.0;
+	     double R0 = radius;
+	     double Rcut = R0+0.2;
+	     fastjet::Nsubjettiness nSub1OnePass_reco4(1, Njettiness::onepass_kt_axes, beta, R0, Rcut);
+	     double tau1onepass_reco4 = nSub1OnePass_reco4(kTJets_r4[0]);
+	     fastjet::Nsubjettiness nSub2OnePass_reco4(2, Njettiness::onepass_kt_axes, beta, R0, Rcut);
+	     double tau2onepass_reco4 = nSub2OnePass_reco4(kTJets_r4[0]);
+	     if (tau1onepass_reco4 != 0 || tau2onepass_reco4 !=0)
+	      {
+		h_T2T1_pv_nomcut_reco->Fill(numPVs,(tau2onepass_reco4/tau1onepass_reco4));
+	      }
+	  }
+
+if (tempjet->pt()>=300 && tempjet->pt()<500 && fabs(tempjet->eta())<etacut && tempjet->m()>massmin && tempjet->m()<massmax && matchedindex_r[i]!=-1)
+          {  
+	    std::vector<fastjet::PseudoJet> Mcutfj5;
+	    std::vector<edm::Ptr<reco::Candidate> >::const_iterator inBegin = recoConstit.begin(),
+            inEnd = recoConstit.end(), m = inBegin;
+	    for ( ; m != inEnd; ++m )
+	    {
+	      reco::CandidatePtr recoConstit = *m;
+	      if (recoConstit->pt() < inputPtMin) continue;
+	      if (recoConstit->pt() == 0)
+	      	{
+		  edm::LogError("NullTransverseMomentum") << "dropping input candidate with pt=0";
+		  continue;
+		}
+	      Mcutfj5.push_back(fastjet::PseudoJet(recoConstit->px(),recoConstit->py(),recoConstit->pz(),recoConstit->energy()));
+	      Mcutfj5.back().set_user_index(m - inBegin);
+	    }
+ 	     ClusterSequencePtr clusterSeqKT_r5 = ClusterSequencePtr( new fastjet::ClusterSequence( Mcutfj5, *jetDefinitionKT ));
+	     std::vector<fastjet::PseudoJet> kTJets_r5 = fastjet::sorted_by_pt(clusterSeqKT_r5->inclusive_jets(jetPtMin));
+	     double beta = 1.0;
+	     double R0 = radius;
+	     double Rcut = R0+0.2;
+	     fastjet::Nsubjettiness nSub1OnePass_reco5(1, Njettiness::onepass_kt_axes, beta, R0, Rcut);
+	     double tau1onepass_reco5 = nSub1OnePass_reco5(kTJets_r5[0]);
+	     fastjet::Nsubjettiness nSub2OnePass_reco5(2, Njettiness::onepass_kt_axes, beta, R0, Rcut);
+	     double tau2onepass_reco5 = nSub2OnePass_reco5(kTJets_r5[0]);
+	     if (tau1onepass_reco5 != 0 || tau2onepass_reco5 !=0)
+	      {
+		h_T2T1_pv_mcut_reco2->Fill(numPVs,(tau2onepass_reco5/tau1onepass_reco5));
+	      }
+	  }
+        if (tempjet->pt()>=300 && tempjet->pt()<500 && fabs(tempjet->eta())<etacut && matchedindex_r[i]!=-1)
+          {  
+	    std::vector<fastjet::PseudoJet> noMcutfj6;
+	    std::vector<edm::Ptr<reco::Candidate> >::const_iterator inBegin = recoConstit.begin(),
+            inEnd = recoConstit.end(), m = inBegin;
+	    for ( ; m != inEnd; ++m )
+	    {
+	      reco::CandidatePtr recoConstit = *m;
+	      if (recoConstit->pt() < inputPtMin) continue;
+	      if (recoConstit->pt() == 0)
+	      	{
+		  edm::LogError("NullTransverseMomentum") << "dropping input candidate with pt=0";
+		  continue;
+		}
+	      noMcutfj6.push_back(fastjet::PseudoJet(recoConstit->px(),recoConstit->py(),recoConstit->pz(),recoConstit->energy()));
+	      noMcutfj6.back().set_user_index(m - inBegin);
+	    }
+ 	     ClusterSequencePtr clusterSeqKT_r6 = ClusterSequencePtr( new fastjet::ClusterSequence(noMcutfj6, *jetDefinitionKT ));
+	     std::vector<fastjet::PseudoJet> kTJets_r6 = fastjet::sorted_by_pt(clusterSeqKT_r6->inclusive_jets(jetPtMin));
+	     double beta = 1.0;
+	     double R0 = radius;
+	     double Rcut = R0+0.2;
+	     fastjet::Nsubjettiness nSub1OnePass_reco6(1, Njettiness::onepass_kt_axes, beta, R0, Rcut);
+	     double tau1onepass_reco6 = nSub1OnePass_reco6(kTJets_r6[0]);
+	     fastjet::Nsubjettiness nSub2OnePass_reco6(2, Njettiness::onepass_kt_axes, beta, R0, Rcut);
+	     double tau2onepass_reco6 = nSub2OnePass_reco6(kTJets_r6[0]);
+	     if (tau1onepass_reco6 != 0 || tau2onepass_reco6 !=0)
+	      {
+		h_T2T1_pv_nomcut_reco2->Fill(numPVs,(tau2onepass_reco6/tau1onepass_reco6));
+	      }
+	  }
+      }
+   /*
+   //GENERATOR JET LEVEL
    edm::Handle<reco::GenJetCollection> genJets;
    iEvent.getByLabel(genJetsTag, genJets);
    double nJets = genJets->size();
@@ -206,18 +509,34 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
        fastjet::PseudoJet *genjetfast = new fastjet::PseudoJet(genjet.px(),genjet.py(),genjet.pz(),genjet.energy());
        //double rap = genjetfast->rap();
        //double phi = genjetfast->phi();
-       if (matching==1)
-       {
-       for (int k=0; k < numW; k++)
-	{
-	  if (genjetfast->delta_R(allWs[k])<=fixDeltaR && genjetfast->delta_R(allWs[k])<=dR[j]) //match to W & look for closer W
-	    {
-	      dR[j] = genjetfast->delta_R(allWs[k]);
-	      matchedindex[j] = 24; //if matched index = 24 (W pdgID)
-	    }
-	}
-       }
-       if (matching==0) matchedindex[j] = 5; //no real matching done, just change index so will still be analyzed
+        if (matching==1)
+          {
+	    for (int k=0; k<numW; k++) //match to W
+	      {
+	        if (tempjet->delta_R(allWs[k]) <= fixDeltaR && tempjet->delta_R(allWs[k]) <= dR_r[j])
+	          {
+		    dR_r[j] = tempjet->delta_R(allWs[k]);
+		    matchedindex[j] = 24; //W jet
+		    for (int l=0; l<numZ; l++) //look for closer Z
+		      {
+			if (tempjet->delta_R(allZs[l]) <= fixDeltaR && tempjet->delta_R(allZs[l]) <= dR_r[j])
+			  {
+			    dR_r[j] = tempjet->delta_R(allZs[l]);
+			    matchedindex[j] = 23; //Z jet
+			    for (int m=0; m<numH; m++) //look for closer H
+			      {
+				if (tempjet->delta_R(allHs[m]) <= fixDeltaR && tempjet->delta_R(allHs[m]) <= dR_r[j])
+				  {
+				    dR_r[j] = tempjet->delta_R(allHs[m]);
+				    matchedindex[j] = 25; //H jet
+				  }
+			      }
+			  }
+		      }
+	          }
+	      }
+          }
+       if (matching==0) matchedindex[j] = 7; //no real matching done for QCD, just change index so will still be analyzed
        if (genjetfast->pt() > 30 && (matchedindex[j]!=-1) ) 
 	{
           hpt_nocut->Fill(genjetfast->pt());
@@ -225,8 +544,8 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
           hmass_nocut->Fill(genjetfast->m());
         }
        if (genjetfast->pt()>ptcut && fabs(genjetfast->eta())<etacut && (matchedindex[j]!=-1))
-	{
-	  if (genjetfast->pt()>=300 && genjetfast->pt()<450)
+	{ */
+	  /*if (genjetfast->pt()>=300 && genjetfast->pt()<450)
 	    {
 	      h_pt_300_449->Fill(genjetfast->pt());
 	      h_m_300_449->Fill(genjetfast->m());
@@ -235,8 +554,8 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
 	    {
 	      h_pt_450_599->Fill(genjetfast->pt());
 	      h_m_450_599->Fill(genjetfast->m());
-	    }
-	  std::vector<fastjet::PseudoJet> noMfj;
+	    }*/
+	 /* std::vector<fastjet::PseudoJet> noMfj;
 	  std::vector<edm::Ptr<reco::Candidate> >::const_iterator inBegin = inputs.begin(),
             inEnd = inputs.end(), i = inBegin;
 	  for ( ; i != inEnd; ++i )
@@ -304,11 +623,11 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
 	     h_tau1_pt_gen->Fill((kTJets[0].pt()),tau1onepass_gen);
 	     h_tau2_pt_gen->Fill((kTJets[0].pt()),tau2onepass_gen);
 	     h_T2T1_pt_gen->Fill((kTJets[0].pt()),(tau2onepass_gen/tau1onepass_gen));
-	     h_invmass_all->Fill(kTJets[0].m());
+	     /*h_invmass_all->Fill(kTJets[0].m());
 	     if ((tau2onepass_gen/tau1onepass_gen)<0.6) h_invmass_06->Fill(kTJets[0].m());
 	     if ((tau2onepass_gen/tau1onepass_gen)<0.4) h_invmass_04->Fill(kTJets[0].m());
-	     if ((tau2onepass_gen/tau1onepass_gen)<0.2) h_invmass_02->Fill(kTJets[0].m());
-	   }
+	     if ((tau2onepass_gen/tau1onepass_gen)<0.2) h_invmass_02->Fill(kTJets[0].m());*/
+	  // }
 
        //JetDefPtr nsubOnepass_gen_jetDef = JetDefPtr( new fastjet::JetDefinition(new fastjet::NjettinessPlugin(2, Njettiness::onepass_kt_axes, beta, R0, Rcut)) ); //make two subjets from plugin --- DON'T USE THESE THOUGH!
 
@@ -343,11 +662,11 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
 	 hT1->Fill(T1);
 	 hT2->Fill(T2);
 	 hT2byT1->Fill(ratio);
-        }*/
+        }*//*
 	 } //end boosted & higgs mass conditions
          //std::cout << "dR(subjet1,subjet2) for Jet" << j << ": " << subJets[0].delta_R(subJets[1]) << std::endl;
      } // end for ()
-} // end if()
+} // end if()*/
    //############################################################################################
    //## This section clusters jets from scratch
    //##
@@ -431,32 +750,43 @@ RutgersJetAnalyzer::beginJob()
   //hT1 = fs->make<TH1D>("hT1" , "T_1" , 100 , 0 , 1 );
   //hT2 = fs->make<TH1D>("hT2" , "T_2" , 100 , 0 , 1 );
   //hT2byT1 = fs->make<TH1D>("hT2/T1" , "T_2/T_1" , 100 , 0 , 1 );
-  hpt_nocut = fs->make<TH1D>("hpt_nocut","Jet pT with no cuts",250,0,450);
+  //hpt_nocut = fs->make<TH1D>("hpt_nocut","Jet pT with no cuts",250,0,450);
   //hpt_cut = fs->make<TH1D>("hpt_cut","Jet pT with inv mass cut",250,0,450);
-  heta_nocut = fs->make<TH1D>("heta_nocut","Jet eta with no cuts",450,-5,5);
+  //heta_nocut = fs->make<TH1D>("heta_nocut","Jet eta with no cuts",450,-5,5);
   //heta_cut = fs->make<TH1D>("heta_cut","Jet eta with cuts",200,-5,5);
-  hmass_nocut = fs->make<TH1D>("hmass_nocut","Jet mass with no cuts",300,0,300);
+  //hmass_nocut = fs->make<TH1D>("hmass_nocut","Jet mass with no cuts",300,0,300);
   //hmass_cut = fs->make<TH1D>("hmass_cut","Jet mass with cuts",300,0,300);
   //hpt_nocut_cluster = fs->make<TH1D>("hpt_nocut_cluster","Jet pT with no cuts",250,0,450);
   //heta_nocut_cluster = fs->make<TH1D>("heta_nocut_cluster","Jet eta with no cuts",450,-5,5);
   //hmass_nocut_cluster = fs->make<TH1D>("hmass_nocut_cluster","Jet mass with no cuts",300,0,300);
-  h_tau1onepass_gen = fs->make<TH1D>("h_tau1onepass_gen","Tau1 OnePass kT CMSSW Gen Jet clustering",100,0,1);  
+  /*h_tau1onepass_gen = fs->make<TH1D>("h_tau1onepass_gen","Tau1 OnePass kT CMSSW Gen Jet clustering",100,0,1);  
   h_tau2onepass_gen = fs->make<TH1D>("h_tau2onepass_gen","Tau2 OnePass kT CMSSW Gen Jet clustering",100,0,1);
   h_T2T1onepass_gen = fs->make<TH1D>("h_T2T1onepass_gen","T2/T1 OnePass kT CMSSW Gen Jet clustering",100,0,1);
   h_T2_T1_gen = fs->make<TH2D>("h_T2_T1_gen","Tau2 vs. Tau1 OnePass kT CMSSW Gen Jet clustering",100,0,1,100,0,1);
   h_tau1_pt_gen = fs->make<TH2D>("h_tau1_pt_gen","Tau1 OnePass kT CMSSW Gen Jet clustering vs kT Jet pT",500,0,500,100,0,1);
   h_tau2_pt_gen = fs->make<TH2D>("h_tau2_pt_gen","Tau2 OnePass kT CMSSW Gen Jet clustering vs kT Jet pT",500,0,500,100,0,1);
   h_T2T1_pt_gen = fs->make<TH2D>("h_T2T1_pt_gen","T2/T1 OnePass kT Gen Jet vs kT Jet pT with mass cut",1000,0,1000,100,0,1);
-  h_T2T1_pt_noM_gen = fs->make<TH2D>("h_T2T1_noM_gen","T2/T1 OnePass kT Gen Jet vs kT Jet pT no mass cut",1000,0,1000,100,0,1);
+  h_T2T1_pt_noM_gen = fs->make<TH2D>("h_T2T1_noM_gen","T2/T1 OnePass kT Gen Jet vs kT Jet pT no mass cut",1000,0,1000,100,0,1);*/
   //*****inorder for invmass plots to be usefull*** need to remove invmass window requirements!********
-  h_invmass_all = fs->make<TH1D>("h_invmass_all","Jet Inv Mass for all Tau2/Tau1 ",80,40,120);
+  /*h_invmass_all = fs->make<TH1D>("h_invmass_all","Jet Inv Mass for all Tau2/Tau1 ",80,40,120);
   h_invmass_06 = fs->make<TH1D>("h_invmass_06","Jet Inv Mass for Tau2/Tau1 < 0.6",80,40,120);
   h_invmass_04 = fs->make<TH1D>("h_invmass_04","Jet Inv Mass for Tau2/Tau1 < 0.4",80,40,120);
   h_invmass_02 = fs->make<TH1D>("h_invmass_02","Jet Inv Mass for Tau2/Tau1 < 0.2",80,40,120);
   h_pt_300_449 = fs->make<TH1D>("h_pt_300_449","Jet pT for pT 300 - 449",150,300,450);
   h_m_300_449 = fs->make<TH1D>("h_m_300_449","Jet Inv Mass for pT 300 - 449",150,300,450);
   h_pt_450_599 = fs->make<TH1D>("h_pt_450_599","Jet pT for pT 450 - 600",150,450,600);
-  h_m_450_599 = fs->make<TH1D>("h_m_450_599","Jet Inv Mass for pT 450 - 600",150,450,600);
+  h_m_450_599 = fs->make<TH1D>("h_m_450_599","Jet Inv Mass for pT 450 - 600",150,450,600);*/
+  h_tau1_reco = fs->make<TH1D>("h_tau1_reco","Tau1 OnePass kT CMSSW reco",100,0,1);  
+  h_tau2_reco = fs->make<TH1D>("h_tau2_reco","Tau2 OnePass kT CMSSW reco",100,0,1);  
+  h_T2T1_reco = fs->make<TH1D>("h_T2T1_reco","T2/T1 OnePass kT CMSSW reco",100,0,1);  
+  h_tau1_pt_reco = fs->make<TH2D>("h_tau1_pt_reco","Tau1 OnePass kT CMSSW reco vs kT Jet pT",500,0,500,100,0,1);
+  h_tau2_pt_reco = fs->make<TH2D>("h_tau2_pt_reco","Tau2 OnePass kT CMSSW reco vs kT Jet pT",500,0,500,100,0,1);
+  h_T2T1_pt_mcut_reco = fs->make<TH2D>("h_T2T1_pt_mcut_reco","T2/T1 vs. pT with mcut",1000,0,1000,100,0,1);
+  h_T2T1_pt_nomcut_reco = fs->make<TH2D>("h_T2T1_pt_nomcut_reco","T2/T1 vs. pT with nomcut",1000,0,1000,100,0,1);
+  h_T2T1_pv_mcut_reco = fs->make<TH2D>("h_T2T1_pv_mcut_reco","T2/T1 vs. Num of PVs mcut for pT 700-900 GeV",50,0,50,100,0,1);
+  h_T2T1_pv_nomcut_reco = fs->make<TH2D>("h_T2T1_pv_nomcut_reco","T2/T1 vs. Num of PVs nomcut for pT 700-900 GeV",50,0,50,100,0,1);
+  h_T2T1_pv_mcut_reco2 = fs->make<TH2D>("h_T2T1_pv_mcut_reco2","T2/T1 vs. Num of PVs mcut for pT 300-500 GeV",50,0,50,100,0,1);
+  h_T2T1_pv_nomcut_reco2 = fs->make<TH2D>("h_T2T1_pv_nomcut_reco2","T2/T1 vs. Num of PVs nomcut for pT 300-500 GeV",50,0,50,100,0,1);
 }
 
 // ------------ method called once each job just after ending the event loop  ------------

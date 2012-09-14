@@ -12,22 +12,16 @@ options.register('runOnData',
     "Run this on real data"
 )
 options.register('globalTag',
-    'START52_V9D::All',
+    'START52_V11::All',
     VarParsing.multiplicity.singleton,
     VarParsing.varType.string,
     "Global tag to be used"
 )
-options.register('outfilename',
-    "outfile.root",
+options.register('outFilename',
+    'patTuple_PF2PAT.root',
     VarParsing.multiplicity.singleton,
     VarParsing.varType.string,
     "output file name"
-)
-options.register('jetCollection',
-    "selectedPatJetsAK6PF",
-    VarParsing.multiplicity.singleton,
-    VarParsing.varType.string,
-    "Jet collection used in analysis"
 )
 options.register('reportEvery',
     10,
@@ -98,23 +92,20 @@ process.source = cms.Source("PoolSource",
 ## Standard PAT Configuration File
 process.load("PhysicsTools.PatAlgos.patSequences_cff")
 
+## Configure PAT to use PF2PAT instead of AOD sources
+## this function will modify the PAT sequences.
+from PhysicsTools.PatAlgos.tools.pfTools import *
+
 ## Output Module Configuration (expects a path 'p')
 from PhysicsTools.PatAlgos.patEventContent_cff import patEventContent
 process.out = cms.OutputModule("PoolOutputModule",
-    fileName = cms.untracked.string('patTuple_PF2PAT.root'),
+    fileName = cms.untracked.string(options.outFilename),
     # save only events passing the full path
     SelectEvents   = cms.untracked.PSet( SelectEvents = cms.vstring('p') ),
     # save PAT Layer 1 output; you need a '*' to
     # unpack the list of commands 'patEventContent'
-    outputCommands = cms.untracked.vstring('drop *', *patEventContent )
+    outputCommands = cms.untracked.vstring('drop *', *patEventContent)
 )
-
-## Define Endpath
-process.outpath = cms.EndPath(process.out)
-
-## Configure PAT to use PF2PAT instead of AOD sources
-## this function will modify the PAT sequences.
-from PhysicsTools.PatAlgos.tools.pfTools import *
 
 postfix = "PFlow"
 jetAlgo="AK7"
@@ -316,18 +307,8 @@ process.prunedGenParticles = cms.EDProducer("GenParticlePruner",
     )
 )
 
-## Path definition
-process.p = cms.Path(
-    process.goodOfflinePrimaryVertices*
-    getattr(process,"patPF2PATSequence"+postfix)*
-    process.jetSeq*
-    process.patDefaultSequence*
-    process.prunedGenParticles
-)
-
 ### Add PF2PAT output to the created file
 from PhysicsTools.PatAlgos.patEventContent_cff import patEventContentNoCleaning
-patEventContentNoCleaning.append('drop *_particleFlow_*_*')
 patEventContentNoCleaning.append('drop *_selectedPatJets_*_*')
 patEventContentNoCleaning.append('drop *_selectedPatElectrons_*_*')
 patEventContentNoCleaning.append('drop *_selectedPatMuons_*_*')
@@ -339,9 +320,19 @@ patEventContentNoCleaning.append('keep *_generalTracks_*_*')
 patEventContentNoCleaning.append('keep *_offlinePrimaryVertices_*_*')
 patEventContentNoCleaning.append('keep *_kt6PFJets_rho_*')
 
-process.out.outputCommands = cms.untracked.vstring('drop *',
-                                                   'keep recoPFCandidates_particleFlow_*_*',
-                                                   *patEventContentNoCleaning)
+process.out.outputCommands = cms.untracked.vstring('drop *', *patEventContentNoCleaning)
+
+## Path definition
+process.p = cms.Path(
+    process.goodOfflinePrimaryVertices*
+    getattr(process,"patPF2PATSequence"+postfix)*
+    process.jetSeq*
+    process.patDefaultSequence*
+    process.prunedGenParticles
+)
+
+## Define Endpath
+process.outpath = cms.EndPath(process.out)
 
 ## Schedule definition
 process.schedule = cms.Schedule(process.p)

@@ -21,7 +21,9 @@ options.register('outputfile',
 		 "outputfile"
 		 )
 ## 'maxEvents' is already registered by the Framework, changing default value
-options.setDefault('maxEvents', 5000)
+options.setDefault('maxEvents', 10)
+
+options.parseArguments()
 
 process = cms.Process("USER")
 
@@ -92,18 +94,20 @@ process.source = cms.Source("PoolSource",
 # Load module that produces GenJetParticles
 process.load('RecoJets.Configuration.GenJetParticles_cff')
 
-# Define Anti-kT jets with R=1.2
+# Define Anti-kT jets with R=0.6
 from RecoJets.JetProducers.ak5GenJets_cfi import ak5GenJets
 process.ak6GenJets = ak5GenJets.clone( rParam = 0.6, src = cms.InputTag("genParticlesForJetsNoNu") )
 
 # Initialize RutgersJetAnalyzer
 process.rutgersJetAnalyzer = cms.EDAnalyzer('RutgersJetAnalyzer',
     GenJetsTag = cms.InputTag('ak6GenJets'),
-    PrunedGenParticleTag = cms.InputTag('prunedGenParticles'),
+    GenParticleTag = cms.InputTag('prunedGenParticles'),
     InputsTag = cms.InputTag('genParticlesForJetsNoNu'),
+    JetsTag = cms.InputTag('selectedPatJetsAK6PF'),
+    PvTag = cms.InputTag('goodOfflinePrimaryVertices'),
     InputPtMin = cms.double(0.0),
     JetPtMin = cms.double(0.0),
-    Matching = cms.double(1.0),
+    Matching = cms.double(1),
     Radius = cms.double(0.6)
 )
 
@@ -113,7 +117,8 @@ process.rutgersJetAnalyzer = cms.EDAnalyzer('RutgersJetAnalyzer',
 #specify radius for jet clustering and rParam in defining Anti-kT jets
 
 # Path definition
-process.p = cms.Path(process.genParticlesForJetsNoNu*process.ak6GenJets*process.rutgersJetAnalyzer)
+#process.p = cms.Path(process.genParticlesForJetsNoNu*process.ak6GenJets*process.rutgersJetAnalyzer)
+process.p = cms.Path(process.rutgersJetAnalyzer)
 #Output histograms to root file
 process.TFileService = cms.Service("TFileService",
     fileName = cms.string(options.outputfile)

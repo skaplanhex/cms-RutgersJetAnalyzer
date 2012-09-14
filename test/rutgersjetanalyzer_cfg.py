@@ -98,6 +98,17 @@ process.load('RecoJets.Configuration.GenJetParticles_cff')
 from RecoJets.JetProducers.ak5GenJets_cfi import ak5GenJets
 process.ak6GenJets = ak5GenJets.clone( rParam = 0.6, src = cms.InputTag("genParticlesForJetsNoNu") )
 
+## Produce a collection of good primary vertices
+from PhysicsTools.SelectorUtils.pvSelector_cfi import pvSelector
+process.goodOfflinePrimaryVertices = cms.EDFilter("PrimaryVertexObjectFilter",
+    filterParams = pvSelector.clone(
+        minNdof = cms.double(4.0), # this is >= 4
+        maxZ = cms.double(24.0),
+        maxRho = cms.double(2.0)
+    ),
+    src = cms.InputTag('offlinePrimaryVertices')
+)
+
 # Initialize RutgersJetAnalyzer
 process.rutgersJetAnalyzer = cms.EDAnalyzer('RutgersJetAnalyzer',
     GenJetsTag = cms.InputTag('ak6GenJets'),
@@ -118,7 +129,7 @@ process.rutgersJetAnalyzer = cms.EDAnalyzer('RutgersJetAnalyzer',
 
 # Path definition
 #process.p = cms.Path(process.genParticlesForJetsNoNu*process.ak6GenJets*process.rutgersJetAnalyzer)
-process.p = cms.Path(process.rutgersJetAnalyzer)
+process.p = cms.Path(process.goodOfflinePrimaryVertices*process.rutgersJetAnalyzer)
 #Output histograms to root file
 process.TFileService = cms.Service("TFileService",
     fileName = cms.string(options.outputfile)

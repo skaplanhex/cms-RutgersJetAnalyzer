@@ -309,10 +309,10 @@ process.load("SimGeneral.HepPDTESSource.pythiapdt_cfi")
 process.prunedGenParticles = cms.EDProducer("GenParticlePruner",
     src = cms.InputTag("genParticles"),
     select = cms.vstring(
-        "drop  *"
-        ,"keep status = 3" # keeps  particles from the hard matrix element
-        ,"keep (abs(pdgId) >= 11 & abs(pdgId) <= 16) & status = 1" # keeps e/mu and nus with status 1
-        ,"keep (abs(pdgId)  = 15) & status = 3" # keeps taus
+        "drop  *",
+        "keep status = 3", # keeps  particles from the hard matrix element
+        "keep (abs(pdgId) >= 11 & abs(pdgId) <= 16) & status = 1", # keeps e/mu and nus with status 1
+        "keep (abs(pdgId)  = 15) & status = 3" # keeps taus
     )
 )
 
@@ -327,12 +327,17 @@ process.p = cms.Path(
 
 ### Add PF2PAT output to the created file
 from PhysicsTools.PatAlgos.patEventContent_cff import patEventContentNoCleaning
+patEventContentNoCleaning.append('drop *_particleFlow_*_*')
 patEventContentNoCleaning.append('drop *_selectedPatJets_*_*')
 patEventContentNoCleaning.append('drop *_selectedPatElectrons_*_*')
 patEventContentNoCleaning.append('drop *_selectedPatMuons_*_*')
 patEventContentNoCleaning.append('drop *_patMETs_*_*')
 patEventContentNoCleaning.append('drop *_selectedPatTaus*_*_*')
 patEventContentNoCleaning.append('keep *_prunedGenParticles_*_*')
+patEventContentNoCleaning.append('keep *_offlineBeamSpot_*_*')
+patEventContentNoCleaning.append('keep *_generalTracks_*_*')
+patEventContentNoCleaning.append('keep *_offlinePrimaryVertices_*_*')
+patEventContentNoCleaning.append('keep *_kt6PFJets_rho_*')
 
 process.out.outputCommands = cms.untracked.vstring('drop *',
                                                    'keep recoPFCandidates_particleFlow_*_*',

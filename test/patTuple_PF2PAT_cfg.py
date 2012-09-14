@@ -303,7 +303,8 @@ process.prunedGenParticles = cms.EDProducer("GenParticlePruner",
         "drop  *",
         "keep status = 3", # keeps  particles from the hard matrix element
         "keep (abs(pdgId) >= 11 & abs(pdgId) <= 16) & status = 1", # keeps e/mu and nus with status 1
-        "keep (abs(pdgId)  = 15) & status = 3" # keeps taus
+        "keep (abs(pdgId)  = 15) & status = 3", # keeps taus
+        "++keep (abs(pdgId)  = 5)" # keeps all b quarks and all their ancestors
     )
 )
 

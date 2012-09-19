@@ -13,7 +13,7 @@
 //
 // Original Author:  Dinko Ferencek
 //         Created:  Fri Jul 20 12:32:38 CDT 2012
-// $Id: RutgersJetAnalyzer.cc,v 1.5 2012/08/14 22:07:58 skaplan Exp $
+// $Id: RutgersJetAnalyzer.cc,v 1.6 2012/08/17 18:11:40 ferencek Exp $
 //
 //
 
@@ -70,9 +70,7 @@ private:
     virtual void endLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&);
     
     // ----------member data ---------------------------
-    const edm::InputTag genJetsTag;
     const edm::InputTag genParticleTag;
-    const edm::InputTag inputsTag;
     const edm::InputTag JetsTag;
     const edm::InputTag pvtag;
     const double        inputPtMin;       // minimum pT of input constituents
@@ -123,9 +121,7 @@ private:
 // constructors and destructor
 //
 RutgersJetAnalyzer::RutgersJetAnalyzer(const edm::ParameterSet& iConfig):
-genJetsTag(iConfig.getParameter<edm::InputTag>("GenJetsTag")),
 genParticleTag(iConfig.getParameter<edm::InputTag>("GenParticleTag")),
-inputsTag(iConfig.getParameter<edm::InputTag>("InputsTag")),
 JetsTag(iConfig.getParameter<edm::InputTag>("JetsTag")),
 pvtag(iConfig.getParameter<edm::InputTag>("pvtag")),
 inputPtMin(iConfig.getParameter<double>("InputPtMin")),

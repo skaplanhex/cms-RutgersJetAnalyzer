@@ -297,7 +297,7 @@ class AxesFinderFromUserInput : public AxesFinder {
       AxesFinderFromUserInput() {}
       
       virtual std::vector<fastjet::PseudoJet> getAxes(int n_jets, const std::vector <fastjet::PseudoJet> & inputs, const std::vector<fastjet::PseudoJet>& currentAxes) {
-         assert(currentAxes.size() == n_jets);
+         assert(currentAxes.size() == (unsigned)n_jets);
          return currentAxes;
       }
 };

@@ -50,7 +50,7 @@ class NjettinessExtras : public ClusterSequence::Extras {
       
       int labelOf(const fastjet::PseudoJet& jet) const {
          int thisJet = -1;
-         for (int i = 0; i < _jets.size(); i++) {
+         for (unsigned i = 0; i < _jets.size(); i++) {
             if (_jets[i].cluster_hist_index() == jet.cluster_hist_index()) {
                thisJet = i;
                break;
@@ -191,7 +191,7 @@ inline void NjettinessPlugin::run_clustering(ClusterSequence& cs) const
    for (size_t i = 0; i < partition.size(); ++i) {
       std::list<int>& indices = partition[i];
       if (indices.size() == 0) continue;
-      std::list<int>::const_iterator it = indices.begin();
+      //std::list<int>::const_iterator it = indices.begin();
       while (indices.size() > 1) {
          int merge_i = indices.back(); indices.pop_back();
          int merge_j = indices.back(); indices.pop_back();

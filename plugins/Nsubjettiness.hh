@@ -1,5 +1,5 @@
 //  Njettiness Package
-//  Version 0.4.1 (January 22, 2012)
+//  Version 0.5.1 (September 19, 2012)
 //  Questions/Comments?  jthaler@jthaler.net
 
 // Copyright (c) 2011-12, Jesse Thaler, Ken Van Tilburg, and Christopher K.

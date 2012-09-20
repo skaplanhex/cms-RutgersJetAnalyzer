@@ -1,5 +1,5 @@
 //  Njettiness Package
-//  Version 0.4.1 (January 22, 2012)
+//  Version 0.5.1 (September 19, 2012)
 //  Questions/Comments?  jthaler@jthaler.net
 
 // Copyright (c) 2011-12, Jesse Thaler, Ken Van Tilburg, and Christopher K.
@@ -37,10 +37,12 @@
 
 ///////
 //
-// Helper classes
+// Parameter classes
 //
 ///////
 
+
+inline double sq(double x) {return x*x;}
 
 // Parameters that define Njettiness
 class NsubParameters {
@@ -56,6 +58,19 @@ public:
    double R0() const {return _R0;}
    double Rcutoff() const {return _Rcutoff;}
 };
+
+// Parameters that define GeometricMeasure
+class NsubGeometricParameters {
+private:
+   double _Rcutoff;  // Cutoff scale for cone jet finding (default is large number such that no boundaries are used)
+   
+public:
+   NsubGeometricParameters(const double myRcutoff=10000.0) : _Rcutoff(myRcutoff) {}
+   double Rcutoff() const {return _Rcutoff;}
+};
+
+
+
 
 // Parameters that change minimization procedure.
 // Set automatically when you choose NsubAxesMode, but can be adjusted manually as well
@@ -76,10 +91,324 @@ public:
    double noise_range() const {return _noise_range;}
 };
 
-// helper class for minimization
+
+///////
+//
+// Measure Functor
+//
+///////
+
+
+class MeasureFunctor {
+
+   protected:
+      MeasureFunctor() {}
+
+   public:
+      virtual bool doCluster(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) = 0;
+      virtual double distance(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) = 0;
+      virtual double numerator(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) = 0;
+      virtual double denominator(const fastjet::PseudoJet& particle) = 0;
+
+      std::vector<double> subTaus(const std::vector <fastjet::PseudoJet> & particles, const std::vector<fastjet::PseudoJet>& axes);
+      double tau(const std::vector <fastjet::PseudoJet>& particles, const std::vector<fastjet::PseudoJet>& axes);
+
+};
+
+// N-subjettiness pieces
+std::vector<double> MeasureFunctor::subTaus(const std::vector <fastjet::PseudoJet> & particles, const std::vector<fastjet::PseudoJet>& axes) {// Returns the sub-tau values, i.e. a std::vector of the contributions to tau_N of each Voronoi region (or region within R_0)
+      
+   std::vector<double> tauNum(axes.size(), 0.0), tau(axes.size());
+   
+   double tauDen = 0.0;
+   for (unsigned i = 0; i < particles.size(); i++) {
+      // find minimum distance; start with 0'th axis for reference
+      int j_min = 0;
+      double minR = distance(particles[i],axes[0]);
+      for (unsigned j = 1; j < axes.size(); j++) {
+         double tempR = distance(particles[i],axes[j]); // delta R distance
+         if (tempR < minR) {minR = tempR; j_min = j;}
+      }
+      tauNum[j_min] += numerator(particles[i],axes[j_min]);
+      tauDen += denominator(particles[i]);
+   }
+   for (unsigned j = 0; j < axes.size(); j++) {
+      tau[j] = tauNum[j]/tauDen;
+   }
+   return tau;
+}
+
+double MeasureFunctor::tau(const std::vector <fastjet::PseudoJet>& particles, const std::vector<fastjet::PseudoJet>& axes) {// Calculates tau_N
+   std::vector<double> tau_vec = subTaus(particles, axes);
+   double tau = 0.0;
+   for (unsigned j = 0; j < tau_vec.size(); j++) {tau += tau_vec[j];}
+   return tau;
+}
+
+///Default Measure (includes normalization)
+class DefaultMeasure : public MeasureFunctor {
+
+   private:
+      NsubParameters _paraNsub;
+
+   public:
+      DefaultMeasure(NsubParameters paraNsub): _paraNsub(paraNsub) {}
+      
+      virtual bool doCluster(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) {
+         return (distance(particle,axis) <= _paraNsub.Rcutoff());
+      }
+      
+      virtual double distance(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) {
+         return std::sqrt(particle.squared_distance(axis));
+      }
+
+      virtual double numerator(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) {
+         double deltaR = std::sqrt(particle.squared_distance(axis));
+         if (deltaR > _paraNsub.Rcutoff()) deltaR = _paraNsub.Rcutoff();
+         return particle.perp() * std::pow(deltaR,_paraNsub.beta());
+      }
+
+      virtual double denominator(const fastjet::PseudoJet& particle) {
+         return particle.perp() * std::pow(_paraNsub.R0(),_paraNsub.beta());
+      }
+
+};
+
+///Geometric Measure (includes normalization)
+class GeometricMeasure : public MeasureFunctor {
+
+   private:
+      double _Rcutoff;
+
+      // create light-like axis
+      fastjet::PseudoJet lightFrom(const fastjet::PseudoJet& input) const {
+         double length = sqrt(pow(input.px(),2) + pow(input.py(),2) + pow(input.pz(),2));
+         return fastjet::PseudoJet(input.px()/length,input.py()/length,input.pz()/length,1.0);
+      }
+      
+      // get Q value
+      double qValueOf(const fastjet::PseudoJet& input) const {
+         return lightFrom(input).pt();
+      }
+
+   public:
+      GeometricMeasure(double Rcutoff) : _Rcutoff(Rcutoff) {}
+            
+      virtual bool doCluster(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) {
+         return (distance(particle,axis) <= _Rcutoff);
+      }
+      
+      virtual double distance(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) {
+         double axisValue = 2.0*dot_product(lightFrom(axis),particle)/qValueOf(axis);
+         double beamValue = particle.pt();
+         double pseudoR = std::sqrt(axisValue/beamValue);
+         return pseudoR;
+      }
+
+      virtual double numerator(const fastjet::PseudoJet& particle, const fastjet::PseudoJet& axis) {
+         double pseudoR = distance(particle,axis);
+
+         if (pseudoR > _Rcutoff) {
+            pseudoR = _Rcutoff;
+         }
+         return particle.pt()*sq(pseudoR);
+      }
+
+      virtual double denominator(const fastjet::PseudoJet& particle) {
+         return 1.0;
+      }
+};
+
+
+
+///////
+//
+// Axes Finder Options
+//
+///////
+
+class AxesFinder {
+
+   protected:
+      AxesFinder() {}
+      
+   public:
+      virtual std::vector<fastjet::PseudoJet> getAxes(int n_jets, const std::vector<fastjet::PseudoJet> & inputs, const std::vector<fastjet::PseudoJet>& currentAxes) = 0;
+
+};
+
+/// Axes From Exclusive Jets
+
+class AxesFinderFromExclusiveJetDefinition : public AxesFinder {
+
+   private:
+      fastjet::JetDefinition _def;
+   
+   public:
+      AxesFinderFromExclusiveJetDefinition(fastjet::JetDefinition def) : _def(def) {}
+      
+      virtual std::vector<fastjet::PseudoJet> getAxes(int n_jets, const std::vector <fastjet::PseudoJet> & inputs, const std::vector<fastjet::PseudoJet>& currentAxes) {
+         fastjet::ClusterSequence jet_clust_seq(inputs, _def);
+         return jet_clust_seq.exclusive_jets(n_jets);
+      }
+};
+
+class AxesFinderFromKT : public AxesFinderFromExclusiveJetDefinition {
+   public:
+      AxesFinderFromKT() : AxesFinderFromExclusiveJetDefinition(fastjet::JetDefinition(fastjet::kt_algorithm,M_PI/2.0,fastjet::E_scheme,fastjet::Best)) {}
+};
+
+class AxesFinderFromCA : public AxesFinderFromExclusiveJetDefinition {
+   public:
+      AxesFinderFromCA() : AxesFinderFromExclusiveJetDefinition(fastjet::JetDefinition(fastjet::cambridge_algorithm,M_PI/2.0,fastjet::E_scheme,fastjet::Best)) {}
+};
+
+
+/// Axes From Hardest Jets
+
+class AxesFinderFromHardestJetDefinition : public AxesFinder {
+
+   private:
+      fastjet::JetDefinition _def;
+   
+   public:
+      AxesFinderFromHardestJetDefinition(fastjet::JetDefinition def) : _def(def) {}
+      
+      virtual std::vector<fastjet::PseudoJet> getAxes(int n_jets, const std::vector <fastjet::PseudoJet> & inputs, const std::vector<fastjet::PseudoJet>& currentAxes) {
+         fastjet::ClusterSequence jet_clust_seq(inputs, _def);
+         std::vector<fastjet::PseudoJet> myJets = sorted_by_pt(jet_clust_seq.inclusive_jets());
+         myJets.resize(n_jets);  // only keep n hardest
+         return myJets;
+      }      
+};
+
+
+class AxesFinderFromAntiKT : public AxesFinderFromHardestJetDefinition {
+   public:
+      AxesFinderFromAntiKT(double R0) : AxesFinderFromHardestJetDefinition(fastjet::JetDefinition(fastjet::antikt_algorithm,R0,fastjet::E_scheme,fastjet::Best)) {}
+};
+
+
+/// Manual Axes
+
+class AxesFinderFromUserInput : public AxesFinder {
+
+   public:
+      AxesFinderFromUserInput() {}
+      
+      virtual std::vector<fastjet::PseudoJet> getAxes(int n_jets, const std::vector <fastjet::PseudoJet> & inputs, const std::vector<fastjet::PseudoJet>& currentAxes) {
+         assert(currentAxes.size() == n_jets);
+         return currentAxes;
+      }
+};
+
+/// Minimum Axes
+
+std::vector<fastjet::PseudoJet> GetMinimumAxes(const std::vector <fastjet::PseudoJet> & seedAxes, const std::vector <fastjet::PseudoJet> & inputJets, KmeansParameters para, 
+                                          NsubParameters paraNsub, MeasureFunctor* functor);
+class AxesFinderFromKmeansMinimization : public AxesFinder {
+
+   private:
+      AxesFinder* _startingFinder;
+      KmeansParameters _paraKmeans;
+      NsubParameters _paraNsub;
+      
+      MeasureFunctor* _functor;
+      
+   public:
+      AxesFinderFromKmeansMinimization(AxesFinder* startingFinder, KmeansParameters paraKmeans, NsubParameters paraNsub)
+         : _startingFinder(startingFinder), _paraKmeans(paraKmeans), _paraNsub(paraNsub) {
+         _functor = new DefaultMeasure(paraNsub);
+      }
+      
+      ~AxesFinderFromKmeansMinimization() { delete _functor;}
+      
+      virtual std::vector<fastjet::PseudoJet> getAxes(int n_jets, const std::vector <fastjet::PseudoJet> & inputs, const std::vector<fastjet::PseudoJet>& currentAxes) {
+         std::vector<fastjet::PseudoJet> seedAxes = _startingFinder->getAxes(n_jets, inputs, currentAxes);
+         return GetMinimumAxes(seedAxes, inputs, _paraKmeans, _paraNsub,_functor);
+      }
+};
+
+
+class AxesFinderFromGeometricMinimization : public AxesFinder {
+
+   private:
+      AxesFinder* _startingFinder;
+      MeasureFunctor* _functor;
+      double _Rcutoff;
+      double _nAttempts;
+      double _accuracy;
+
+   
+   public:
+      AxesFinderFromGeometricMinimization(AxesFinder* startingFinder, double Rcutoff) : _startingFinder(startingFinder), _Rcutoff(Rcutoff) {
+         _nAttempts = 100;
+         _accuracy = 0.000000001;
+         _functor = new GeometricMeasure(_Rcutoff);
+      }
+
+      ~AxesFinderFromGeometricMinimization() { delete _functor;}
+      
+      virtual std::vector<fastjet::PseudoJet> getAxes(int n_jets, const std::vector <fastjet::PseudoJet> & particles, const std::vector<fastjet::PseudoJet>& currentAxes) {
+
+         std::vector<fastjet::PseudoJet> seedAxes = _startingFinder->getAxes(n_jets, particles, currentAxes);
+         double seedTau = _functor->tau(particles,seedAxes);
+         
+         for (int i = 0; i < _nAttempts; i++) {
+            
+            std::vector<fastjet::PseudoJet> newAxes(seedAxes.size(),fastjet::PseudoJet(0,0,0,0));
+
+            for (unsigned int i = 0; i < particles.size(); i++) {
+               double minDist = 100000000.0; //large number    
+               int minJ = -1; //bad ref
+               for (unsigned int j = 0; j < seedAxes.size(); j++) {
+                  double tempDist = _functor->distance(particles[i],seedAxes[j]);
+                  if (tempDist < minDist) {
+                     minDist = tempDist;
+                     minJ = j;
+                  }
+               }
+               
+               if (_functor->doCluster(particles[i],seedAxes[minJ])) {
+                  newAxes[minJ] += particles[i];
+               }
+            }
+
+            seedAxes = newAxes;
+            
+            
+            double tempTau = _functor->tau(particles,newAxes);
+
+//            std::cout << seedTau << " " << tempTau << " " << fabs(tempTau - seedTau) << " " << _accuracy << " " << (fabs(tempTau - seedTau) < _accuracy) << true << std::endl; 
+
+            if (fabs(tempTau - seedTau) < _accuracy) break;
+            seedTau = tempTau;
+         }
+         
+         return seedAxes;
+      }      
+};
+
+
+// Helper class for minimization
 class LightLikeAxis {
 private:
    double _rap, _phi, _weight, _mom;
+   
+   double DistanceSq(double rap2, double phi2) const {
+      double rap1 = _rap;
+      double phi1 = _phi;
+      
+      double distRap = rap1-rap2;
+      double distPhi = std::fabs(phi1-phi2);
+      if (distPhi > M_PI) {distPhi = 2.0*M_PI - distPhi;}
+      return sq(distRap) + sq(distPhi);
+   }
+   
+   double Distance(double rap2, double phi2) const {
+      return std::sqrt(DistanceSq(rap2,phi2));
+   }
+   
    
 public:
    LightLikeAxis() : _rap(0.0), _phi(0.0), _weight(0.0), _mom(0.0) {}
@@ -94,6 +423,25 @@ public:
    void set_weight(double my_set_weight) {_weight = my_set_weight;}
    void set_mom(double my_set_mom) {_mom = my_set_mom;}
    void reset(double my_rap, double my_phi, double my_weight, double my_mom) {_rap=my_rap; _phi=my_phi; _weight=my_weight; _mom=my_mom;}
+
+
+   
+   double DistanceSq(const fastjet::PseudoJet& input) const {
+      return DistanceSq(input.rap(),input.phi());
+   }
+
+   double Distance(const fastjet::PseudoJet& input) const {
+      return std::sqrt(DistanceSq(input));
+   }
+
+   double DistanceSq(const LightLikeAxis& input) const {
+      return DistanceSq(input.rap(),input.phi());
+   }
+
+   double Distance(const LightLikeAxis& input) const {
+      return std::sqrt(DistanceSq(input));
+   }
+
 };
 
 ///////
@@ -102,20 +450,6 @@ public:
 // TODO:  Wrap these in N-subjettiness class
 //
 ///////
-
-inline double sq(double x) {return x*x;}
-
-// Calculates distance between two points in rapidity-azimuth plane
-double DistanceSq(double rap1, double phi1, double rap2, double phi2) {
-   double distRap = rap1-rap2;
-   double distPhi = std::fabs(phi1-phi2);
-   if (distPhi > M_PI) {distPhi = 2.0*M_PI - distPhi;}
-   return sq(distRap) + sq(distPhi);
-}
-
-inline double Distance(double rap1, double phi1, double rap2, double phi2) {
-   return std::sqrt(DistanceSq(rap1, phi1, rap2, phi2));
-}
 
 
 // Given starting axes, update to find better axes
@@ -149,7 +483,7 @@ std::vector<LightLikeAxis> UpdateAxesFast(const std::vector <LightLikeAxis> & ol
    for (unsigned i = 0; i < inputJets.size(); i++){
       double smallestDist = 1000000.0;
       for (int k = 0; k < N; k++) {
-         double thisDist = DistanceSq(inputJets[i].rap(),inputJets[i].phi(),old_axes[k].rap(),old_axes[k].phi());
+         double thisDist = old_axes[k].DistanceSq(inputJets[i]);
          if (thisDist < smallestDist) {
             smallestDist = thisDist;
             k_assign = k;
@@ -173,18 +507,19 @@ std::vector<LightLikeAxis> UpdateAxesFast(const std::vector <LightLikeAxis> & ol
       // optimize pow() call
       // add noise (the precision term) to make sure we don't divide by zero
       if (beta == 1.0) {
-         double DR = std::sqrt(sq(precision) + DistanceSq(inputRap_i, inputPhi_i, old_axes[old_jet_i].rap(), old_axes[old_jet_i].phi()));
+         double DR = std::sqrt(sq(precision) + old_axes[old_jet_i].DistanceSq(inputJet_i));
          old_dist = 1.0/DR;
       } else if (beta == 2.0) {
          old_dist = 1.0;
       } else if (beta == 0.0) {
-         double DRSq = sq(precision) + DistanceSq(inputRap_i, inputPhi_i, old_axes[old_jet_i].rap(), old_axes[old_jet_i].phi());
+         double DRSq = sq(precision) + old_axes[old_jet_i].DistanceSq(inputJet_i);
          old_dist = 1.0/DRSq;
       } else {
-         old_dist = sq(precision) + DistanceSq(inputRap_i, inputPhi_i, old_axes[old_jet_i].rap(), old_axes[old_jet_i].phi());
+         old_dist = sq(precision) + old_axes[old_jet_i].DistanceSq(inputJet_i);
          old_dist = std::pow(old_dist, (0.5*beta-1.0));
       }
       
+      // TODO:  Put some of these addition functions into light-like axes
       // rapidity sum
       new_axis_i.set_rap(new_axis_i.rap() + inputJet_i.perp() * inputRap_i * old_dist);
       // phi sum
@@ -271,67 +606,10 @@ std::vector<fastjet::PseudoJet> ConvertToPseudoJet(const std::vector <LightLikeA
    return FourVecJets;
 }
 
-// N-subjettiness pieces
-std::vector<double> ConstituentTauValue(const std::vector <fastjet::PseudoJet> & particles, const std::vector<fastjet::PseudoJet>& axes, const NsubParameters& paraNsub) {// Returns the sub-tau values, i.e. a std::vector of the contributions to tau_N of each Voronoi region (or region within R_0)
-   double beta = paraNsub.beta();
-   double R0 = paraNsub.R0();
-   double Rcutoff = paraNsub.Rcutoff();
-   
-   std::vector<double> tauNum(axes.size(), 0.0), tau(axes.size());
-   double tauDen = 0.0;
-   int j_min = 0;
-   for (unsigned i = 0; i < particles.size(); i++) {
-      // find minimum distance; start with 0'th axis for reference
-      double minR = std::sqrt(particles[i].squared_distance(axes[0]));
-      for (unsigned j = 1; j < axes.size(); j++) {
-         double tempR = std::sqrt(particles[i].squared_distance(axes[j])); // delta R distance
-         if (tempR < minR) {minR = tempR; j_min = j;}
-      }
-      if (minR > Rcutoff) {minR = Rcutoff;}
-      tauNum[j_min] += particles[i].perp() * std::pow(minR,beta);
-      tauDen += particles[i].perp() * std::pow(R0,beta);
-   }
-   for (unsigned j = 0; j < axes.size(); j++) {
-      tau[j] = tauNum[j]/tauDen;
-   }
-   return tau;
-}
-
-// N-subjettiness values
-double TauValue(const std::vector <fastjet::PseudoJet>& particles, const std::vector<fastjet::PseudoJet>& axes,const NsubParameters& paraNsub) {// Calculates tau_N
-   std::vector<double> tau_vec = ConstituentTauValue(particles, axes, paraNsub);
-   double tau = 0.0;
-   for (unsigned j = 0; j < tau_vec.size(); j++) {tau += tau_vec[j];}
-   return tau;
-}
-
-// Get exclusive kT subjets
-std::vector<fastjet::PseudoJet> GetKTAxes(int n_jets, const std::vector <fastjet::PseudoJet> & inputJets) {
-   fastjet::JetDefinition jet_def = fastjet::JetDefinition(fastjet::kt_algorithm,M_PI/2.0,fastjet::E_scheme,fastjet::Best);
-   fastjet::ClusterSequence jet_clust_seq(inputJets, jet_def);
-   return jet_clust_seq.exclusive_jets(n_jets);
-}
-
-// Get exclusive CA subjets
-std::vector<fastjet::PseudoJet> GetCAAxes(int n_jets, const std::vector <fastjet::PseudoJet> & inputJets) {
-   fastjet::JetDefinition jet_def = fastjet::JetDefinition(fastjet::cambridge_algorithm,M_PI/2.0,fastjet::E_scheme,fastjet::Best);
-   fastjet::ClusterSequence jet_clust_seq(inputJets, jet_def);
-   return jet_clust_seq.exclusive_jets(n_jets);
-}
-
-// Get inclusive anti kT hardest subjets
-std::vector<fastjet::PseudoJet> GetAntiKTAxes(int n_jets, double R0, const std::vector <fastjet::PseudoJet> & inputJets) {
-   fastjet::JetDefinition jet_def = fastjet::JetDefinition(fastjet::antikt_algorithm,R0,fastjet::E_scheme,fastjet::Best);
-   fastjet::ClusterSequence jet_clust_seq(inputJets, jet_def);
-   std::vector<fastjet::PseudoJet> myJets = sorted_by_pt(jet_clust_seq.inclusive_jets());
-   myJets.resize(n_jets);  // only keep n hardest
-   return myJets;
-}
-
 
 // Get minimization axes
 std::vector<fastjet::PseudoJet> GetMinimumAxes(const std::vector <fastjet::PseudoJet> & seedAxes, const std::vector <fastjet::PseudoJet> & inputJets, KmeansParameters para, 
-                                          NsubParameters paraNsub) {
+                                          NsubParameters paraNsub,MeasureFunctor* functor) {
    int n_jets = seedAxes.size();
    double noise = 0, tau = 10000.0, tau_tmp, cmp;
    std::vector< LightLikeAxis > new_axes(n_jets, LightLikeAxis(0,0,0,0)), old_axes(n_jets, LightLikeAxis(0,0,0,0));
@@ -340,8 +618,8 @@ std::vector<fastjet::PseudoJet> GetMinimumAxes(const std::vector <fastjet::Pseud
       // Add noise to guess for the axes
       for (int k = 0; k < n_jets; k++) {
          if ( 0 == l ) { // Don't add noise on first pass
-            old_axes[k].set_rap( seedAxes[k].rap() + noise );
-            old_axes[k].set_phi( seedAxes[k].phi() + noise );
+            old_axes[k].set_rap( seedAxes[k].rap() );
+            old_axes[k].set_phi( seedAxes[k].phi() );
          } else {
             noise = ((double)rand()/(double)RAND_MAX) * para.noise_range() * 2 - para.noise_range();
             old_axes[k].set_rap( seedAxes[k].rap() + noise );
@@ -354,13 +632,14 @@ std::vector<fastjet::PseudoJet> GetMinimumAxes(const std::vector <fastjet::Pseud
          cmp = 0.0; h++;
          new_axes = UpdateAxes(old_axes, inputJets, paraNsub, para.precision()); // Update axes
          for (int k = 0; k < n_jets; k++) {
-            cmp += Distance(new_axes[k].rap(),new_axes[k].phi(),old_axes[k].rap(),old_axes[k].phi());
+            cmp += old_axes[k].Distance(new_axes[k]);
          }
          cmp = cmp / ((double) n_jets);
          old_axes = new_axes;
       }
       tmp_min_axes = ConvertToPseudoJet(old_axes); // Convert axes directions into four-std::vectors
-      tau_tmp = TauValue(inputJets, tmp_min_axes,paraNsub); 
+
+      tau_tmp = functor->tau(inputJets, tmp_min_axes); 
       if (tau_tmp < tau) {tau = tau_tmp; min_axes = tmp_min_axes;} // Keep axes and tau only if they are best so far
    }	
    return min_axes;
@@ -387,23 +666,30 @@ public:
    };
 
 private:
-   AxesMode _axes;    //Axes mode choice
-   NsubParameters _paraNsub;  //Parameters for Njettiness
-   KmeansParameters _paraKmeans;  //Parameters for Minimization Procedure (set by NsubAxesMode automatically, but can change manually if desired)
+   MeasureFunctor* _functor;
+   AxesFinder* _axesFinder;
 
    std::vector<fastjet::PseudoJet> _currentAxes;
+   std::vector<double> _currentTaus;
+   double _currentTau;
    
    void establishAxes(unsigned n_jets, const std::vector <fastjet::PseudoJet> & inputs);
+   void establishTaus(const std::vector <fastjet::PseudoJet> & inputs);
    
 public:
+   Njettiness(MeasureFunctor* functor, AxesFinder* axesFinder) : _functor(functor), _axesFinder(axesFinder) {}
+
    Njettiness(AxesMode axes, NsubParameters paraNsub);
+   Njettiness(NsubGeometricParameters paraGeo);
+      
+   ~Njettiness();
    
-   void setParaKmeans(KmeansParameters newPara) {_paraKmeans = newPara;}
-   void setParaNsub(NsubParameters newPara) {_paraNsub = newPara;}
+   void setMeasureFunctor(MeasureFunctor* newFunctor) {_functor = newFunctor;}
+   void setAxesFinder(AxesFinder* newAxesFinder) {_axesFinder = newAxesFinder;}
    
    // setAxes for Manual mode
    void setAxes(std::vector<fastjet::PseudoJet> myAxes) {
-      assert((_axes == manual_axes) || (_axes == onepass_manual_axes));
+//      assert((_axes == manual_axes) || (_axes == onepass_manual_axes));
       _currentAxes = myAxes;
    }
    
@@ -415,7 +701,9 @@ public:
          return 0.0;
       }
       establishAxes(n_jets, inputJets);  // sets current Axes
-      return TauValue(inputJets,_currentAxes,_paraNsub);
+      establishTaus(inputJets); // sets current Tau Values
+      
+      return _currentTau;
    }
    
    // get axes used by getTau.
@@ -423,6 +711,16 @@ public:
       return _currentAxes;
    }
    
+   // get subTau values calculated in getTau.
+   std::vector<double> currentTaus() {
+      return _currentTaus;
+   }
+
+   // get total Tau value calculated in getTau.
+   double currentTau() {
+      return _currentTau;
+   }
+
    // partition inputs by Voronoi (each vector stores indices corresponding to inputJets)
    std::vector<std::list<int> > getPartition(const std::vector<fastjet::PseudoJet> & inputJets);
 
@@ -431,69 +729,72 @@ public:
 
 };
 
+void Njettiness::establishTaus(const std::vector <fastjet::PseudoJet> & inputs) {
+   //subTau values
+   _currentTaus = _functor->subTaus(inputs, _currentAxes);
+   
+   //totalTau value
+   _currentTau = 0.0;
+   for (unsigned j = 0; j < _currentTaus.size(); j++) {_currentTau += _currentTaus[j];}
+}
+
+
 
 //Use NsubAxesMode to pick which type of axes to use
 void Njettiness::establishAxes(unsigned int n_jets, const std::vector <fastjet::PseudoJet> & inputs) {
-   switch (_axes) {
-      case kt_axes:
-         _currentAxes = GetKTAxes(n_jets,inputs);
-         break;
-      case ca_axes:
-         _currentAxes = GetCAAxes(n_jets,inputs);
-         break;
-      case antikt_0p2_axes:
-         _currentAxes = GetAntiKTAxes(n_jets,0.2,inputs);
-         break;
-      case onepass_kt_axes:
-      case min_axes:
-         _currentAxes = GetKTAxes(n_jets,inputs);
-         _currentAxes = GetMinimumAxes(_currentAxes, inputs, _paraKmeans, _paraNsub);
-         break;
-      case onepass_ca_axes:
-         _currentAxes = GetCAAxes(n_jets,inputs);
-         _currentAxes = GetMinimumAxes(_currentAxes, inputs, _paraKmeans, _paraNsub);
-         break;
-      case onepass_antikt_0p2_axes:
-         _currentAxes = GetAntiKTAxes(n_jets,0.2,inputs);
-         _currentAxes = GetMinimumAxes(_currentAxes, inputs, _paraKmeans, _paraNsub);
-         break;
-      case onepass_manual_axes:
-         assert(_currentAxes.size() == n_jets);
-         _currentAxes = GetMinimumAxes(_currentAxes, inputs, _paraKmeans, _paraNsub);
-         break;
-      case manual_axes:
-         assert(_currentAxes.size() == n_jets);
-         break;
-      default:
-         assert(false);
-         break;
-   }      
+   _currentAxes = _axesFinder->getAxes(n_jets,inputs,_currentAxes);   
+}
+
+
+Njettiness::Njettiness(NsubGeometricParameters paraGeo) {
+   double Rcutoff = paraGeo.Rcutoff();
+   _functor = new GeometricMeasure(Rcutoff);
+   _axesFinder = new AxesFinderFromGeometricMinimization(new AxesFinderFromKT(),Rcutoff);
 }
 
 //Constructor sets KmeansParameters from NsubAxesMode input
-Njettiness::Njettiness(AxesMode axes, NsubParameters paraNsub) : _axes(axes), _paraNsub(paraNsub), _paraKmeans() {
-   switch (_axes) {
+Njettiness::Njettiness(AxesMode axes, NsubParameters paraNsub) {
+
+   _functor = new DefaultMeasure(paraNsub);  //Is there a way to do this without pointers?
+
+   switch (axes) {
       case kt_axes:
+         _axesFinder = new AxesFinderFromKT();
+         break;
       case ca_axes:
+         _axesFinder = new AxesFinderFromCA();
+         break;
       case antikt_0p2_axes:
-         _paraKmeans = KmeansParameters(0,0.0,0,0.0);
+         _axesFinder = new AxesFinderFromAntiKT(0.2);      
          break;
       case onepass_kt_axes:
+         _axesFinder = new AxesFinderFromKmeansMinimization(new AxesFinderFromKT(),KmeansParameters(1,0.0001,1000,0.8), paraNsub);      
+         break;
       case onepass_ca_axes:
+         _axesFinder = new AxesFinderFromKmeansMinimization(new AxesFinderFromCA(),KmeansParameters(1,0.0001,1000,0.8), paraNsub);
+         break;
       case onepass_antikt_0p2_axes:
+         _axesFinder = new AxesFinderFromKmeansMinimization(new AxesFinderFromAntiKT(0.2),KmeansParameters(1,0.0001,1000,0.8), paraNsub);
+         break;
       case onepass_manual_axes:
-         _paraKmeans = KmeansParameters(1,0.0001,1000,0.8);
+         _axesFinder = new AxesFinderFromKmeansMinimization(new AxesFinderFromUserInput(),KmeansParameters(1,0.0001,1000,0.8), paraNsub);
          break;
       case min_axes:
-         _paraKmeans = KmeansParameters(100,0.0001,1000,0.8);
+         _axesFinder = new AxesFinderFromKmeansMinimization(new AxesFinderFromKT(),KmeansParameters(100,0.0001,1000,0.8), paraNsub);
          break;
       case manual_axes:
-         _paraKmeans = KmeansParameters(0,0.0,0,0.0);
+         _axesFinder = new AxesFinderFromUserInput();
          break;
       default:
          assert(false);
          break;
    }
+
+}
+
+Njettiness::~Njettiness() {
+   delete _functor;
+   delete _axesFinder;
 }
 
 
@@ -502,8 +803,6 @@ Njettiness::Njettiness(AxesMode axes, NsubParameters paraNsub) : _axes(axes), _p
 // Each vector element is a list of ints corresponding to the indices in
 // particles of the particles belonging to that jet.
 std::vector<std::list<int> > Njettiness::getPartition(const std::vector<fastjet::PseudoJet> & particles) {
-   double Rcutoff = _paraNsub.Rcutoff();
-   
    std::vector<std::list<int> > partitions(_currentAxes.size());
 
    int j_min = -1;
@@ -511,17 +810,13 @@ std::vector<std::list<int> > Njettiness::getPartition(const std::vector<fastjet:
       // find minimum distance
       double minR = 10000.0; // large number
       for (unsigned j = 0; j < _currentAxes.size(); j++) {
-         double tempR = std::sqrt(particles[i].squared_distance(_currentAxes[j])); // delta R distance
+         double tempR = _functor->distance(particles[i],_currentAxes[j]); // delta R distance
          if (tempR < minR) {
             minR = tempR;
             j_min = j;
          }
       }
-      if (minR > Rcutoff) {
-         // do nothing
-      } else {
-         partitions[j_min].push_back(i);
-      }
+      if (_functor->doCluster(particles[i],_currentAxes[j_min])) partitions[j_min].push_back(i);
    }
    return partitions;
 }

@@ -1,5 +1,5 @@
 //  Njettiness Package
-//  Version 0.4.1 (January 22, 2012)
+//  Version 0.5.1 (September 19, 2012)
 //  Questions/Comments?  jthaler@jthaler.net
 
 // Copyright (c) 2011-12, Jesse Thaler, Ken Van Tilburg, and Christopher K.
@@ -38,6 +38,85 @@
 
 FASTJET_BEGIN_NAMESPACE      // defined in fastjet/internal/base.hh
 
+///Redoing in terms of ClusterSequence::Extras
+
+class NjettinessExtras : public ClusterSequence::Extras {
+   private:
+   
+      double _tau;
+      std::vector<fastjet::PseudoJet> _jets;
+      std::vector<double> _taus;
+      std::vector<fastjet::PseudoJet> _axes;
+      
+      int labelOf(const fastjet::PseudoJet& jet) const {
+         int thisJet = -1;
+         for (int i = 0; i < _jets.size(); i++) {
+            if (_jets[i].cluster_hist_index() == jet.cluster_hist_index()) {
+               thisJet = i;
+               break;
+            }
+         }
+         return thisJet;
+      }
+      
+   public:
+      NjettinessExtras(double tau, std::vector<fastjet::PseudoJet> jets, std::vector<double> taus, std::vector<fastjet::PseudoJet> axes) : _tau(tau), _jets(jets), _taus(taus), _axes(axes) {}
+      
+      double totalTau() const {return _tau;}
+      std::vector<double> subTaus() const {return _taus;}
+      std::vector<fastjet::PseudoJet> jets() const {return _jets;}
+      std::vector<fastjet::PseudoJet> axes() const {return _axes;}
+      
+      double totalTau(const fastjet::PseudoJet& jet) const {
+         return _tau;
+      }
+      double subTau(const fastjet::PseudoJet& jet) const {
+         if (labelOf(jet) == -1) return NAN;
+         return _taus[labelOf(jet)];
+      }
+      
+      double beamTau() const {  // need to implement
+         return 0.0;
+      }
+      
+      fastjet::PseudoJet axis(const fastjet::PseudoJet& jet) const {
+         return _axes[labelOf(jet)];
+      }
+
+      bool has_njettiness_extras(const fastjet::PseudoJet& jet) const {
+         return (labelOf(jet) >= 0);
+      }
+
+};
+
+const NjettinessExtras * njettiness_extras(const fastjet::PseudoJet& jet) {
+   const ClusterSequence * myCS = jet.associated_cluster_sequence();   
+   if (myCS == NULL) return NULL;
+   const NjettinessExtras* extras = dynamic_cast<const NjettinessExtras*>(myCS->extras());   
+   return extras;   
+}
+
+const NjettinessExtras * njettiness_extras(const fastjet::ClusterSequence& myCS) {
+   const NjettinessExtras* extras = dynamic_cast<const NjettinessExtras*>(myCS.extras());   
+   return extras;   
+}
+
+
+
+/*/// NjettinessInfo stores potentially relevant info found by the Njettiness jet finding algorithm
+class NjettinessInfo : public fastjet::PseudoJet::UserInfoBase {
+   private:
+      double _subTau;
+      double _totalTau;
+      fastjet::PseudoJet _axis;
+   public:
+      NjettinessInfo(const double subTau, const double totalTau, const fastjet::PseudoJet & axis) : _subTau(subTau), _totalTau(totalTau), _axis(axis) {}
+      double subTau() const { return _subTau;}
+      double totalTau() const { return _totalTau;}
+      fastjet::PseudoJet axis() const { return _axis;}
+}; // set the info*/
+
+
 /// The Njettiness jet algorithm
 /**
  * An exclusive jet finder that identifies N jets; first N axes are found, then
@@ -72,6 +151,7 @@ class NjettinessPlugin : public JetDefinition::Plugin {
 public:
 
    NjettinessPlugin(int N, Njettiness::AxesMode mode, double beta, double R0, double Rcutoff=std::numeric_limits<double>::max());
+   NjettinessPlugin(int N, NsubGeometricParameters);
 
 
    // The things that are required by base class.
@@ -92,6 +172,10 @@ inline NjettinessPlugin::NjettinessPlugin(int N, Njettiness::AxesMode mode, doub
   : _N(N), _njettinessFinder(mode, NsubParameters(beta, R0, Rcutoff))
 {}
 
+inline NjettinessPlugin::NjettinessPlugin(int N, NsubGeometricParameters paraGeo)
+  : _N(N), _njettinessFinder(paraGeo)
+{}
+
 
 inline std::string NjettinessPlugin::description() const {return "NJettiness";}
 
@@ -101,22 +185,36 @@ inline void NjettinessPlugin::run_clustering(ClusterSequence& cs) const
    _njettinessFinder.getTau(_N, particles);
    std::vector<std::list<int> > partition = _njettinessFinder.getPartition(particles);
 
+   std::vector<fastjet::PseudoJet> jet_indices_for_extras;
+
    // output clusterings for each jet
    for (size_t i = 0; i < partition.size(); ++i) {
       std::list<int>& indices = partition[i];
       if (indices.size() == 0) continue;
-      //std::list<int>::const_iterator it = indices.begin();
+      std::list<int>::const_iterator it = indices.begin();
       while (indices.size() > 1) {
          int merge_i = indices.back(); indices.pop_back();
          int merge_j = indices.back(); indices.pop_back();
          int newIndex;
          double fakeDij = -1.0;
+         
+         // Store explicit combination, adding current Axis Information
+//         fastjet::PseudoJet combination = cs.jets()[merge_i] + cs.jets()[merge_j];
+//         cs.plugin_record_ij_recombination(merge_i, merge_j, fakeDij, combination, newIndex);
          cs.plugin_record_ij_recombination(merge_i, merge_j, fakeDij, newIndex);
+
          indices.push_back(newIndex);
       }
       double fakeDib = -1.0;
-      cs.plugin_record_iB_recombination(indices.back(), fakeDib);
+      
+      int finalJet = indices.back();
+      cs.plugin_record_iB_recombination(finalJet, fakeDib);
+      jet_indices_for_extras.push_back(cs.jets()[finalJet]);  // Get the four vector for the final jets to compare later.
    }
+
+   NjettinessExtras * extras = new NjettinessExtras(_njettinessFinder.currentTau(),jet_indices_for_extras,_njettinessFinder.currentTaus(),_njettinessFinder.currentAxes());
+   cs.plugin_associate_extras(std::auto_ptr<ClusterSequence::Extras>(extras));
+   
 }
 
 

@@ -5,17 +5,11 @@ from FWCore.ParameterSet.VarParsing import VarParsing
 
 options = VarParsing ('python')
 
-options.register('outfilename',
+options.register('outFilename',
                  "outfile.root",
                  VarParsing.multiplicity.singleton,
                  VarParsing.varType.string,
                  "output file name"
-                 )
-options.register('jetCollection',
-                 "selectedPatJetsAK6PF",
-                 VarParsing.multiplicity.singleton,
-                 VarParsing.varType.string,
-                 "Jet collection used in analysis"
                  )
 options.register('reportEvery',
                  10,
@@ -56,74 +50,51 @@ process.options   = cms.untracked.PSet( wantSummary = cms.untracked.bool(options
 ## Input files
 process.source = cms.Source("PoolSource",
     fileNames = cms.untracked.vstring(
-      'file:///cms/ferencek/store/skaplan/QCD_Pt-15to3000_TuneZ2star_Flat_8TeV_pythia6/Summer12-PU_S7_START52_V9-v1_PATTuple/f7377c82d9b827962c4fc87795e9adaf/patTuple_PF2PAT_100_2_6Ow.root'
-      )
+      'file:/cms/ferencek/store/ferencek/WW_TuneZ2star_8TeV_pythia6_tauola/Summer12-PU_S7_START52_V9-v1_PATTuple/c356f3ff60b3ed8401082f13b541664f/patTuple_PF2PAT_157_2_Gcc.root'
+      #'file:/cms/ferencek/store/skaplan/QCD_Pt-15to3000_TuneZ2star_Flat_8TeV_pythia6/Summer12-PU_S7_START52_V9-v1_PATTuple/f7377c82d9b827962c4fc87795e9adaf/patTuple_PF2PAT_100_2_6Ow.root'
+    )
+)
+
+## Output file
+process.TFileService = cms.Service("TFileService",
+   fileName = cms.string(options.outFilename)
 )
 
 ## Produce a collection of good primary vertices
 from PhysicsTools.SelectorUtils.pvSelector_cfi import pvSelector
 process.goodOfflinePrimaryVertices = cms.EDFilter("PrimaryVertexObjectFilter",
-  filterParams = pvSelector.clone(
-      minNdof = cms.double(4.0), # this is >= 4
-      maxZ = cms.double(24.0),
-      maxRho = cms.double(2.0)
-      ),
-  src = cms.InputTag('offlinePrimaryVertices')
+    filterParams = pvSelector.clone(
+        minNdof = cms.double(4.0), # this is >= 4
+        maxZ = cms.double(24.0),
+        maxRho = cms.double(2.0)
+    ),
+    src = cms.InputTag('offlinePrimaryVertices')
 )
 
-process.TFileService = cms.Service("TFileService",
-   fileName = cms.string(options.outfilename)
+# Initialize RutgersJetAnalyzer
+process.rutgersJetAnalyzer = cms.EDAnalyzer('RutgersJetAnalyzer',
+    GenParticleTag       = cms.InputTag('prunedGenParticles'),
+    JetsTag              = cms.InputTag('selectedPatJetsAK6PF'),
+    GroomedJetsTag       = cms.InputTag('selectedPatJetsAK6TrimmedPF'),
+    PvTag                = cms.InputTag('goodOfflinePrimaryVertices'),
+    FJInputPtMin         = cms.double(0.),
+    FJJetPtMin           = cms.double(0.),
+    FJRadius             = cms.double(0.6),
+    DoWMatching          = cms.bool(True),
+    WMatchingRadius      = cms.double(0.3),
+    LeptonMatchingRadius = cms.double(0.4),
+    JetPtMin             = cms.double(300.),
+    JetAbsEtaMax         = cms.double(1.5),
+    JetMassMin           = cms.double(65.),
+    JetMassMax           = cms.double(95.),
+    UseGroomedJets       = cms.bool(False)
 )
 
-process.rutgersJetAnalyzerAK6 = cms.EDAnalyzer('RutgersJetAnalyzer',
-   GenParticleTag = cms.InputTag('prunedGenParticles'),
-   JetsTag = cms.InputTag('selectedPatJetsAK6PF'),
-   pvtag = cms.InputTag('goodOfflinePrimaryVertices'),
-   InputPtMin = cms.double(0.0),
-   JetPtMin = cms.double(0.0)
-   )
-process.rutgersJetAnalyzerAK7 = cms.EDAnalyzer('RutgersJetAnalyzer',
-   GenParticleTag = cms.InputTag('prunedGenParticles'),
-   JetsTag = cms.InputTag('selectedPatJetsPFlow'),
-   pvtag = cms.InputTag('goodOfflinePrimaryVertices'),
-   InputPtMin = cms.double(0.0),
-   JetPtMin = cms.double(0.0)
-   )
-process.rutgersJetAnalyzerAK8 = cms.EDAnalyzer('RutgersJetAnalyzer',
-   GenParticleTag = cms.InputTag('prunedGenParticles'),
-   JetsTag = cms.InputTag('selectedPatJetsAK8PF'),
-   pvtag = cms.InputTag('goodOfflinePrimaryVertices'),
-   InputPtMin = cms.double(0.0),
-   JetPtMin = cms.double(0.0)
-   )
-process.rutgersJetAnalyzerAK10 = cms.EDAnalyzer('RutgersJetAnalyzer',
-    GenParticleTag = cms.InputTag('prunedGenParticles'),
-    JetsTag = cms.InputTag('selectedPatJetsAK10PF'),
-    pvtag = cms.InputTag('goodOfflinePrimaryVertices'),
-    InputPtMin = cms.double(0.0),
-    JetPtMin = cms.double(0.0)
-    )
 ## Path definition
 process.p = cms.Path(
      process.goodOfflinePrimaryVertices*
-     process.rutgersJetAnalyzerAK6*
-     process.rutgersJetAnalyzerAK7*
-     process.rutgersJetAnalyzerAK8*
-     process.rutgersJetAnalyzerAK10
-     )
-
-### Add PF2PAT output to the created file
-#from PhysicsTools.PatAlgos.patEventContent_cff import patEventContentNoCleaning
-##process.load("CommonTools.ParticleFlow.PF2PAT_EventContent_cff")
-##process.out.outputCommands =  cms.untracked.vstring('drop *')
-#process.out.outputCommands = cms.untracked.vstring('drop *',
-#'keep recoPFCandidates_particleFlow_*_*',
-#*patEventContentNoCleaning )
-
-## Delete predefined Endpath (needed for running with CRAB)
-#del process.out
-#del process.outpath
+     process.rutgersJetAnalyzer
+)
 
 ## Schedule definition
 process.schedule = cms.Schedule(process.p)
-#process.schedule.append(process.outpath)

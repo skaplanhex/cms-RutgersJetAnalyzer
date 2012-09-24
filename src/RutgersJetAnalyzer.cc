@@ -13,7 +13,7 @@
 //
 // Original Author:  Dinko Ferencek
 //         Created:  Fri Jul 20 12:32:38 CDT 2012
-// $Id: RutgersJetAnalyzer.cc,v 1.6 2012/08/17 18:11:40 ferencek Exp $
+// $Id: RutgersJetAnalyzer.cc,v 1.7 2012/09/19 20:31:47 skaplan Exp $
 //
 //
 
@@ -25,23 +25,30 @@
 #include "fastjet/JetDefinition.hh"
 #include "fastjet/ClusterSequence.hh"
 #include "fastjet/PseudoJet.hh"
-
+// N-subjettiness include files
+#include "RutgersSandbox/RutgersJetAnalyzer/plugins/NjettinessPlugin.hh"
+#include "RutgersSandbox/RutgersJetAnalyzer/plugins/Nsubjettiness.hh"
 // user include files
 #include <boost/shared_ptr.hpp>
-#include "TH2D.h"
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/EDAnalyzer.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
-#include "DataFormats/Candidate/interface/Candidate.h"
+// #include "DataFormats/Candidate/interface/Candidate.h"
+// #include "DataFormats/Candidate/interface/CandidateFwd.h"
+#include "DataFormats/ParticleFlowCandidate/interface/PFCandidate.h"
+#include "DataFormats/ParticleFlowCandidate/interface/PFCandidateFwd.h"
 #include "DataFormats/PatCandidates/interface/Jet.h"
-#include "DataFormats/Candidate/interface/CandidateFwd.h"
 #include "DataFormats/JetReco/interface/GenJetCollection.h"
+#include "DataFormats/VertexReco/interface/VertexFwd.h"
+#include "DataFormats/VertexReco/interface/Vertex.h"
+#include "DataFormats/Math/interface/deltaR.h"
 #include "FWCore/ServiceRegistry/interface/Service.h"
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
-//#include "RutgersSandbox/RutgersJetAnalyzer/plugins/NjettinessPlugin.hh"
-//#include "RutgersSandbox/RutgersJetAnalyzer/plugins/Nsubjettiness.hh"
+#include "TH1D.h"
+#include "TH2D.h"
+
 //
 // class declaration
 //
@@ -57,6 +64,7 @@ public:
     typedef boost::shared_ptr<fastjet::ClusterSequence>        ClusterSequencePtr;
     typedef boost::shared_ptr<fastjet::JetDefinition::Plugin>  PluginPtr;
     typedef boost::shared_ptr<fastjet::JetDefinition>          JetDefPtr;
+    typedef std::vector<pat::Jet> PatJetCollection;
     
     
 private:
@@ -71,42 +79,50 @@ private:
     
     // ----------member data ---------------------------
     const edm::InputTag genParticleTag;
-    const edm::InputTag JetsTag;
-    const edm::InputTag pvtag;
-    const double        inputPtMin;       // minimum pT of input constituents
-    const double        jetPtMin;         // minimum jet pT
+    const edm::InputTag jetsTag;
+    const edm::InputTag groomedJetsTag;
+    const edm::InputTag pvTag;
+    const double        fjInputPtMin;       // minimum pT of input constituents clustered by FastJet
+    const double        fjJetPtMin;         // minimum jet pT returned by FastJet
+    const double	fjRadius;	    // radius for jet clustering
+    const bool          doWMatching;	    // parameter for deciding if matching on or off
+    const double	wMatchingRadius;
+    const double	leptonMatchingRadius;
+    const double	jetPtMin;
+    const double	jetAbsEtaMax;
+    const double	jetMassMin;
+    const double	jetMassMax;
+    const bool          useGroomedJets;
     bool                useUncorrectedJets;
     JetDefPtr           jetDefinitionAK;  // Anti-kT jet definition
     JetDefPtr           jetDefinitionKT;  // kT jet definition
     edm::Service<TFileService> fs;
-    //    TH1D *hT1;
-    //    TH1D *hT2;
-    //    TH1D *hT2byT1;
-    //    TH1D *hpt_nocut;
-    //    TH1D *hpt_cut;
-    //    TH1D *heta_nocut;
-    //    TH1D *heta_cut;
-    //    TH1D *hmass_nocut;
-    //    TH1D *hmass_cut;
-    TH1D *hjet6pt;
-    TH1D *hjet6eta;
-    TH1D *hjet6mass;
-    TH1D *hjet6mult;
-    TH1D *hjet6wmult;
-    TH1D *hjet6wpassmult;
-//    TH1D *hjet7pt;
-//    TH1D *hjet7eta;
-//    TH1D *hjet7mass;
-//    TH1D *hjet7mult;
-//    TH1D *hjet7wmult;
-    
-    TH2D *hjetmVSnumpvGT300;
-    TH2D *hjetmVSnumpvGT1000;
-    TH2D *hjetmVSnumpv300_500;
-    TH2D *hjetmVSnumpv500_700;
-    TH2D *hjetmVSnumpv700_1000;
-    
-    
+
+    TH1D *h1_nPV;
+
+    TH2D *h2_nPV_JetMass_Pt300toInf;
+    TH2D *h2_nPV_JetMass_Pt300to500;
+    TH2D *h2_nPV_JetMass_Pt500to700;
+    TH2D *h2_nPV_JetMass_Pt700to900;
+    TH2D *h2_nPV_JetMass_Pt900toInf;
+
+    TH2D *h2_nPV_tau1_Pt300toInf;
+    TH2D *h2_nPV_tau1_Pt300to500;
+    TH2D *h2_nPV_tau1_Pt500to700;
+    TH2D *h2_nPV_tau1_Pt700to900;
+    TH2D *h2_nPV_tau1_Pt900toInf;
+
+    TH2D *h2_nPV_tau2_Pt300toInf;
+    TH2D *h2_nPV_tau2_Pt300to500;
+    TH2D *h2_nPV_tau2_Pt500to700;
+    TH2D *h2_nPV_tau2_Pt700to900;
+    TH2D *h2_nPV_tau2_Pt900toInf;
+
+    TH2D *h2_nPV_tau2tau1_Pt300toInf;
+    TH2D *h2_nPV_tau2tau1_Pt300to500;
+    TH2D *h2_nPV_tau2tau1_Pt500to700;
+    TH2D *h2_nPV_tau2tau1_Pt700to900;
+    TH2D *h2_nPV_tau2tau1_Pt900toInf;
 };
 
 //
@@ -120,21 +136,58 @@ private:
 //
 // constructors and destructor
 //
-RutgersJetAnalyzer::RutgersJetAnalyzer(const edm::ParameterSet& iConfig):
-genParticleTag(iConfig.getParameter<edm::InputTag>("GenParticleTag")),
-JetsTag(iConfig.getParameter<edm::InputTag>("JetsTag")),
-pvtag(iConfig.getParameter<edm::InputTag>("pvtag")),
-inputPtMin(iConfig.getParameter<double>("InputPtMin")),
-jetPtMin(iConfig.getParameter<double>("JetPtMin")),
-useUncorrectedJets(false)
+RutgersJetAnalyzer::RutgersJetAnalyzer(const edm::ParameterSet& iConfig) :
+
+  genParticleTag(iConfig.getParameter<edm::InputTag>("GenParticleTag")),
+  jetsTag(iConfig.getParameter<edm::InputTag>("JetsTag")),
+  groomedJetsTag(iConfig.getParameter<edm::InputTag>("GroomedJetsTag")),
+  pvTag(iConfig.getParameter<edm::InputTag>("PvTag")),
+  fjInputPtMin(iConfig.getParameter<double>("FJInputPtMin")),
+  fjJetPtMin(iConfig.getParameter<double>("FJJetPtMin")),
+  fjRadius(iConfig.getParameter<double>("FJRadius")),
+  doWMatching(iConfig.getParameter<bool>("DoWMatching")),
+  wMatchingRadius(iConfig.getParameter<double>("WMatchingRadius")),
+  leptonMatchingRadius(iConfig.getParameter<double>("LeptonMatchingRadius")),
+  jetPtMin(iConfig.getParameter<double>("JetPtMin")),
+  jetAbsEtaMax(iConfig.getParameter<double>("JetAbsEtaMax")),
+  jetMassMin(iConfig.getParameter<double>("JetMassMin")),
+  jetMassMax(iConfig.getParameter<double>("JetMassMax")),
+  useGroomedJets(iConfig.getParameter<bool>("UseGroomedJets")),
+  useUncorrectedJets(false)
 
 {
     //now do what ever initialization is needed
-    jetDefinitionAK = JetDefPtr( new fastjet::JetDefinition(fastjet::antikt_algorithm, 1.2) );
-    jetDefinitionKT = JetDefPtr( new fastjet::JetDefinition(fastjet::kt_algorithm, 1.4) );
+    jetDefinitionAK = JetDefPtr( new fastjet::JetDefinition(fastjet::antikt_algorithm, fjRadius) );
+    jetDefinitionKT = JetDefPtr( new fastjet::JetDefinition(fastjet::kt_algorithm, fjRadius) );
 
-    if ( iConfig.exists("useUncorrectedJets") )
-      useUncorrectedJets = iConfig.getParameter<bool>("useUncorrectedJets");
+    if ( iConfig.exists("UseUncorrectedJets") )
+      useUncorrectedJets = iConfig.getParameter<bool>("UseUncorrectedJets");
+
+    h1_nPV = fs->make<TH1D>("h1_nPV","PV Multiplicity;nPV;",51,-0.5,50.5);
+
+    h2_nPV_JetMass_Pt300toInf = fs->make<TH2D>("h2_nPV_JetMass_Pt300toInf","p_{T}>900 GeV;nPV;m_{jet} [GeV]",51,-0.5,50.5,200,0,200.);
+    h2_nPV_JetMass_Pt300to500 = fs->make<TH2D>("h2_nPV_JetMass_Pt300to500","300<p_{T}<500 GeV;nPV;m_{jet} [GeV]",51,-0.5,50.5,200,0,200.);
+    h2_nPV_JetMass_Pt500to700 = fs->make<TH2D>("h2_nPV_JetMass_Pt500to700","500<p_{T}<700 GeV;nPV;m_{jet} [GeV]",51,-0.5,50.5,200,0,200.);
+    h2_nPV_JetMass_Pt700to900 = fs->make<TH2D>("h2_nPV_JetMass_Pt700to900","700<p_{T}<900 GeV;nPV;m_{jet} [GeV]",51,-0.5,50.5,200,0,200.);
+    h2_nPV_JetMass_Pt900toInf = fs->make<TH2D>("h2_nPV_JetMass_Pt900toInf","p_{T}>900 GeV;nPV;m_{jet} [GeV]",51,-0.5,50.5,200,0,200.);
+
+    h2_nPV_tau1_Pt300toInf = fs->make<TH2D>("h2_nPV_tau1_Pt300toInf","p_{T}>900 GeV;nPV;#tau_{1} [GeV]",51,-0.5,50.5,100,0,1.);
+    h2_nPV_tau1_Pt300to500 = fs->make<TH2D>("h2_nPV_tau1_Pt300to500","300<p_{T}<500 GeV;nPV;#tau_{1} [GeV]",51,-0.5,50.5,100,0,1.);
+    h2_nPV_tau1_Pt500to700 = fs->make<TH2D>("h2_nPV_tau1_Pt500to700","500<p_{T}<700 GeV;nPV;#tau_{1} [GeV]",51,-0.5,50.5,100,0,1.);
+    h2_nPV_tau1_Pt700to900 = fs->make<TH2D>("h2_nPV_tau1_Pt700to900","700<p_{T}<900 GeV;nPV;#tau_{1} [GeV]",51,-0.5,50.5,100,0,1.);
+    h2_nPV_tau1_Pt900toInf = fs->make<TH2D>("h2_nPV_tau1_Pt900toInf","p_{T}>900 GeV;nPV;#tau_{1} [GeV]",51,-0.5,50.5,100,0,1.);
+
+    h2_nPV_tau2_Pt300toInf = fs->make<TH2D>("h2_nPV_tau2_Pt300toInf","p_{T}>900 GeV;nPV;#tau_{2} [GeV]",51,-0.5,50.5,100,0,1.);
+    h2_nPV_tau2_Pt300to500 = fs->make<TH2D>("h2_nPV_tau2_Pt300to500","300<p_{T}<500 GeV;nPV;#tau_{2} [GeV]",51,-0.5,50.5,100,0,1.);
+    h2_nPV_tau2_Pt500to700 = fs->make<TH2D>("h2_nPV_tau2_Pt500to700","500<p_{T}<700 GeV;nPV;#tau_{2} [GeV]",51,-0.5,50.5,100,0,1.);
+    h2_nPV_tau2_Pt700to900 = fs->make<TH2D>("h2_nPV_tau2_Pt700to900","700<p_{T}<900 GeV;nPV;#tau_{2} [GeV]",51,-0.5,50.5,100,0,1.);
+    h2_nPV_tau2_Pt900toInf = fs->make<TH2D>("h2_nPV_tau2_Pt900toInf","p_{T}>900 GeV;nPV;#tau_{2} [GeV]",51,-0.5,50.5,100,0,1.);
+
+    h2_nPV_tau2tau1_Pt300toInf = fs->make<TH2D>("h2_nPV_tau2tau1_Pt300toInf","p_{T}>300 GeV;nPV;#tau_{2}/#tau_{1} [GeV]",51,-0.5,50.5,100,0,1.);
+    h2_nPV_tau2tau1_Pt300to500 = fs->make<TH2D>("h2_nPV_tau2tau1_Pt300to500","300<p_{T}<500 GeV;nPV;#tau_{2}/#tau_{1} [GeV]",51,-0.5,50.5,100,0,1.);
+    h2_nPV_tau2tau1_Pt500to700 = fs->make<TH2D>("h2_nPV_tau2tau1_Pt500to700","500<p_{T}<700 GeV;nPV;#tau_{2}/#tau_{1} [GeV]",51,-0.5,50.5,100,0,1.);
+    h2_nPV_tau2tau1_Pt700to900 = fs->make<TH2D>("h2_nPV_tau2tau1_Pt700to900","700<p_{T}<900 GeV;nPV;#tau_{2}/#tau_{1} [GeV]",51,-0.5,50.5,100,0,1.);
+    h2_nPV_tau2tau1_Pt900toInf = fs->make<TH2D>("h2_nPV_tau2tau1_Pt900toInf","p_{T}>900 GeV;nPV;#tau_{2}/#tau_{1} [GeV]",51,-0.5,50.5,100,0,1.);
 }
 
 
@@ -143,11 +196,7 @@ RutgersJetAnalyzer::~RutgersJetAnalyzer()
     
     // do anything here that needs to be done at desctruction time
     // (e.g. close files, deallocate resources etc.)
-    
-    //hT1->Write();
-    //hT2->Write();
-    //hT2byT1->Write();
-    
+
 }
 
 
@@ -159,157 +208,148 @@ RutgersJetAnalyzer::~RutgersJetAnalyzer()
 void
 RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
-    //    edm::Handle<reco::GenJetCollection> genJets;
-    //iEvent.getByLabel(genJetsTag, genJets);
-    
     edm::Handle<reco::GenParticleCollection> genParticles;
     iEvent.getByLabel(genParticleTag,genParticles);
-    
-    edm::Handle< std::vector<pat::Jet> > patjets;
-    iEvent.getByLabel(JetsTag,patjets);
-    
-    edm::Handle< std::vector<reco::Vertex> > PVs;
-    iEvent.getByLabel(pvtag,PVs);
-    
-    std::vector<fastjet::PseudoJet> fjjets;
-    std::vector<fastjet::PseudoJet> fjws;
-    double ptcut = 300.0;
-    double etacut = 1.5;
-    double fixDeltaR = 0.3;
-    int numPVs = (int)PVs->size();
-    
-    for(reco::GenParticleCollection::const_iterator iter = genParticles->begin(); iter != genParticles->end(); ++iter){
-        if( abs(iter->pdgId()) == 24 ){
-            fastjet::PseudoJet *temppart = new fastjet::PseudoJet(iter->px(),iter->py(),iter->pz(),iter->energy());
-            fjws.push_back(*temppart);
-        }
-    }
-    //convert ak6 pat::Jets to PseudoJets and store in vectors
-    for(int i=0; i<(int)patjets->size(); i++){
-        pat::Jet ijet = patjets->at(i);
 
-        double px = ijet.px(), py = ijet.py(), pz = ijet.pz(), energy = ijet.energy();
-	if( useUncorrectedJets ) {
-          px = ijet.correctedJet("Uncorrected").px(); py = ijet.correctedJet("Uncorrected").py(); pz = ijet.correctedJet("Uncorrected").pz(); energy = ijet.correctedJet("Uncorrected").energy();
-	}
-	
-        fastjet::PseudoJet *tempjet = new fastjet::PseudoJet(px,py,pz,energy);
-        fjjets.push_back(*tempjet);
-    }
-    int numWr = fjws.size();
-    //W matching and analysis for AK6 jets
-    std::vector<double> dRR6(fjjets.size(),99);
-    std::vector<int> matchedindexr6(fjjets.size(),-1);
-    int numtaggedwjet6=0;
-    int numtaggedwjet6masscut=0;
-    for ( size_t j = 0; j < fjjets.size(); ++j )
+    edm::Handle<PatJetCollection> jets;
+    iEvent.getByLabel(jetsTag,jets);
+
+    edm::Handle<PatJetCollection> groomedJets;
+    if( useGroomedJets ) iEvent.getByLabel(groomedJetsTag,groomedJets);
+
+    edm::Handle<reco::VertexCollection> PVs;
+    iEvent.getByLabel(pvTag,PVs);
+
+    int nPV = PVs->size();
+    // fill histogram of the number of reconstructed PVs
+    h1_nPV->Fill(nPV);
+
+    // vectors of pointers to Ws and status=3 charged leptons
+    std::vector<const reco::GenParticle*> Ws, st3ChargedLeptons;
+
+    for(reco::GenParticleCollection::const_iterator it = genParticles->begin(); it != genParticles->end(); ++it)
     {
-        for (int k=0; k < numWr; k++)
-        {
-            if (fjjets[j].delta_R(fjws[k])<=fixDeltaR && fjjets[j].delta_R(fjws[k])<dRR6[j])
-            {
-                dRR6[j]=fjjets[j].delta_R(fjws[k]);
-                matchedindexr6[j] = 24; //if matched index = 24 (W pdgID)
-            }
-        }
-        if (fjjets[j].pt()>ptcut && abs(fjjets[j].eta())<etacut && (matchedindexr6[j]!=-1))
-        {
-            numtaggedwjet6++;
-            if (65 <= fjjets[j].m() && fjjets[j].m() <= 95)
-                numtaggedwjet6masscut++;
-            hjet6pt->Fill(fjjets[j].pt());
-            hjet6eta->Fill(fjjets[j].eta());
-            hjet6mass->Fill(fjjets[j].m());
-            double temppt = fjjets[j].pt();
-            double tempmass = fjjets[j].m();
-            hjetmVSnumpvGT300->Fill(numPVs,tempmass);
-            if (300 < temppt && temppt < 500)
-                hjetmVSnumpv300_500->Fill(numPVs,tempmass);
-            else if (500 <= temppt && temppt < 700)
-                hjetmVSnumpv500_700->Fill(numPVs,tempmass);
-            else if (700 <= temppt && temppt < 1000)
-                hjetmVSnumpv700_1000->Fill(numPVs,tempmass);
-            else if (temppt>=1000)
-                hjetmVSnumpvGT1000->Fill(numPVs,tempmass);
-        }
+      if( abs(it->pdgId()) == 24 ) Ws.push_back(&(*it));
+      if( it->status() == 3 && ( abs(it->pdgId()) == 11 || abs(it->pdgId()) == 13 || abs(it->pdgId()) == 15 ) ) st3ChargedLeptons.push_back(&(*it));
     }
-    hjet6mult->Fill(fjjets.size());
-    hjet6wmult->Fill(numtaggedwjet6);
-    hjet6wpassmult->Fill(numtaggedwjet6masscut);
 
-    //    if ( genJets->size() >= 2 )
-    //    {
-    //        // loop over two leading GenJets
-    //        for ( size_t j = 0; j < 2; ++j )
-    //        {
-    //            //std::cout << "Jet " << i << " has " << genJets->at(i).getJetConstituents().size() << " constituents" << std::endl;
-    //            
-    //            std::vector<edm::Ptr<reco::Candidate> > inputs; // inputs for subjet clustering
-    //            inputs = genJets->at(j).getJetConstituents();
-    //            reco::GenJet genjet = genJets->at(j);
-    //            fastjet::PseudoJet *genjetfast = new fastjet::PseudoJet(genjet.px(),genjet.py(),genjet.pz(),genjet.energy());
-    //            if (genjetfast->pt() > 30) {
-    //                hpt_nocut->Fill(genjetfast->pt());
-    //                heta_nocut->Fill(genjetfast->eta());
-    //                hmass_nocut->Fill(genjetfast->m());
-    //                if (genjetfast->pt() > 150)
-    //                    hmass_cut->Fill(genjetfast->m());
-    //                
-    //            }
-    //            if(genjetfast->pt() > 150 && abs(genjetfast->eta())<2.5 && 81 < genjetfast->m() && genjetfast->m()<101){
-    //                std::vector<fastjet::PseudoJet> fjInputs; // FastJet inputs for jet clustering
-    //                
-    //                // convert candidates to fastjet::PseudoJets
-    //                std::vector<edm::Ptr<reco::Candidate> >::const_iterator inBegin = inputs.begin(),
-    //                inEnd = inputs.end(), i = inBegin;
-    //                for ( ; i != inEnd; ++i )
-    //                {
-    //                    reco::CandidatePtr input = *i;
-    //                    if (input->pt() < inputPtMin) continue;
-    //                    if (input->pt() == 0) {
-    //                        edm::LogError("NullTransverseMomentum") << "dropping input candidate with pt=0";
-    //                        continue;
-    //                    }
-    //                    
-    //                    fjInputs.push_back(fastjet::PseudoJet(input->px(),input->py(),input->pz(), input->energy()));
-    //                    fjInputs.back().set_user_index(i - inBegin);
-    //                }
-    //                // define clustering sequence
-    //                ClusterSequencePtr clusterSeqKT = ClusterSequencePtr( new fastjet::ClusterSequence( fjInputs, *jetDefinitionKT ) );
-    //                // kT jets
-    //                std::vector<fastjet::PseudoJet> kTJets = fastjet::sorted_by_pt(clusterSeqKT->inclusive_jets(jetPtMin));
-    //                
-    //                // get 2 subjets only for jets that have at least 2 constituents
-    //                if ( fjInputs.size() >= 2 && kTJets.size() >=1 ) {
-    //                    
-    //                    std::vector<fastjet::PseudoJet> subJets = fastjet::sorted_by_pt(kTJets[0].exclusive_subjets(2));
-    //                    long double T1sum=0;
-    //                    long double d0=0;
-    //                    double R1=1.2;
-    //                    long double T2sum=0;
-    //                    for(int k=0; k < (int)fjInputs.size(); k++){
-    //                        long double dR = genjetfast->delta_R(fjInputs[k]);
-    //                        long double dR1 = subJets[0].delta_R(fjInputs[k]);
-    //                        long double dR2 = subJets[1].delta_R(fjInputs[k]);
-    //                        if(dR1 < dR2)
-    //                            T2sum += dR1*fjInputs[k].pt();
-    //                        else
-    //                            T2sum += dR2*fjInputs[k].pt();
-    //                        T1sum += dR*fjInputs[k].pt();
-    //                        d0 += fjInputs[k].pt()*R1;
-    //                    }
-    //                    double T1=T1sum/d0;
-    //                    double T2=T2sum/d0;
-    //                    double ratio = T2/T1;
-    //                    //std:: cout << T1 << " " << T2 << " " << ratio << std::endl;
-    //                    hT1->Fill(T1);
-    //                    hT2->Fill(T2);
-    //                    hT2byT1->Fill(ratio);
-    //                }
-    //            } //end boosted & higgs mass conditions
-    //              //std::cout << "dR(subjet1,subjet2) for Jet" << j << ": " << subJets[0].delta_R(subJets[1]) << std::endl;
-    //        } // end for ()
-    //    } // end if()
+    // loop over jets
+    for(PatJetCollection::const_iterator it = jets->begin(); it != jets->end(); ++it)
+    {
+      double jetPt = it->pt();
+      // skip the jet if it does not pass pT and eta cuts
+      if( !(jetPt > jetPtMin && fabs(it->eta()) < jetAbsEtaMax) ) continue;
+
+      bool isMatched = false;
+
+      // perform W matching with lepton veto
+      if( doWMatching )
+      {
+        for(std::vector<const reco::GenParticle*>::const_iterator itW = Ws.begin(); itW != Ws.end(); ++itW)
+	{
+          if( reco::deltaR( (*itW)->p4(), it->p4() ) < wMatchingRadius )
+	  {
+            isMatched = true;
+	    break;
+	  }
+	}
+
+	for(std::vector<const reco::GenParticle*>::const_iterator itL = st3ChargedLeptons.begin(); itL != st3ChargedLeptons.end(); ++itL)
+	{
+          if( reco::deltaR( (*itL)->p4(), it->p4() ) < leptonMatchingRadius )
+	  {
+            isMatched = false;
+	    break;
+	  }
+	}
+      }
+      else
+        isMatched = true;
+
+      // skip the jet if it is not matched to a W boson
+      if( !isMatched ) continue;
+
+      double jetMass = it->mass();
+      if( useGroomedJets )
+      {
+        bool matchFound = false;
+	for(PatJetCollection::const_iterator itGJ = groomedJets->begin(); itGJ != groomedJets->end(); ++itGJ)
+	{
+          if( reco::deltaR( it->p4(), itGJ->p4() ) < fjRadius )
+	  {
+            matchFound = true;
+	    jetMass = itGJ->mass();
+	    break;
+	  }
+	}
+	if( !matchFound ) edm::LogError("NoMatchingGroomedJet") << "Matching groomed jet not found. Using the original jet mass.";
+      }
+
+      // fill nPV_JetMass histograms
+      h2_nPV_JetMass_Pt300toInf->Fill(nPV,jetMass);
+      if( jetPt>300 && jetPt<=500 )      h2_nPV_JetMass_Pt300to500->Fill(nPV,jetMass);
+      else if( jetPt>500 && jetPt<=700 ) h2_nPV_JetMass_Pt500to700->Fill(nPV,jetMass);
+      else if( jetPt>700 && jetPt<=900 ) h2_nPV_JetMass_Pt700to900->Fill(nPV,jetMass);
+      else                               h2_nPV_JetMass_Pt900toInf->Fill(nPV,jetMass);
+
+      // skip the jet if it does not pass the invariant mass cut
+      if( !(jetMass > jetMassMin && jetMass < jetMassMax) ) continue;
+
+      std::vector<fastjet::PseudoJet> fjInputs;
+      std::vector<edm::Ptr<reco::PFCandidate> > constituents = it->getPFConstituents();
+      std::vector<edm::Ptr<reco::PFCandidate> >::const_iterator m;
+      for ( m = constituents.begin(); m != constituents.end(); ++m )
+      {
+	reco::PFCandidatePtr constit = *m;
+	if (constit->pt() < fjInputPtMin) continue;
+	if (constit->pt() == 0)
+	{
+          edm::LogError("NullTransverseMomentum") << "dropping input candidate with pt=0";
+	  continue;
+	}
+	fjInputs.push_back(fastjet::PseudoJet(constit->px(),constit->py(),constit->pz(),constit->energy()));
+	fjInputs.back().set_user_index(m - constituents.begin());
+      }
+
+      ClusterSequencePtr reclusterSeq = ClusterSequencePtr( new fastjet::ClusterSequence( fjInputs, *jetDefinitionAK ));
+      std::vector<fastjet::PseudoJet> reclusteredJets = fastjet::sorted_by_pt(reclusterSeq->inclusive_jets(fjJetPtMin));
+
+      double beta = 1.0, R0 = fjRadius, Rcut = fjRadius;
+      fastjet::Nsubjettiness nSub1OnePass_reco(1, Njettiness::onepass_kt_axes, beta, R0, Rcut);
+      double tau1 = nSub1OnePass_reco(reclusteredJets[0]);
+      fastjet::Nsubjettiness nSub2OnePass_reco(2, Njettiness::onepass_kt_axes, beta, R0, Rcut);
+      double tau2 = nSub2OnePass_reco(reclusteredJets[0]);
+
+      // fill nPV_tau histograms
+      h2_nPV_tau1_Pt300toInf->Fill(nPV,tau1);
+      h2_nPV_tau2_Pt300toInf->Fill(nPV,tau2);
+      h2_nPV_tau2tau1_Pt300toInf->Fill(nPV, (tau1>0 ? tau2/tau1 : -10.) );
+      if( jetPt>300 && jetPt<=500 )
+      {
+        h2_nPV_tau1_Pt300to500->Fill(nPV,tau1);
+        h2_nPV_tau2_Pt300to500->Fill(nPV,tau2);
+        h2_nPV_tau2tau1_Pt300to500->Fill(nPV, (tau1>0 ? tau2/tau1 : -10.) );
+      }
+      else if( jetPt>500 && jetPt<=700 )
+      {
+        h2_nPV_tau1_Pt500to700->Fill(nPV,tau1);
+        h2_nPV_tau2_Pt500to700->Fill(nPV,tau2);
+	h2_nPV_tau2tau1_Pt500to700->Fill(nPV, (tau1>0 ? tau2/tau1 : -10.) );
+      }
+      else if( jetPt>700 && jetPt<=900 )
+      {
+        h2_nPV_tau1_Pt700to900->Fill(nPV,tau1);
+	h2_nPV_tau2_Pt700to900->Fill(nPV,tau2);
+	h2_nPV_tau2tau1_Pt700to900->Fill(nPV, (tau1>0 ? tau2/tau1 : -10.) );
+      }
+      else
+      {
+        h2_nPV_tau1_Pt900toInf->Fill(nPV,tau1);
+        h2_nPV_tau2_Pt900toInf->Fill(nPV,tau2);
+	h2_nPV_tau2tau1_Pt900toInf->Fill(nPV, (tau1>0 ? tau2/tau1 : -10.) );
+      }
+    }
+
     //############################################################################################
     //## This section demonstrates how to cluster jets from scratch
     //##
@@ -367,42 +407,12 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
 void 
 RutgersJetAnalyzer::beginJob()
 {
-    //    hT1 = fs->make<TH1D>("hT1" , "T_1" , 100 , 0 , 1 );
-    //    hT2 = fs->make<TH1D>("hT2" , "T_2" , 100 , 0 , 1 );
-    //    hT2byT1 = fs->make<TH1D>("hT2/T1" , "T_2/T_1" , 100 , 0 , 1 );
-    //    hpt_nocut = fs->make<TH1D>("hpt_nocut","Jet pT with no cuts",250,0,450);
-    //    hpt_cut = fs->make<TH1D>("hpt_cut","Jet pT with inv mass cut",250,0,450);
-    //    heta_nocut = fs->make<TH1D>("heta_nocut","Jet eta with no cuts",450,-5,5);
-    //    heta_cut = fs->make<TH1D>("heta_cut","Jet eta with cuts",200,-5,5);
-    //    hmass_nocut = fs->make<TH1D>("hmass_nocut","Jet mass with no cuts",300,0,300);
-    //    hmass_cut = fs->make<TH1D>("hmass_cut","Jet mass with cuts",300,0,300);
-    hjet6mass = fs->make<TH1D>("hjet6mass","W-Jet Mass (R=0.6)",200,0,200);
-    hjet6pt = fs->make<TH1D>("hjet6pt","W-Jet pT (R=0.6)",250,0,450);
-    hjet6eta = fs->make<TH1D>("hjet6eta","W-Jet Eta (R=0.6)",450,-5,5);
-    hjet6mult = fs->make<TH1D>("hjet6mult","Jet Multiplicity (R=0.6)",100,0,100);
-    hjet6wmult = fs->make<TH1D>("hjet6wmult","W-Jet Multiplicity (R=0.6)",10,0,10);
-    hjet6wpassmult = fs->make<TH1D>("hjet6wpassmult","W-Jet Multiplicity (passed inv. mass cut) (R=0.6)",10,0,10);
-//    hjet7mass = fs->make<TH1D>("hjet7mass","W-Jet Mass (R=0.7)",200,0,200);
-//    hjet7pt = fs->make<TH1D>("hjet7pt","W-Jet pT (R=0.7)",250,0,450);
-//    hjet7eta = fs->make<TH1D>("hjet7eta","W-Jet Eta (R=0.7)",450,-5,5);
-//    hjet7mult = fs->make<TH1D>("hjet7mult","Jet Multiplicity (R=0.7)",100,0,100);
-//    hjet7wmult = fs->make<TH1D>("hjet7wmult","W-Jet Multiplicity (R=0.7)",10,0,10);
-//    hjet7weff = fs->make<TH1D>("hjet7weff","W-Jet Tag Efficiency (R=0.7)",100,0,1);
-    
-    hjetmVSnumpvGT300 = fs->make<TH2D>("hjetmVSnumpvGT300","W-Jet Mass vs. PV Multiplicity (pT>300 GeV/c) (R=0.6)",41,-0.5,40.5,200,0,200);
-    hjetmVSnumpvGT1000 = fs->make<TH2D>("hjetmVSnumpvGT1000","W-Jet Mass vs. PV Multiplicity (pT>1 TeV/c) (R=0.6)",41,-0.5,40.5,200,0,200);
-    hjetmVSnumpv300_500 = fs->make<TH2D>("hjetmVSnumpvGT300_500","W-Jet Mass vs. PV Multiplicity (300 < pT < 500 GeV/c) (R=0.6)",41,-0.5,40.5,200,0,200);
-    hjetmVSnumpv500_700 = fs->make<TH2D>("hjetmVSnumpvGT500_700","W-Jet Mass vs. PV Multiplicity (500 <= pT < 700 GeV/c) (R=0.6)",41,-0.5,40.5,200,0,200);
-    hjetmVSnumpv700_1000 = fs->make<TH2D>("hjetmVSnumpvGT700_1000","W-Jet Mass vs. PV Multiplicity (700 <= pT < 1000 GeV/c) (R=0.6)",41,-0.5,40.5,200,0,200);
-    
 }
 
 // ------------ method called once each job just after ending the event loop  ------------
 void 
 RutgersJetAnalyzer::endJob() 
 {
-    
-    
 }
 
 // ------------ method called when starting to processes a run  ------------

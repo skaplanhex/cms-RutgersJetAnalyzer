@@ -41,6 +41,12 @@ options.register('usePFchs',
     VarParsing.varType.bool,
     "Use PFchs"
 )
+options.register('useHLTFiltering',
+    False,
+    VarParsing.multiplicity.singleton,
+    VarParsing.varType.bool,
+    "Use HLT filtering"
+)
 ## 'maxEvents' is already registered by the Framework, changing default value
 options.setDefault('maxEvents', 10)
 
@@ -52,9 +58,14 @@ print "Using PFchs: %s"%('True' if options.usePFchs else 'False')
 ## Jet energy corrections
 inputJetCorrLabelAK5 = ('AK5PFchs', ['L1FastJet', 'L2Relative', 'L3Absolute'])
 inputJetCorrLabelAK7 = ('AK7PFchs', ['L1FastJet', 'L2Relative', 'L3Absolute'])
+
 if not options.usePFchs:
     inputJetCorrLabelAK5 = ('AK5PF', ['L1FastJet', 'L2Relative', 'L3Absolute'])
     inputJetCorrLabelAK7 = ('AK7PF', ['L1FastJet', 'L2Relative', 'L3Absolute'])
+
+if options.runOnData:
+    inputJetCorrLabelAK5[1].append('L2L3Residual')
+    inputJetCorrLabelAK7[1].append('L2L3Residual')
 
 import FWCore.ParameterSet.Config as cms
 
@@ -89,6 +100,9 @@ process.source = cms.Source("PoolSource",
     )
 )
 
+if options.runOnData:
+    process.source.fileNames = ['/store/data/Run2012A/Jet/AOD/PromptReco-v1/000/191/046/AE786065-E586-E111-866B-BCAEC5329702.root']
+
 ## Standard PAT Configuration File
 process.load("PhysicsTools.PatAlgos.patSequences_cff")
 
@@ -118,6 +132,10 @@ getattr(process,"pfNoMuon"+postfix).enable = True
 getattr(process,"pfNoElectron"+postfix).enable = True
 getattr(process,"pfNoTau"+postfix).enable = False
 getattr(process,"pfNoJet"+postfix).enable = True
+
+## Remove MC matching when running over data
+if options.runOnData:
+    removeMCMatching( process, ['All'] )
 
 ## Define AK6 jets and subjets (GEN and RECO)
 process.ak6GenJetsNoNu = process.ak5GenJetsNoNu.clone( rParam = 0.6 )
@@ -150,23 +168,27 @@ from RecoJets.JetProducers.ak5PFJetsFiltered_cfi import ak5PFJetsFiltered
 process.ak6PFJetsFiltered = ak5PFJetsFiltered.clone(
     src = process.pfJetsPFlow.src,
     doAreaFastjet = cms.bool(True),
-    rParam = cms.double(0.6)
+    rParam = cms.double(0.6),
+    writeCompound = cms.bool(False),
+    jetCollInstanceName=cms.string("")
 )
 
 from RecoJets.JetProducers.ak5PFJetsPruned_cfi import ak5PFJetsPruned
 process.ak6PFJetsPruned = ak5PFJetsPruned.clone(
     src = process.pfJetsPFlow.src,
     doAreaFastjet = cms.bool(True),
-    rParam = cms.double(0.6)
+    rParam = cms.double(0.6),
+    writeCompound = cms.bool(False),
+    jetCollInstanceName=cms.string("")
 )
 
-## Define AK8 jets (GEN and RECO)
-process.ak8GenJetsNoNu = process.ak5GenJetsNoNu.clone( rParam = 0.8 )
-process.ak8PFJets = process.pfJetsPFlow.clone( rParam = 0.8 )
+### Define AK8 jets (GEN and RECO)
+#process.ak8GenJetsNoNu = process.ak5GenJetsNoNu.clone( rParam = 0.8 )
+#process.ak8PFJets = process.pfJetsPFlow.clone( rParam = 0.8 )
 
-## Define AK10 jets (GEN and RECO)
-process.ak10GenJetsNoNu = process.ak5GenJetsNoNu.clone( rParam = 1.0 )
-process.ak10PFJets = process.pfJetsPFlow.clone( rParam = 1.0 )
+### Define AK10 jets (GEN and RECO)
+#process.ak10GenJetsNoNu = process.ak5GenJetsNoNu.clone( rParam = 1.0 )
+#process.ak10PFJets = process.pfJetsPFlow.clone( rParam = 1.0 )
 
 from PhysicsTools.PatAlgos.tools.jetTools import *
 ## Add AK6 jets to PAT
@@ -240,49 +262,34 @@ addJetCollection(
     doJetID = False,
     genJetCollection = cms.InputTag("ak6GenJetsNoNu")
 )
-## Add AK8 jets to PAT
-addJetCollection(
-    process,
-    cms.InputTag('ak8PFJets'),
-    'AK8', 'PF',
-    doJTA=True,
-    doBTagging=True,
-    jetCorrLabel=inputJetCorrLabelAK7,
-    doType1MET=False,
-    doL1Cleaning=False,
-    doL1Counters=False,
-    doJetID = False,
-    genJetCollection = cms.InputTag("ak8GenJetsNoNu")
-)
-## Add AK10 jets to PAT
-addJetCollection(
-    process,
-    cms.InputTag('ak10PFJets'),
-    'AK10', 'PF',
-    doJTA=True,
-    doBTagging=True,
-    jetCorrLabel=inputJetCorrLabelAK7,
-    doType1MET=False,
-    doL1Cleaning=False,
-    doL1Counters=False,
-    doJetID = False,
-    genJetCollection = cms.InputTag("ak10GenJetsNoNu")
-)
-
-## Define a sequence for RECO jets and append it to the PF2PAT sequence
-process.jetSeq = cms.Sequence(
-    process.ak6GenJetsNoNu+
-    process.ak6GenJetsNoNuRU+
-    process.ak6PFJets+
-    process.ak6PFJetsRU+
-    process.ak6PFJetsTrimmed+
-    process.ak6PFJetsFiltered+
-    process.ak6PFJetsPruned+
-    process.ak8GenJetsNoNu+
-    process.ak8PFJets+
-    process.ak10GenJetsNoNu+
-    process.ak10PFJets
-)
+### Add AK8 jets to PAT
+#addJetCollection(
+    #process,
+    #cms.InputTag('ak8PFJets'),
+    #'AK8', 'PF',
+    #doJTA=True,
+    #doBTagging=True,
+    #jetCorrLabel=inputJetCorrLabelAK7,
+    #doType1MET=False,
+    #doL1Cleaning=False,
+    #doL1Counters=False,
+    #doJetID = False,
+    #genJetCollection = cms.InputTag("ak8GenJetsNoNu")
+#)
+### Add AK10 jets to PAT
+#addJetCollection(
+    #process,
+    #cms.InputTag('ak10PFJets'),
+    #'AK10', 'PF',
+    #doJTA=True,
+    #doBTagging=True,
+    #jetCorrLabel=inputJetCorrLabelAK7,
+    #doType1MET=False,
+    #doL1Cleaning=False,
+    #doL1Counters=False,
+    #doJetID = False,
+    #genJetCollection = cms.InputTag("ak10GenJetsNoNu")
+#)
 
 ## Produce a collection of good primary vertices
 from PhysicsTools.SelectorUtils.pvSelector_cfi import pvSelector
@@ -303,10 +310,57 @@ process.prunedGenParticles = cms.EDProducer("GenParticlePruner",
         "drop  *",
         "keep status = 3", # keeps  particles from the hard matrix element
         "keep (abs(pdgId) >= 11 & abs(pdgId) <= 16) & status = 1", # keeps e/mu and nus with status 1
-        "keep (abs(pdgId)  = 15) & status = 3", # keeps taus
-        "++keep (abs(pdgId)  = 5)" # keeps all b quarks and all their ancestors
+        "keep (abs(pdgId) = 15) & status = 3", # keeps taus
+        "++keep (abs(pdgId) = 5)" # keeps all b quarks and all their ancestors
     )
 )
+
+## Filter based on HLT paths
+process.hltFilter = cms.EDFilter('HLTHighLevel',
+    TriggerResultsTag = cms.InputTag('TriggerResults','','HLT'),
+    HLTPaths = cms.vstring('HLT_PFJet400_*'),        # provide list of HLT paths (or patterns) you want
+    eventSetupPathsKey = cms.string(''),             # not empty => use read paths from AlCaRecoTriggerBitsRcd via this key
+    andOr = cms.bool(True),                          # how to deal with multiple triggers: True (OR) accept if ANY is true, False (AND) accept if ALL are true
+    throw = cms.bool(True)                           # throw exception on unknown path names
+)
+
+## Define a sequence of trigger filters
+process.trigSeq = cms.Sequence(
+    process.hltFilter
+)
+
+## Define a sequence of modules run before PAT
+process.prePATSeq = cms.Sequence(
+    process.goodOfflinePrimaryVertices
+    + process.prunedGenParticles
+)
+
+## Define a sequence for jets
+process.jetSeq = cms.Sequence(
+    process.ak6GenJetsNoNu
+    + process.ak6GenJetsNoNuRU
+    + process.ak6PFJets
+    + process.ak6PFJetsRU
+    + process.ak6PFJetsTrimmed
+    + process.ak6PFJetsFiltered
+    + process.ak6PFJetsPruned
+    #+ process.ak8GenJetsNoNu
+    #+ process.ak8PFJets
+    #+ process.ak10GenJetsNoNu
+    #+ process.ak10PFJets
+)
+
+## If running over data, remove GenJets
+if options.runOnData:
+    process.prePATSeq.remove(process.prunedGenParticles)
+    process.jetSeq.remove(process.ak6GenJetsNoNu)
+    process.jetSeq.remove(process.ak6GenJetsNoNuRU)
+    #process.jetSeq.remove(process.ak8GenJetsNoNu)
+    #process.jetSeq.remove(process.ak10GenJetsNoNu)
+
+## We only want to use HLT filtering on data
+if not options.useHLTFiltering:
+    process.trigSeq.remove(process.hltFilter)
 
 ### Add PF2PAT output to the created file
 from PhysicsTools.PatAlgos.patEventContent_cff import patEventContentNoCleaning
@@ -324,16 +378,18 @@ patEventContentNoCleaning.append('keep *_generalTracks_*_*')
 patEventContentNoCleaning.append('keep *_offlinePrimaryVertices_*_*')
 patEventContentNoCleaning.append('keep *_kt6PFJets_rho_*')
 patEventContentNoCleaning.append('keep LumiSummary_lumiProducer_*_*')
+patEventContentNoCleaning.append('drop *_TriggerResults_*_*')
+patEventContentNoCleaning.append('keep *_TriggerResults_*_HLT')
 
 process.out.outputCommands = cms.untracked.vstring('drop *', *patEventContentNoCleaning)
 
 ## Path definition
 process.p = cms.Path(
-    process.goodOfflinePrimaryVertices*
-    getattr(process,"patPF2PATSequence"+postfix)*
-    process.jetSeq*
-    process.patDefaultSequence*
-    process.prunedGenParticles
+    process.trigSeq
+    * process.prePATSeq
+    * getattr(process,"patPF2PATSequence"+postfix)
+    * process.jetSeq
+    * process.patDefaultSequence
 )
 
 ## Define Endpath

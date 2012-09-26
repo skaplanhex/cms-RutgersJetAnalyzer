@@ -153,7 +153,8 @@ def main():
 	ijobmax = int(numfiles/filesperjob)
 	if numfiles%filesperjob!=0:
 	    ijobmax = ijobmax + 1
-        print 'Could not create the exact number of jobs requested.\nFor optimal job splitting, the number of jobs set to '+ str(ijobmax)
+        if ijobmax != int(options.njobs):
+            print 'Could not create the exact number of jobs requested.\nFor optimal job splitting, the number of jobs set to '+ str(ijobmax)
     #################################################
     # create jdl file
     jdl_file = open(os.path.join(outputmain,'CMSSW.jdl'),'w')

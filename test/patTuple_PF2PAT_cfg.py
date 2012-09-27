@@ -101,7 +101,7 @@ process.source = cms.Source("PoolSource",
 )
 
 if options.runOnData:
-    process.source.fileNames = ['/store/data/Run2012A/Jet/AOD/PromptReco-v1/000/191/046/AE786065-E586-E111-866B-BCAEC5329702.root']
+    process.source.fileNames = ['/store/data/Run2012A/Jet/AOD/PromptReco-v1/000/191/046/D41302B2-8186-E111-ADF3-003048D3C932.root']
 
 ## Standard PAT Configuration File
 process.load("PhysicsTools.PatAlgos.patSequences_cff")
@@ -324,6 +324,13 @@ process.hltFilter = cms.EDFilter('HLTHighLevel',
     throw = cms.bool(True)                           # throw exception on unknown path names
 )
 
+## Good primary vertex event filter
+process.primaryVertexFilter = cms.EDFilter('VertexSelector',
+    src = cms.InputTag('offlinePrimaryVertices'),
+    cut = cms.string('!isFake & ndof > 4 & abs(z) <= 24 & position.Rho <= 2'),
+    filter = cms.bool(True)
+)
+
 ## Define a sequence of trigger filters
 process.trigSeq = cms.Sequence(
     process.hltFilter
@@ -385,7 +392,8 @@ process.out.outputCommands = cms.untracked.vstring('drop *', *patEventContentNoC
 
 ## Path definition
 process.p = cms.Path(
-    process.trigSeq
+    process.primaryVertexFilter
+    * process.trigSeq
     * process.prePATSeq
     * getattr(process,"patPF2PATSequence"+postfix)
     * process.jetSeq

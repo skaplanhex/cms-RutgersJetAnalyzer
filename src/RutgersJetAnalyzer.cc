@@ -13,7 +13,7 @@
 //
 // Original Author:  Dinko Ferencek
 //         Created:  Fri Jul 20 12:32:38 CDT 2012
-// $Id: RutgersJetAnalyzer.cc,v 1.7 2012/09/19 20:31:47 skaplan Exp $
+// $Id: RutgersJetAnalyzer.cc,v 1.7.2.1 2012/09/24 18:48:24 ferencek Exp $
 //
 //
 
@@ -35,8 +35,6 @@
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
-// #include "DataFormats/Candidate/interface/Candidate.h"
-// #include "DataFormats/Candidate/interface/CandidateFwd.h"
 #include "DataFormats/ParticleFlowCandidate/interface/PFCandidate.h"
 #include "DataFormats/ParticleFlowCandidate/interface/PFCandidateFwd.h"
 #include "DataFormats/PatCandidates/interface/Jet.h"
@@ -99,6 +97,11 @@ private:
     edm::Service<TFileService> fs;
 
     TH1D *h1_nPV;
+
+    TH1D *h1_JetPt;
+    TH1D *h1_JetPt_JetMass;
+    TH1D *h1_JetEta;
+    TH1D *h1_JetEta_JetMass;
 
     TH2D *h2_nPV_JetMass_Pt300toInf;
     TH2D *h2_nPV_JetMass_Pt300to500;
@@ -165,29 +168,34 @@ RutgersJetAnalyzer::RutgersJetAnalyzer(const edm::ParameterSet& iConfig) :
 
     h1_nPV = fs->make<TH1D>("h1_nPV","PV Multiplicity;nPV;",51,-0.5,50.5);
 
+    h1_JetPt         = fs->make<TH1D>("h1_JetPt",";p_{T} GeV;",1000,0.,1000.);
+    h1_JetPt_JetMass = fs->make<TH1D>("h1_JetPt_JetMass","Jet mass cut;p_{T} GeV;",1000,0.,1000.);
+    h1_JetEta         = fs->make<TH1D>("h1_JetEta",";#eta;",120,-3.,3.);
+    h1_JetEta_JetMass = fs->make<TH1D>("h1_JetEta_JetMass","Jet mass cut;#eta;",120,-3.,3.);
+
     h2_nPV_JetMass_Pt300toInf = fs->make<TH2D>("h2_nPV_JetMass_Pt300toInf","p_{T}>900 GeV;nPV;m_{jet} [GeV]",51,-0.5,50.5,200,0,200.);
     h2_nPV_JetMass_Pt300to500 = fs->make<TH2D>("h2_nPV_JetMass_Pt300to500","300<p_{T}<500 GeV;nPV;m_{jet} [GeV]",51,-0.5,50.5,200,0,200.);
     h2_nPV_JetMass_Pt500to700 = fs->make<TH2D>("h2_nPV_JetMass_Pt500to700","500<p_{T}<700 GeV;nPV;m_{jet} [GeV]",51,-0.5,50.5,200,0,200.);
     h2_nPV_JetMass_Pt700to900 = fs->make<TH2D>("h2_nPV_JetMass_Pt700to900","700<p_{T}<900 GeV;nPV;m_{jet} [GeV]",51,-0.5,50.5,200,0,200.);
     h2_nPV_JetMass_Pt900toInf = fs->make<TH2D>("h2_nPV_JetMass_Pt900toInf","p_{T}>900 GeV;nPV;m_{jet} [GeV]",51,-0.5,50.5,200,0,200.);
 
-    h2_nPV_tau1_Pt300toInf = fs->make<TH2D>("h2_nPV_tau1_Pt300toInf","p_{T}>900 GeV;nPV;#tau_{1} [GeV]",51,-0.5,50.5,100,0,1.);
-    h2_nPV_tau1_Pt300to500 = fs->make<TH2D>("h2_nPV_tau1_Pt300to500","300<p_{T}<500 GeV;nPV;#tau_{1} [GeV]",51,-0.5,50.5,100,0,1.);
-    h2_nPV_tau1_Pt500to700 = fs->make<TH2D>("h2_nPV_tau1_Pt500to700","500<p_{T}<700 GeV;nPV;#tau_{1} [GeV]",51,-0.5,50.5,100,0,1.);
-    h2_nPV_tau1_Pt700to900 = fs->make<TH2D>("h2_nPV_tau1_Pt700to900","700<p_{T}<900 GeV;nPV;#tau_{1} [GeV]",51,-0.5,50.5,100,0,1.);
-    h2_nPV_tau1_Pt900toInf = fs->make<TH2D>("h2_nPV_tau1_Pt900toInf","p_{T}>900 GeV;nPV;#tau_{1} [GeV]",51,-0.5,50.5,100,0,1.);
+    h2_nPV_tau1_Pt300toInf = fs->make<TH2D>("h2_nPV_tau1_Pt300toInf","p_{T}>900 GeV;nPV;#tau_{1}",51,-0.5,50.5,100,0,1.);
+    h2_nPV_tau1_Pt300to500 = fs->make<TH2D>("h2_nPV_tau1_Pt300to500","300<p_{T}<500 GeV;nPV;#tau_{1}",51,-0.5,50.5,100,0,1.);
+    h2_nPV_tau1_Pt500to700 = fs->make<TH2D>("h2_nPV_tau1_Pt500to700","500<p_{T}<700 GeV;nPV;#tau_{1}",51,-0.5,50.5,100,0,1.);
+    h2_nPV_tau1_Pt700to900 = fs->make<TH2D>("h2_nPV_tau1_Pt700to900","700<p_{T}<900 GeV;nPV;#tau_{1}",51,-0.5,50.5,100,0,1.);
+    h2_nPV_tau1_Pt900toInf = fs->make<TH2D>("h2_nPV_tau1_Pt900toInf","p_{T}>900 GeV;nPV;#tau_{1}",51,-0.5,50.5,100,0,1.);
 
-    h2_nPV_tau2_Pt300toInf = fs->make<TH2D>("h2_nPV_tau2_Pt300toInf","p_{T}>900 GeV;nPV;#tau_{2} [GeV]",51,-0.5,50.5,100,0,1.);
-    h2_nPV_tau2_Pt300to500 = fs->make<TH2D>("h2_nPV_tau2_Pt300to500","300<p_{T}<500 GeV;nPV;#tau_{2} [GeV]",51,-0.5,50.5,100,0,1.);
-    h2_nPV_tau2_Pt500to700 = fs->make<TH2D>("h2_nPV_tau2_Pt500to700","500<p_{T}<700 GeV;nPV;#tau_{2} [GeV]",51,-0.5,50.5,100,0,1.);
-    h2_nPV_tau2_Pt700to900 = fs->make<TH2D>("h2_nPV_tau2_Pt700to900","700<p_{T}<900 GeV;nPV;#tau_{2} [GeV]",51,-0.5,50.5,100,0,1.);
-    h2_nPV_tau2_Pt900toInf = fs->make<TH2D>("h2_nPV_tau2_Pt900toInf","p_{T}>900 GeV;nPV;#tau_{2} [GeV]",51,-0.5,50.5,100,0,1.);
+    h2_nPV_tau2_Pt300toInf = fs->make<TH2D>("h2_nPV_tau2_Pt300toInf","p_{T}>900 GeV;nPV;#tau_{2}",51,-0.5,50.5,100,0,1.);
+    h2_nPV_tau2_Pt300to500 = fs->make<TH2D>("h2_nPV_tau2_Pt300to500","300<p_{T}<500 GeV;nPV;#tau_{2}",51,-0.5,50.5,100,0,1.);
+    h2_nPV_tau2_Pt500to700 = fs->make<TH2D>("h2_nPV_tau2_Pt500to700","500<p_{T}<700 GeV;nPV;#tau_{2}",51,-0.5,50.5,100,0,1.);
+    h2_nPV_tau2_Pt700to900 = fs->make<TH2D>("h2_nPV_tau2_Pt700to900","700<p_{T}<900 GeV;nPV;#tau_{2}",51,-0.5,50.5,100,0,1.);
+    h2_nPV_tau2_Pt900toInf = fs->make<TH2D>("h2_nPV_tau2_Pt900toInf","p_{T}>900 GeV;nPV;#tau_{2}",51,-0.5,50.5,100,0,1.);
 
-    h2_nPV_tau2tau1_Pt300toInf = fs->make<TH2D>("h2_nPV_tau2tau1_Pt300toInf","p_{T}>300 GeV;nPV;#tau_{2}/#tau_{1} [GeV]",51,-0.5,50.5,100,0,1.);
-    h2_nPV_tau2tau1_Pt300to500 = fs->make<TH2D>("h2_nPV_tau2tau1_Pt300to500","300<p_{T}<500 GeV;nPV;#tau_{2}/#tau_{1} [GeV]",51,-0.5,50.5,100,0,1.);
-    h2_nPV_tau2tau1_Pt500to700 = fs->make<TH2D>("h2_nPV_tau2tau1_Pt500to700","500<p_{T}<700 GeV;nPV;#tau_{2}/#tau_{1} [GeV]",51,-0.5,50.5,100,0,1.);
-    h2_nPV_tau2tau1_Pt700to900 = fs->make<TH2D>("h2_nPV_tau2tau1_Pt700to900","700<p_{T}<900 GeV;nPV;#tau_{2}/#tau_{1} [GeV]",51,-0.5,50.5,100,0,1.);
-    h2_nPV_tau2tau1_Pt900toInf = fs->make<TH2D>("h2_nPV_tau2tau1_Pt900toInf","p_{T}>900 GeV;nPV;#tau_{2}/#tau_{1} [GeV]",51,-0.5,50.5,100,0,1.);
+    h2_nPV_tau2tau1_Pt300toInf = fs->make<TH2D>("h2_nPV_tau2tau1_Pt300toInf","p_{T}>300 GeV;nPV;#tau_{2}/#tau_{1}",51,-0.5,50.5,100,0,1.);
+    h2_nPV_tau2tau1_Pt300to500 = fs->make<TH2D>("h2_nPV_tau2tau1_Pt300to500","300<p_{T}<500 GeV;nPV;#tau_{2}/#tau_{1}",51,-0.5,50.5,100,0,1.);
+    h2_nPV_tau2tau1_Pt500to700 = fs->make<TH2D>("h2_nPV_tau2tau1_Pt500to700","500<p_{T}<700 GeV;nPV;#tau_{2}/#tau_{1}",51,-0.5,50.5,100,0,1.);
+    h2_nPV_tau2tau1_Pt700to900 = fs->make<TH2D>("h2_nPV_tau2tau1_Pt700to900","700<p_{T}<900 GeV;nPV;#tau_{2}/#tau_{1}",51,-0.5,50.5,100,0,1.);
+    h2_nPV_tau2tau1_Pt900toInf = fs->make<TH2D>("h2_nPV_tau2tau1_Pt900toInf","p_{T}>900 GeV;nPV;#tau_{2}/#tau_{1}",51,-0.5,50.5,100,0,1.);
 }
 
 
@@ -269,6 +277,8 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
       // skip the jet if it is not matched to a W boson
       if( !isMatched ) continue;
 
+      h1_JetPt->Fill(jetPt);
+
       double jetMass = it->mass();
       if( useGroomedJets )
       {
@@ -294,6 +304,8 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
 
       // skip the jet if it does not pass the invariant mass cut
       if( !(jetMass > jetMassMin && jetMass < jetMassMax) ) continue;
+
+      h1_JetPt_JetMass->Fill(jetPt);
 
       std::vector<fastjet::PseudoJet> fjInputs;
       std::vector<edm::Ptr<reco::PFCandidate> > constituents = it->getPFConstituents();

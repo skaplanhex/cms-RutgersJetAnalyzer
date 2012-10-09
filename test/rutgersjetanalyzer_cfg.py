@@ -51,7 +51,6 @@ process.options   = cms.untracked.PSet( wantSummary = cms.untracked.bool(options
 process.source = cms.Source("PoolSource",
     fileNames = cms.untracked.vstring(
       'file:/cms/ferencek/store/ferencek/WWtoAnything_ptmin500_TuneZ2Star_8TeV-pythia6-tauola/Summer12-PU_S7_START52_V9-v1_PATTuple/f7377c82d9b827962c4fc87795e9adaf/patTuple_PF2PAT_1_1_Plj.root'
-      #'file:/cms/ferencek/store/skaplan/QCD_Pt-15to3000_TuneZ2star_Flat_8TeV_pythia6/Summer12-PU_S7_START52_V9-v1_PATTuple/f7377c82d9b827962c4fc87795e9adaf/patTuple_PF2PAT_100_2_6Ow.root'
     )
 )
 
@@ -87,7 +86,8 @@ process.rutgersJetAnalyzer = cms.EDAnalyzer('RutgersJetAnalyzer',
     JetAbsEtaMax         = cms.double(1.5),
     JetMassMin           = cms.double(65.),
     JetMassMax           = cms.double(95.),
-    UseGroomedJets       = cms.bool(True)
+    UseGroomedJets       = cms.bool(True),
+    UseEventWeight       = cms.bool(False)
 )
 
 ## Path definition

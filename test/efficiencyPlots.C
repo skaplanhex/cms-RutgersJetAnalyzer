@@ -914,7 +914,6 @@ void makePlots()
 			     "QCDPythiaDefaultJetMass.root", "QCDPythiaFilteredJetMass.root", "QCDPythiaPrunedJetMass.root", "QCDPythiaTrimmedJetMass.root",
 			     "Pt300to500", 11, 21, "G#rightarrowWW (750 GeV), 300<p_{T}<500 GeV, 10#leqnPV#leq20", "Trimmed jet mass", "Filtered jet mass",
 			     "Pruned jet mass", "Default jet mass", 0, 0.3, "W_tag_eff_grooming_nPV10to20_Pt300to500_RSGToWW750_Pythia.eps");
-
   efficiency_curves_grooming("output_files", "RSGravitonToWW_kMpl01_M-1500_PythiaDefaultJetMass.root", "RSGravitonToWW_kMpl01_M-750_PythiaFilteredJetMass.root", "RSGravitonToWW_kMpl01_M-750_PythiaPrunedJetMass.root", "RSGravitonToWW_kMpl01_M-750_PythiaTrimmedJetMass.root",
 			     "QCDPythiaDefaultJetMass.root", "QCDPythiaFilteredJetMass.root", "QCDPythiaPrunedJetMass.root", "QCDPythiaTrimmedJetMass.root",
 			     "Pt300to500", 11, 21, "G#rightarrowWW (1.5 TeV), 300<p_{T}<500 GeV, 10#leqnPV#leq20", "Trimmed jet mass", "Filtered jet mass",
@@ -932,7 +931,6 @@ void makePlots()
 			     "QCDHerwigDefaultJetMass.root", "QCDHerwigFilteredJetMass.root", "QCDHerwigPrunedJetMass.root", "QCDHerwigTrimmedJetMass.root",
 			     "Pt300to500", 11, 21, "G#rightarrowWW (750 GeV), 300<p_{T}<500 GeV, 10#leqnPV#leq20", "Trimmed jet mass", "Filtered jet mass",
 			     "Pruned jet mass", "Default jet mass", 0, 0.3, "W_tag_eff_grooming_nPV10to20_Pt300to500_RSGToWW750_Herwig.eps");
-
   efficiency_curves_grooming("output_files", "RSGravitonToWW_kMpl01_M-1500_HerwigDefaultJetMass.root", "RSGravitonToWW_kMpl01_M-750_HerwigFilteredJetMass.root", "RSGravitonToWW_kMpl01_M-750_HerwigPrunedJetMass.root", "RSGravitonToWW_kMpl01_M-750_HerwigTrimmedJetMass.root",
 			     "QCDHerwigDefaultJetMass.root", "QCDHerwigFilteredJetMass.root", "QCDHerwigPrunedJetMass.root", "QCDHerwigTrimmedJetMass.root",
 			     "Pt300to500", 11, 21, "G#rightarrowWW (1.5 TeV), 300<p_{T}<500 GeV, 10#leqnPV#leq20", "Trimmed jet mass", "Filtered jet mass",
@@ -956,7 +954,6 @@ void makePlots()
   efficiency_curves_sigmc("output_files", "RSGravitonToWW_kMpl01_M-750_PythiaTrimmedJetMass.root", "RSGravitonToWW_kMpl01_M-750_HerwigTrimmedJetMass.root", "QCDPythiaTrimmedJetMass.root",
 			  "Pt300to500", 11, 21, "G#rightarrowWW (750 GeV), 300<p_{T}<500 GeV, 10#leqnPV#leq20", "Pythia G#rightarrowWW", "Herwig G#rightarrowWW",
 			  0, 0.3, "W_tag_eff_sigmc_nPV10to20_Pt300to500_TrimmedJetMass_RSGToWW750.eps");
-
   efficiency_curves_sigmc("output_files", "RSGravitonToWW_kMpl01_M-1500_PythiaTrimmedJetMass.root", "RSGravitonToWW_kMpl01_M-1500_HerwigTrimmedJetMass.root", "QCDPythiaTrimmedJetMass.root",
 			  "Pt300to500", 11, 21, "G#rightarrowWW (1.5 TeV), 300<p_{T}<500 GeV, 10#leqnPV#leq20", "Pythia G#rightarrowWW", "Herwig G#rightarrowWW",
 			  0, 0.3, "W_tag_eff_sigmc_nPV10to20_Pt300to500_TrimmedJetMass_RSGToWW1500.eps");
@@ -972,12 +969,14 @@ void makePlots()
   efficiency_curves_comp("output_files", "WWTrimmedJetMass.root", "RSGravitonToWW_kMpl01_M-750_PythiaDefaultJetMass.root", "QCDPythiaTrimmedJetMass.root", "QCDPythiaTrimmedJetMass.root",
 			 "Pt300to500", 11, 21, "300<p_{T}<500 GeV, 10#leqnPV#leq20", "WW", "G#rightarrowWW (750 GeV)",
 			  0, 0.3, "W_tag_eff_nPV10to20_Pt300to500_TrimmedJetMass_WW_RSGToWW750.eps");
-
   efficiency_curves_comp("output_files", "WWTrimmedJetMass.root", "RSGravitonToWW_kMpl01_M-1500_PythiaDefaultJetMass.root", "QCDPythiaTrimmedJetMass.root", "QCDPythiaTrimmedJetMass.root",
 			 "Pt300to500", 11, 21, "300<p_{T}<500 GeV, 10#leqnPV#leq20", "WW", "G#rightarrowWW (1.5 TeV)",
 			  0, 0.3, "W_tag_eff_nPV10to20_Pt300to500_TrimmedJetMass_WW_RSGToWW1500.eps");
   efficiency_curves_comp("output_files", "WW500TrimmedJetMass.root", "RSGravitonToWW_kMpl01_M-1500_PythiaDefaultJetMass.root", "QCDPythiaTrimmedJetMass.root", "QCDPythiaTrimmedJetMass.root",
 			 "Pt500to700", 11, 21, "500<p_{T}<700 GeV, 10#leqnPV#leq20", "WW", "G#rightarrowWW (1.5 TeV)",
 			  0, 0.3, "W_tag_eff_nPV10to20_Pt500to700_TrimmedJetMass_WW_RSGToWW1500.eps");
+  efficiency_curves_comp("output_files", "WW500TrimmedJetMass.root", "RSGravitonToWW_kMpl01_M-1500_PythiaDefaultJetMass.root", "QCDPythiaTrimmedJetMass.root", "QCDPythiaTrimmedJetMass.root",
+			 "Pt700to900", 11, 21, "700<p_{T}<900 GeV, 10#leqnPV#leq20", "WW", "G#rightarrowWW (1.5 TeV)",
+			  0, 0.3, "W_tag_eff_nPV10to20_Pt700to900_TrimmedJetMass_WW_RSGToWW1500.eps");
 
 }

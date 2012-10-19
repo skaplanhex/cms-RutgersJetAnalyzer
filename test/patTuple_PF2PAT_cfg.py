@@ -12,7 +12,7 @@ options.register('runOnData',
     "Run this on real data"
 )
 options.register('globalTag',
-    'START52_V11::All',
+    'START53_V7F',
     VarParsing.multiplicity.singleton,
     VarParsing.varType.string,
     "Global tag to be used"
@@ -46,6 +46,12 @@ options.register('useHLTFiltering',
     VarParsing.multiplicity.singleton,
     VarParsing.varType.bool,
     "Use HLT filtering"
+)
+options.register('triggers',
+    'HLT_PFJet400_*',
+    VarParsing.multiplicity.list,
+    VarParsing.varType.string,
+    "List of triggers for HLT filtering"
 )
 ## 'maxEvents' is already registered by the Framework, changing default value
 options.setDefault('maxEvents', 10)
@@ -81,11 +87,11 @@ process.MessageLogger.cerr.default.limit = 10
 #################################################################
 
 ## Geometry and Detector Conditions (needed for a few patTuple production steps)
-process.load("Configuration.StandardSequences.Geometry_cff")
+process.load("Configuration.Geometry.GeometryIdeal_cff")
 process.load("Configuration.StandardSequences.MagneticField_cff")
 process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff")
 ## Make sure a correct global tag is used (please refer to https://twiki.cern.ch/twiki/bin/view/CMSPublic/SWGuideFrontierConditions#Valid_Global_Tags_by_Release)
-process.GlobalTag.globaltag = options.globalTag
+process.GlobalTag.globaltag = options.globalTag + '::All'
 
 ## Events to process
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(options.maxEvents) )
@@ -96,12 +102,12 @@ process.options   = cms.untracked.PSet( wantSummary = cms.untracked.bool(options
 ## Input files
 process.source = cms.Source("PoolSource",
     fileNames = cms.untracked.vstring(
-        '/store/mc/Summer12/WWtoAnything_ptmin500_TuneZ2Star_8TeV-pythia6-tauola/AODSIM/PU_S7_START52_V9-v1/0000/FC07A5F9-8495-E111-9E8E-00304867903E.root'
+        '/store/mc/Summer12_DR53X/WWtoAnything_ptmin500_TuneZ2Star_8TeV-pythia6-tauola/AODSIM/PU_S10_START53_V7A-v1/0000/FA0D87EB-6CE9-E111-BA2C-0018F3D096F0.root'
     )
 )
 
 if options.runOnData:
-    process.source.fileNames = ['/store/data/Run2012A/Jet/AOD/PromptReco-v1/000/191/046/D41302B2-8186-E111-ADF3-003048D3C932.root']
+    process.source.fileNames = ['/store/data/Run2012A/Jet/AOD/13Jul2012-v1/00000/449F09C1-94D9-E111-BEED-00266CFACC38.root']
 
 ## Standard PAT Configuration File
 process.load("PhysicsTools.PatAlgos.patSequences_cff")
@@ -318,7 +324,7 @@ process.prunedGenParticles = cms.EDProducer("GenParticlePruner",
 ## Filter based on HLT paths
 process.hltFilter = cms.EDFilter('HLTHighLevel',
     TriggerResultsTag = cms.InputTag('TriggerResults','','HLT'),
-    HLTPaths = cms.vstring('HLT_PFJet400_*'),        # provide list of HLT paths (or patterns) you want
+    HLTPaths = cms.vstring(options.triggers),        # provide list of HLT paths (or patterns) you want
     eventSetupPathsKey = cms.string(''),             # not empty => use read paths from AlCaRecoTriggerBitsRcd via this key
     andOr = cms.bool(True),                          # how to deal with multiple triggers: True (OR) accept if ANY is true, False (AND) accept if ALL are true
     throw = cms.bool(True)                           # throw exception on unknown path names

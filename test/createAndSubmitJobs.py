@@ -95,8 +95,8 @@ exit $exitcode
 """
 
 
-usage = """Usage: %prog [-m MATCH] -i INPUTDIR -c CMSSW_CFG -o OUTPUTDIR -n NJOBS [--create_only]\n
-Example: ./createAndSubmitJobs.py -i /cms/ferencek/store/ferencek/WW_TuneZ2star_8TeV_pythia6_tauola/Summer12-PU_S7_START52_V9-v1_PATTuple/c356f3ff60b3ed8401082f13b541664f -c rutgersjetanalyzer_template_cfg.py -o WW_test -n 50"""
+usage = """Usage: %prog [-m MATCH] -i INPUTDIR -c CMSSW_CFG -o OUTPUTDIR -n NJOBS [-f 1.0 --create_only]\n
+Example: ./createAndSubmitJobs.py -i /cms/ferencek/store/ferencek/WWtoAnything_ptmin500_TuneZ2Star_8TeV-pythia6-tauola/Summer12_DR53X-PU_S10_START53_V7A-v1_PATTuple_v2/6950c4b6452599a829ed09f6192c8cf5/ -c rutgersjetanalyzerCONDOR_cfg.py -o WW_test -n 50"""
 
 
 def main():
@@ -108,6 +108,7 @@ def main():
     parser.add_option('-c', '--cmssw_cfg', metavar="CMSSW_CFG", dest='cmssw_cfg', action='store', help='CMSSW configuration file template')
     parser.add_option('-o', '--outputdir', metavar='OUTPUTDIR', dest='outputdir', action='store', help='Main output directory for Condor jobs')
     parser.add_option('-n', '--njobs', metavar='NJOBS', action='store', dest='njobs', help='Number of jobs')
+    parser.add_option('-f', '--fraction', metavar='FRACTION', action='store', dest='fraction', default='1.0', help='Fraction of files to be processed. Default value is 1 (This parameter is optional)')
     parser.add_option('--create_only', action="store_true", dest="create_only", default=False, help="Create the necessary configuration files but skip the job submission (This parameter is optional)")
 
     (options, args) = parser.parse_args(args=None)
@@ -142,7 +143,7 @@ def main():
     os.mkdir(os.path.join(outputmain,'logs'))
     os.mkdir(os.path.join(outputmain,'output'))
     #################################################
-    numfiles = len(filelist)
+    numfiles = int(len(filelist)*float(options.fraction))
     ijobmax=int(options.njobs)
     if ijobmax > numfiles:
 	ijobmax=numfiles

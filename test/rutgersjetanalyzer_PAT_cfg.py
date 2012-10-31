@@ -1,7 +1,10 @@
+import FWCore.ParameterSet.Config as cms
+from FWCore.ParameterSet.VarParsing import VarParsing
+import copy
+
 ###############################
 ####### Parameters ############
 ###############################
-from FWCore.ParameterSet.VarParsing import VarParsing
 
 options = VarParsing ('python')
 
@@ -74,8 +77,9 @@ bTagDiscriminators = ['jetProbabilityBJetTags','trackCountingHighPurBJetTags', '
                       'simpleSecondaryVertexHighPurBJetTags','simpleInclusiveSecondaryVertexHighEffBJetTags','simpleInclusiveSecondaryVertexHighPurBJetTags',
                       'combinedSecondaryVertexBJetTags','combinedSecondaryVertexMVABJetTags','combinedInclusiveSecondaryVertexBJetTags',
                       'softMuonBJetTags','softMuonByPtBJetTags','softMuonByIP3dBJetTags','combinedMVABJetTags','doubleSecondaryVertexHighEffBJetTags']
+bTagDiscriminatorsSub = copy.deepcopy(bTagDiscriminators)
+bTagDiscriminatorsSub.remove('doubleSecondaryVertexHighEffBJetTags')
 
-import FWCore.ParameterSet.Config as cms
 
 process = cms.Process("USER")
 
@@ -201,7 +205,7 @@ addJetCollection(
     doJTA=True,
     doBTagging=True,
     btagInfo     = bTagInfos,
-    btagdiscriminators = bTagDiscriminators,
+    btagdiscriminators = bTagDiscriminatorsSub,
     jetCorrLabel=inputJetCorrLabelAK5,
     doType1MET=False,
     doL1Cleaning=False,
@@ -280,17 +284,6 @@ process.jetPATSequence = cms.Sequence( process.jetSeq + process.patDefaultSequen
 from PhysicsTools.PatAlgos.tools.pfTools import *
 ## Adapt primary vertex collection
 adaptPVs(process, pvCollection=cms.InputTag('goodOfflinePrimaryVertices'), postfix='', sequence='jetPATSequence', skipAddedJets=False)
-
-## Produce a collection of good primary vertices
-from PhysicsTools.SelectorUtils.pvSelector_cfi import pvSelector
-process.goodOfflinePrimaryVertices = cms.EDFilter("PrimaryVertexObjectFilter",
-    filterParams = pvSelector.clone(
-        minNdof = cms.double(4.0), # this is >= 4
-        maxZ = cms.double(24.0),
-        maxRho = cms.double(2.0)
-    ),
-    src = cms.InputTag('offlinePrimaryVertices')
-)
 
 ## Path definition
 process.p = cms.Path(

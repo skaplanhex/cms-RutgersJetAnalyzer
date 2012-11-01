@@ -13,7 +13,7 @@
 //
 // Original Author:  Dinko Ferencek
 //         Created:  Fri Jul 20 12:32:38 CDT 2012
-// $Id: RutgersJetAnalyzer.cc,v 1.7.2.3 2012/10/09 00:41:11 ferencek Exp $
+// $Id: RutgersJetAnalyzer.cc,v 1.7.2.5 2012/11/01 03:48:59 ferencek Exp $
 //
 //
 
@@ -78,13 +78,15 @@ private:
     const edm::InputTag groomedJetsTag;
     const edm::InputTag pvTag;
     const double	jetRadius;	    // radius for jet clustering
-    const bool          doBosonMatching;    // parameter for deciding if matching on or off
+    const bool          doBosonMatching;    // parameter for deciding if matching is on or off
     const double	bosonMatchingRadius;
     const int    	bosonPdgId;
     const bool          doBosonDecayProdSelection;
-    const int    	bosonDecayProdPdgId;
+    const std::vector<int> bosonDecayProdPdgIds;
     const bool          useMassDrop;
     const double	jetPtMin;
+    const unsigned      jetPtBins;
+    const double        jetPtBinWidth;
     const double	jetAbsEtaMax;
     const double	jetMassMin;
     const double	jetMassMax;
@@ -114,35 +116,11 @@ private:
     TH1D *h1_JetEta_BosonMatched;
     TH1D *h1_JetEta_BosonMatched_JetMass;
 
-    TH2D *h2_nPV_JetMass_Pt300toInf;
-    TH2D *h2_nPV_JetMass_Pt300to500;
-    TH2D *h2_nPV_JetMass_Pt500to700;
-    TH2D *h2_nPV_JetMass_Pt700to900;
-    TH2D *h2_nPV_JetMass_Pt900toInf;
-
-    TH2D *h2_nPV_tau1_Pt300toInf;
-    TH2D *h2_nPV_tau1_Pt300to500;
-    TH2D *h2_nPV_tau1_Pt500to700;
-    TH2D *h2_nPV_tau1_Pt700to900;
-    TH2D *h2_nPV_tau1_Pt900toInf;
-
-    TH2D *h2_nPV_tau2_Pt300toInf;
-    TH2D *h2_nPV_tau2_Pt300to500;
-    TH2D *h2_nPV_tau2_Pt500to700;
-    TH2D *h2_nPV_tau2_Pt700to900;
-    TH2D *h2_nPV_tau2_Pt900toInf;
-
-    TH2D *h2_nPV_tau2tau1_Pt300toInf;
-    TH2D *h2_nPV_tau2tau1_Pt300to500;
-    TH2D *h2_nPV_tau2tau1_Pt500to700;
-    TH2D *h2_nPV_tau2tau1_Pt700to900;
-    TH2D *h2_nPV_tau2tau1_Pt900toInf;
-
-    TH2D *h2_nPV_MassDrop_Pt300toInf;
-    TH2D *h2_nPV_MassDrop_Pt300to500;
-    TH2D *h2_nPV_MassDrop_Pt500to700;
-    TH2D *h2_nPV_MassDrop_Pt700to900;
-    TH2D *h2_nPV_MassDrop_Pt900toInf;
+    std::map<std::string, TH2D*> h2_nPV_JetMass_Pt;
+    std::map<std::string, TH2D*> h2_nPV_tau1_Pt;
+    std::map<std::string, TH2D*> h2_nPV_tau2_Pt;
+    std::map<std::string, TH2D*> h2_nPV_tau2tau1_Pt;
+    std::map<std::string, TH2D*> h2_nPV_MassDrop_Pt;
 };
 
 //
@@ -169,9 +147,11 @@ RutgersJetAnalyzer::RutgersJetAnalyzer(const edm::ParameterSet& iConfig) :
   bosonMatchingRadius(iConfig.getParameter<double>("BosonMatchingRadius")),
   bosonPdgId(iConfig.getParameter<int>("BosonPdgId")),
   doBosonDecayProdSelection(iConfig.getParameter<bool>("DoBosonDecayProdSelection")),
-  bosonDecayProdPdgId(iConfig.getParameter<int>("BosonDecayProdPdgId")),
+  bosonDecayProdPdgIds(iConfig.getParameter<std::vector<int> >("BosonDecayProdPdgIds")),
   useMassDrop(iConfig.getParameter<bool>("UseMassDrop")),
   jetPtMin(iConfig.getParameter<double>("JetPtMin")),
+  jetPtBins(iConfig.getParameter<unsigned>("JetPtBins")),
+  jetPtBinWidth(iConfig.getParameter<double>("JetPtBinWidth")),
   jetAbsEtaMax(iConfig.getParameter<double>("JetAbsEtaMax")),
   jetMassMin(iConfig.getParameter<double>("JetMassMin")),
   jetMassMax(iConfig.getParameter<double>("JetMassMax")),
@@ -218,35 +198,44 @@ RutgersJetAnalyzer::RutgersJetAnalyzer(const edm::ParameterSet& iConfig) :
     h1_JetEta_BosonMatched = fs->make<TH1D>("h1_JetEta_BosonMatched",";#eta;",etaBins,etaMin,etaMax);
     h1_JetEta_BosonMatched_JetMass = fs->make<TH1D>("h1_JetEta_BosonMatched_JetMass","Jet mass cut;#eta;",etaBins,etaMin,etaMax);
 
-    h2_nPV_JetMass_Pt300toInf = fs->make<TH2D>("h2_nPV_JetMass_Pt300toInf","p_{T}>300 GeV;nPV;m_{jet} [GeV]",pvBins,pvMin,pvMax,massBins,massMin,massMax);
-    h2_nPV_JetMass_Pt300to500 = fs->make<TH2D>("h2_nPV_JetMass_Pt300to500","300<p_{T}<500 GeV;nPV;m_{jet} [GeV]",pvBins,pvMin,pvMax,massBins,massMin,massMax);
-    h2_nPV_JetMass_Pt500to700 = fs->make<TH2D>("h2_nPV_JetMass_Pt500to700","500<p_{T}<700 GeV;nPV;m_{jet} [GeV]",pvBins,pvMin,pvMax,massBins,massMin,massMax);
-    h2_nPV_JetMass_Pt700to900 = fs->make<TH2D>("h2_nPV_JetMass_Pt700to900","700<p_{T}<900 GeV;nPV;m_{jet} [GeV]",pvBins,pvMin,pvMax,massBins,massMin,massMax);
-    h2_nPV_JetMass_Pt900toInf = fs->make<TH2D>("h2_nPV_JetMass_Pt900toInf","p_{T}>900 GeV;nPV;m_{jet} [GeV]",pvBins,pvMin,pvMax,massBins,massMin,massMax);
+    for(unsigned i=0; i<=(jetPtBins+1); ++i)
+    {
+      std::string suffix, title;
 
-    h2_nPV_tau1_Pt300toInf = fs->make<TH2D>("h2_nPV_tau1_Pt300toInf","p_{T}>300 GeV;nPV;#tau_{1}",pvBins,pvMin,pvMax,tauBins,tauMin,tauMax);
-    h2_nPV_tau1_Pt300to500 = fs->make<TH2D>("h2_nPV_tau1_Pt300to500","300<p_{T}<500 GeV;nPV;#tau_{1}",pvBins,pvMin,pvMax,tauBins,tauMin,tauMax);
-    h2_nPV_tau1_Pt500to700 = fs->make<TH2D>("h2_nPV_tau1_Pt500to700","500<p_{T}<700 GeV;nPV;#tau_{1}",pvBins,pvMin,pvMax,tauBins,tauMin,tauMax);
-    h2_nPV_tau1_Pt700to900 = fs->make<TH2D>("h2_nPV_tau1_Pt700to900","700<p_{T}<900 GeV;nPV;#tau_{1}",pvBins,pvMin,pvMax,tauBins,tauMin,tauMax);
-    h2_nPV_tau1_Pt900toInf = fs->make<TH2D>("h2_nPV_tau1_Pt900toInf","p_{T}>900 GeV;nPV;#tau_{1}",pvBins,pvMin,pvMax,tauBins,tauMin,tauMax);
+      if(i==0)
+      {
+        suffix = Form("%.0ftoInf",(jetPtMin + jetPtBinWidth*i));
+        title = Form("p_{T}>%.0f GeV",(jetPtMin + jetPtBinWidth*i));
 
-    h2_nPV_tau2_Pt300toInf = fs->make<TH2D>("h2_nPV_tau2_Pt300toInf","p_{T}>300 GeV;nPV;#tau_{2}",pvBins,pvMin,pvMax,tauBins,tauMin,tauMax);
-    h2_nPV_tau2_Pt300to500 = fs->make<TH2D>("h2_nPV_tau2_Pt300to500","300<p_{T}<500 GeV;nPV;#tau_{2}",pvBins,pvMin,pvMax,tauBins,tauMin,tauMax);
-    h2_nPV_tau2_Pt500to700 = fs->make<TH2D>("h2_nPV_tau2_Pt500to700","500<p_{T}<700 GeV;nPV;#tau_{2}",pvBins,pvMin,pvMax,tauBins,tauMin,tauMax);
-    h2_nPV_tau2_Pt700to900 = fs->make<TH2D>("h2_nPV_tau2_Pt700to900","700<p_{T}<900 GeV;nPV;#tau_{2}",pvBins,pvMin,pvMax,tauBins,tauMin,tauMax);
-    h2_nPV_tau2_Pt900toInf = fs->make<TH2D>("h2_nPV_tau2_Pt900toInf","p_{T}>900 GeV;nPV;#tau_{2}",pvBins,pvMin,pvMax,tauBins,tauMin,tauMax);
+        h2_nPV_JetMass_Pt[suffix]  = fs->make<TH2D>(("h2_nPV_JetMass_Pt" + suffix).c_str(),(title + ";nPV;m_{jet} [GeV]").c_str(),pvBins,pvMin,pvMax,massBins,massMin,massMax);
+        h2_nPV_tau1_Pt[suffix]     = fs->make<TH2D>(("h2_nPV_tau1_Pt" + suffix).c_str(),(title + ";nPV;#tau_{1}").c_str(),pvBins,pvMin,pvMax,tauBins,tauMin,tauMax);
+        h2_nPV_tau2_Pt[suffix]     = fs->make<TH2D>(("h2_nPV_tau2_Pt" + suffix).c_str(),(title + ";nPV;#tau_{2}").c_str(),pvBins,pvMin,pvMax,tauBins,tauMin,tauMax);
+        h2_nPV_tau2tau1_Pt[suffix] = fs->make<TH2D>(("h2_nPV_tau2tau1_Pt" + suffix).c_str(),(title + ";nPV;#tau_{2}/#tau_{1}").c_str(),pvBins,pvMin,pvMax,tauBins,tauMin,tauMax);
+        h2_nPV_MassDrop_Pt[suffix] = fs->make<TH2D>(("h2_nPV_MassDrop_Pt" + suffix).c_str(),(title + ";nPV;m_{subjet1}/m_{jet}").c_str(),pvBins,pvMin,pvMax,massDropBins,massDropMin,massDropMax);
+      }
+      else if(i==(jetPtBins+1))
+      {
+        suffix = Form("%.0ftoInf",(jetPtMin + jetPtBinWidth*(i-1)));
+        title = Form("p_{T}>%.0f GeV",(jetPtMin + jetPtBinWidth*(i-1)));
 
-    h2_nPV_tau2tau1_Pt300toInf = fs->make<TH2D>("h2_nPV_tau2tau1_Pt300toInf","p_{T}>300 GeV;nPV;#tau_{2}/#tau_{1}",pvBins,pvMin,pvMax,tauBins,tauMin,tauMax);
-    h2_nPV_tau2tau1_Pt300to500 = fs->make<TH2D>("h2_nPV_tau2tau1_Pt300to500","300<p_{T}<500 GeV;nPV;#tau_{2}/#tau_{1}",pvBins,pvMin,pvMax,tauBins,tauMin,tauMax);
-    h2_nPV_tau2tau1_Pt500to700 = fs->make<TH2D>("h2_nPV_tau2tau1_Pt500to700","500<p_{T}<700 GeV;nPV;#tau_{2}/#tau_{1}",pvBins,pvMin,pvMax,tauBins,tauMin,tauMax);
-    h2_nPV_tau2tau1_Pt700to900 = fs->make<TH2D>("h2_nPV_tau2tau1_Pt700to900","700<p_{T}<900 GeV;nPV;#tau_{2}/#tau_{1}",pvBins,pvMin,pvMax,tauBins,tauMin,tauMax);
-    h2_nPV_tau2tau1_Pt900toInf = fs->make<TH2D>("h2_nPV_tau2tau1_Pt900toInf","p_{T}>900 GeV;nPV;#tau_{2}/#tau_{1}",pvBins,pvMin,pvMax,tauBins,tauMin,tauMax);
+        h2_nPV_JetMass_Pt[suffix]  = fs->make<TH2D>(("h2_nPV_JetMass_Pt" + suffix).c_str(),(title + ";nPV;m_{jet} [GeV]").c_str(),pvBins,pvMin,pvMax,massBins,massMin,massMax);
+        h2_nPV_tau1_Pt[suffix]     = fs->make<TH2D>(("h2_nPV_tau1_Pt" + suffix).c_str(),(title + ";nPV;#tau_{1}").c_str(),pvBins,pvMin,pvMax,tauBins,tauMin,tauMax);
+        h2_nPV_tau2_Pt[suffix]     = fs->make<TH2D>(("h2_nPV_tau2_Pt" + suffix).c_str(),(title + ";nPV;#tau_{2}").c_str(),pvBins,pvMin,pvMax,tauBins,tauMin,tauMax);
+        h2_nPV_tau2tau1_Pt[suffix] = fs->make<TH2D>(("h2_nPV_tau2tau1_Pt" + suffix).c_str(),(title + ";nPV;#tau_{2}/#tau_{1}").c_str(),pvBins,pvMin,pvMax,tauBins,tauMin,tauMax);
+        h2_nPV_MassDrop_Pt[suffix] = fs->make<TH2D>(("h2_nPV_MassDrop_Pt" + suffix).c_str(),(title + ";nPV;m_{subjet1}/m_{jet}").c_str(),pvBins,pvMin,pvMax,massDropBins,massDropMin,massDropMax);
+      }
+      else
+      {
+        suffix = Form("%.0fto%.0f",(jetPtMin + jetPtBinWidth*(i-1)),(jetPtMin + jetPtBinWidth*i));
+        title = Form("%.0f<p_{T}<%.0f GeV",(jetPtMin + jetPtBinWidth*(i-1)),(jetPtMin + jetPtBinWidth*i));
 
-    h2_nPV_MassDrop_Pt300toInf = fs->make<TH2D>("h2_nPV_MassDrop_Pt300toInf","p_{T}>300 GeV;nPV;m_{subjet1}/m_{jet}",pvBins,pvMin,pvMax,massDropBins,massDropMin,massDropMax);
-    h2_nPV_MassDrop_Pt300to500 = fs->make<TH2D>("h2_nPV_MassDrop_Pt300to500","300<p_{T}<500 GeV;nPV;m_{subjet1}/m_{jet}",pvBins,pvMin,pvMax,massDropBins,massDropMin,massDropMax);
-    h2_nPV_MassDrop_Pt500to700 = fs->make<TH2D>("h2_nPV_MassDrop_Pt500to700","500<p_{T}<700 GeV;nPV;m_{subjet1}/m_{jet}",pvBins,pvMin,pvMax,massDropBins,massDropMin,massDropMax);
-    h2_nPV_MassDrop_Pt700to900 = fs->make<TH2D>("h2_nPV_MassDrop_Pt700to900","700<p_{T}<900 GeV;nPV;m_{subjet1}/m_{jet}",pvBins,pvMin,pvMax,massDropBins,massDropMin,massDropMax);
-    h2_nPV_MassDrop_Pt900toInf = fs->make<TH2D>("h2_nPV_MassDrop_Pt900toInf","p_{T}>900 GeV;nPV;m_{subjet1}/m_{jet}",pvBins,pvMin,pvMax,massDropBins,massDropMin,massDropMax);
+        h2_nPV_JetMass_Pt[suffix]  = fs->make<TH2D>(("h2_nPV_JetMass_Pt" + suffix).c_str(),(title + ";nPV;m_{jet} [GeV]").c_str(),pvBins,pvMin,pvMax,massBins,massMin,massMax);
+        h2_nPV_tau1_Pt[suffix]     = fs->make<TH2D>(("h2_nPV_tau1_Pt" + suffix).c_str(),(title + ";nPV;#tau_{1}").c_str(),pvBins,pvMin,pvMax,tauBins,tauMin,tauMax);
+        h2_nPV_tau2_Pt[suffix]     = fs->make<TH2D>(("h2_nPV_tau2_Pt" + suffix).c_str(),(title + ";nPV;#tau_{2}").c_str(),pvBins,pvMin,pvMax,tauBins,tauMin,tauMax);
+        h2_nPV_tau2tau1_Pt[suffix] = fs->make<TH2D>(("h2_nPV_tau2tau1_Pt" + suffix).c_str(),(title + ";nPV;#tau_{2}/#tau_{1}").c_str(),pvBins,pvMin,pvMax,tauBins,tauMin,tauMax);
+        h2_nPV_MassDrop_Pt[suffix] = fs->make<TH2D>(("h2_nPV_MassDrop_Pt" + suffix).c_str(),(title + ";nPV;m_{subjet1}/m_{jet}").c_str(),pvBins,pvMin,pvMax,massDropBins,massDropMin,massDropMax);
+      }
+    }
 }
 
 
@@ -311,12 +300,14 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
 
 	  for(unsigned i=0; i<it->numberOfDaughters(); ++i)
 	  {
-	    //std::cout << "Daughter " << i << " PDG ID " << it->daughter(i)->pdgId() << std::endl;
-	    if( abs(it->daughter(i)->pdgId()) == abs(bosonDecayProdPdgId) )
-	    {
-	      decayProductsFound = true;
-              decayProducts[&(*it)].push_back(it->daughter(i));
-	    }
+            for(std::vector<int>::const_iterator pdgIdIt = bosonDecayProdPdgIds.begin(); pdgIdIt != bosonDecayProdPdgIds.end(); ++pdgIdIt)
+            {
+              if( abs(it->daughter(i)->pdgId()) == abs(*pdgIdIt) )
+              {
+                decayProductsFound = true;
+                decayProducts[&(*it)].push_back(it->daughter(i));
+              }
+            }
 	  }
 
 	  if( decayProductsFound )
@@ -351,9 +342,9 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
           break;
         }
       }
-      for(PatJetCollection::const_iterator it = jets->begin(); it != jets->end(); ++it)
+      if( decayProducts[*bosonIt].size()>1 )
       {
-        if( decayProducts[*bosonIt].size()>1 )
+        for(PatJetCollection::const_iterator it = jets->begin(); it != jets->end(); ++it)
         {
           if( reco::deltaR( decayProducts[*bosonIt].at(0)->p4(), it->p4() ) < jetRadius &&
               reco::deltaR( decayProducts[*bosonIt].at(1)->p4(), it->p4() ) < jetRadius )
@@ -429,11 +420,21 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
       h1_JetEta_BosonMatched->Fill(it->eta(), eventWeight);
 
       // fill nPV_JetMass histograms
-      h2_nPV_JetMass_Pt300toInf->Fill(nPV, jetMass, eventWeight);
-      if( jetPt>300 && jetPt<=500 )      h2_nPV_JetMass_Pt300to500->Fill(nPV, jetMass, eventWeight);
-      else if( jetPt>500 && jetPt<=700 ) h2_nPV_JetMass_Pt500to700->Fill(nPV, jetMass, eventWeight);
-      else if( jetPt>700 && jetPt<=900 ) h2_nPV_JetMass_Pt700to900->Fill(nPV, jetMass, eventWeight);
-      else                               h2_nPV_JetMass_Pt900toInf->Fill(nPV, jetMass, eventWeight);
+      std::string suffix = Form("%.0ftoInf",jetPtMin);
+      h2_nPV_JetMass_Pt[suffix]->Fill(nPV, jetMass, eventWeight);
+      for(unsigned i=0; i<jetPtBins; ++i)
+      {
+        if( jetPt>(jetPtMin + jetPtBinWidth*i) && jetPt<=(jetPtMin + jetPtBinWidth*(i+1)) )
+        {
+          suffix = Form("%.0fto%.0f",(jetPtMin + jetPtBinWidth*i),(jetPtMin + jetPtBinWidth*(i+1)));
+          h2_nPV_JetMass_Pt[suffix]->Fill(nPV, jetMass, eventWeight);
+        }
+      }
+      if( jetPt>(jetPtMin+jetPtBinWidth*jetPtBins))
+      {
+        suffix = Form("%.0ftoInf",(jetPtMin+jetPtBinWidth*jetPtBins));
+        h2_nPV_JetMass_Pt[suffix]->Fill(nPV, jetMass, eventWeight);
+      }
 
       // skip the jet if it does not pass the invariant mass cut
       if( !(jetMass > jetMassMin && jetMass < jetMassMax) ) continue;
@@ -462,47 +463,47 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
         double tau2 = nsubjettinessCalculator.getTau(2,fjConstituents);
 
         // fill nPV_tau histograms
-        h2_nPV_tau1_Pt300toInf->Fill(nPV, tau1, eventWeight);
-        h2_nPV_tau2_Pt300toInf->Fill(nPV, tau2, eventWeight);
-        h2_nPV_tau2tau1_Pt300toInf->Fill(nPV, (tau1>0 ? tau2/tau1 : -10.), eventWeight);
-        if( jetPt>300 && jetPt<=500 )
+        suffix = Form("%.0ftoInf",jetPtMin);
+        h2_nPV_tau1_Pt[suffix]->Fill(nPV, tau1, eventWeight);
+        h2_nPV_tau2_Pt[suffix]->Fill(nPV, tau2, eventWeight);
+        h2_nPV_tau2tau1_Pt[suffix]->Fill(nPV, (tau1>0 ? tau2/tau1 : -10.), eventWeight);
+        for(unsigned i=0; i<jetPtBins; ++i)
         {
-          h2_nPV_tau1_Pt300to500->Fill(nPV, tau1, eventWeight);
-          h2_nPV_tau2_Pt300to500->Fill(nPV, tau2, eventWeight);
-          h2_nPV_tau2tau1_Pt300to500->Fill(nPV, (tau1>0 ? tau2/tau1 : -10.), eventWeight);
+          if( jetPt>(jetPtMin + jetPtBinWidth*i) && jetPt<=(jetPtMin + jetPtBinWidth*(i+1)) )
+          {
+            suffix = Form("%.0fto%.0f",(jetPtMin + jetPtBinWidth*i),(jetPtMin + jetPtBinWidth*(i+1)));
+            h2_nPV_tau1_Pt[suffix]->Fill(nPV, tau1, eventWeight);
+            h2_nPV_tau2_Pt[suffix]->Fill(nPV, tau2, eventWeight);
+            h2_nPV_tau2tau1_Pt[suffix]->Fill(nPV, (tau1>0 ? tau2/tau1 : -10.), eventWeight);
+          }
         }
-        else if( jetPt>500 && jetPt<=700 )
+        if( jetPt>(jetPtMin+jetPtBinWidth*jetPtBins))
         {
-          h2_nPV_tau1_Pt500to700->Fill(nPV, tau1, eventWeight);
-          h2_nPV_tau2_Pt500to700->Fill(nPV, tau2, eventWeight);
-          h2_nPV_tau2tau1_Pt500to700->Fill(nPV, (tau1>0 ? tau2/tau1 : -10.), eventWeight);
-        }
-        else if( jetPt>700 && jetPt<=900 )
-        {
-          h2_nPV_tau1_Pt700to900->Fill(nPV, tau1, eventWeight);
-          h2_nPV_tau2_Pt700to900->Fill(nPV, tau2, eventWeight);
-          h2_nPV_tau2tau1_Pt700to900->Fill(nPV, (tau1>0 ? tau2/tau1 : -10.), eventWeight);
-        }
-        else
-        {
-          h2_nPV_tau1_Pt900toInf->Fill(nPV, tau1, eventWeight);
-          h2_nPV_tau2_Pt900toInf->Fill(nPV, tau2, eventWeight);
-          h2_nPV_tau2tau1_Pt900toInf->Fill(nPV, (tau1>0 ? tau2/tau1 : -10.), eventWeight);
+          suffix = Form("%.0ftoInf",(jetPtMin+jetPtBinWidth*jetPtBins));
+          h2_nPV_tau1_Pt[suffix]->Fill(nPV, tau1, eventWeight);
+          h2_nPV_tau2_Pt[suffix]->Fill(nPV, tau2, eventWeight);
+          h2_nPV_tau2tau1_Pt[suffix]->Fill(nPV, (tau1>0 ? tau2/tau1 : -10.), eventWeight);
         }
       }
       else
       {
         double massDrop = std::max( it->daughter(0)->mass(), it->daughter(1)->mass() ) / jetMass;
         // fill nPV_MassDrop histograms
-        h2_nPV_MassDrop_Pt300toInf->Fill(nPV, massDrop, eventWeight);
-        if( jetPt>300 && jetPt<=500 )
-          h2_nPV_MassDrop_Pt300to500->Fill(nPV, massDrop, eventWeight);
-        else if( jetPt>500 && jetPt<=700 )
-          h2_nPV_MassDrop_Pt500to700->Fill(nPV, massDrop, eventWeight);
-        else if( jetPt>700 && jetPt<=900 )
-          h2_nPV_MassDrop_Pt700to900->Fill(nPV, massDrop, eventWeight);
-        else
-          h2_nPV_MassDrop_Pt900toInf->Fill(nPV, massDrop, eventWeight);
+        suffix = Form("%.0ftoInf",jetPtMin);
+        h2_nPV_MassDrop_Pt[suffix]->Fill(nPV, massDrop, eventWeight);
+        for(unsigned i=0; i<jetPtBins; ++i)
+        {
+          if( jetPt>(jetPtMin + jetPtBinWidth*i) && jetPt<=(jetPtMin + jetPtBinWidth*(i+1)) )
+          {
+            suffix = Form("%.0fto%.0f",(jetPtMin + jetPtBinWidth*i),(jetPtMin + jetPtBinWidth*(i+1)));
+            h2_nPV_MassDrop_Pt[suffix]->Fill(nPV, massDrop, eventWeight);
+          }
+        }
+        if( jetPt>(jetPtMin+jetPtBinWidth*jetPtBins))
+        {
+          suffix = Form("%.0ftoInf",(jetPtMin+jetPtBinWidth*jetPtBins));
+          h2_nPV_MassDrop_Pt[suffix]->Fill(nPV, massDrop, eventWeight);
+        }
       }
     }
 }

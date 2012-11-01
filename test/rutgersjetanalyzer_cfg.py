@@ -449,7 +449,7 @@ process.jetAnalyzerCAPrunedJets = cms.EDAnalyzer('RutgersJetAnalyzer',
     UseMassDrop               = cms.bool(True),
     JetPtMin                  = cms.double(300.),
     JetAbsEtaMax              = cms.double(1.5),
-    JetMassMin                = cms.double(80.),
+    JetMassMin                = cms.double(75.),
     JetMassMax                = cms.double(130.)
 )
 

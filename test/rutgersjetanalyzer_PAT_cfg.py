@@ -45,10 +45,16 @@ options.register('usePFchs',
     "Use PFchs"
 )
 options.register('jetRadius',
-    0.5,
+    0.8,
     VarParsing.multiplicity.singleton,
     VarParsing.varType.float,
     "Distance parameter R for jet clustering (default is 0.5)"
+)
+options.register('doBTagging',
+    True,
+    VarParsing.multiplicity.singleton,
+    VarParsing.varType.bool,
+    "Run b tagging"
 )
 
 ## 'maxEvents' is already registered by the Framework, changing default value
@@ -112,6 +118,11 @@ process.source = cms.Source("PoolSource",
     )
 )
 
+## Output file
+process.TFileService = cms.Service("TFileService",
+   fileName = cms.string(options.outFilename)
+)
+
 ## Standard PAT Configuration File
 process.load("PhysicsTools.PatAlgos.patSequences_cff")
 
@@ -138,9 +149,16 @@ from RecoJets.Configuration.GenJetParticles_cff import genParticlesForJetsNoNu
 process.genParticlesForJetsNoNu = genParticlesForJetsNoNu
 ## Define Anti-kT jets (GEN and RECO)
 from RecoJets.JetProducers.ak5GenJets_cfi import ak5GenJets
-process.akGenJetsNoNu = ak5GenJets.clone( rParam = options.jetRadius, src = cms.InputTag("genParticlesForJetsNoNu") )
+process.akGenJetsNoNu = ak5GenJets.clone(
+    rParam = options.jetRadius,
+    src = cms.InputTag("genParticlesForJetsNoNu")
+)
 from RecoJets.JetProducers.ak5PFJets_cfi import ak5PFJets
-process.akPFJets = ak5PFJets.clone( rParam = options.jetRadius, doAreaFastjet = cms.bool(True), src = cms.InputTag("pfNoElectronPFlow") )
+process.akPFJets = ak5PFJets.clone(
+    rParam = options.jetRadius,
+    doAreaFastjet = cms.bool(True),
+    src = cms.InputTag("pfNoElectronPFlow")
+)
 
 ## Anti-kT jets and subjets (GEN and RECO) (two collections are produced)
 from RutgersSandbox.RutgersSubJetAlgorithm.ak5GenJetsRU_cfi import ak5GenJetsRU
@@ -165,99 +183,129 @@ process.akPFJetsTrimmed = ak5PFJetsTrimmed.clone(
     srcPVs = process.akPFJets.srcPVs,
     doAreaFastjet = process.akPFJets.doAreaFastjet
 )
-#from RecoJets.JetProducers.ak5PFJetsFiltered_cfi import ak5PFJetsFiltered
-#process.akPFJetsFiltered = ak5PFJetsFiltered.clone(
-    #rParam = process.akPFJets.rParam,
-    #src = process.akPFJets.src,
-    #srcPVs = process.akPFJets.srcPVs,
-    #doAreaFastjet = process.akPFJets.doAreaFastjet,
-    #writeCompound = cms.bool(False),
-    #jetCollInstanceName=cms.string("")
-#)
-#from RecoJets.JetProducers.ak5PFJetsPruned_cfi import ak5PFJetsPruned
-#process.akPFJetsPruned = ak5PFJetsPruned.clone(
-    #rParam = process.akPFJets.rParam,
-    #src = process.akPFJets.src,
-    #srcPVs = process.akPFJets.srcPVs,
-    #doAreaFastjet = process.akPFJets.doAreaFastjet,
-    #writeCompound = cms.bool(False),
-    #jetCollInstanceName=cms.string("")
-#)
+from RecoJets.JetProducers.ak5PFJetsFiltered_cfi import ak5PFJetsFiltered
+process.akPFJetsFiltered = ak5PFJetsFiltered.clone(
+    rParam = process.akPFJets.rParam,
+    src = process.akPFJets.src,
+    srcPVs = process.akPFJets.srcPVs,
+    doAreaFastjet = process.akPFJets.doAreaFastjet,
+    writeCompound = cms.bool(False),
+    jetCollInstanceName=cms.string("")
+)
+from RecoJets.JetProducers.ak5PFJetsPruned_cfi import ak5PFJetsPruned
+process.akPFJetsPruned = ak5PFJetsPruned.clone(
+    rParam = process.akPFJets.rParam,
+    src = process.akPFJets.src,
+    srcPVs = process.akPFJets.srcPVs,
+    doAreaFastjet = process.akPFJets.doAreaFastjet,
+    writeCompound = cms.bool(False),
+    jetCollInstanceName=cms.string("")
+)
+
+## Define CA jets (GEN and RECO)
+from RecoJets.JetProducers.ca4GenJets_cfi import ca4GenJets
+process.caGenJetsNoNu = ca4GenJets.clone(
+    rParam = options.jetRadius,
+    src = cms.InputTag("genParticlesForJetsNoNu")
+)
+from RecoJets.JetProducers.ak5PFJetsPruned_cfi import ak5PFJetsPruned
+process.caPFJetsPruned = ak5PFJetsPruned.clone(
+    jetAlgorithm = cms.string("CambridgeAachen"),
+    rParam = options.jetRadius,
+    src = process.akPFJets.src,
+    srcPVs = process.akPFJets.srcPVs,
+    doAreaFastjet = process.akPFJets.doAreaFastjet,
+)
 
 ## PATify above jets
 from PhysicsTools.PatAlgos.tools.jetTools import *
 ## Switch the default jet collection
 switchJetCollection(process,
     cms.InputTag('akPFJets'),
-    doJTA        = True,
-    doBTagging   = True,
-    btagInfo     = bTagInfos,
-    btagdiscriminators = bTagDiscriminators,
-    jetCorrLabel = inputJetCorrLabelAK5,
-    doType1MET   = False,
-    genJetCollection = cms.InputTag("akGenJetsNoNu"),
-    doJetID      = False
+    doJTA=True,
+    doBTagging=options.doBTagging,
+    btagInfo=bTagInfos,
+    btagdiscriminators=bTagDiscriminators,
+    jetCorrLabel=inputJetCorrLabelAK7,
+    doType1MET=False,
+    genJetCollection=cms.InputTag("akGenJetsNoNu"),
+    doJetID=False
 )
 addJetCollection(
     process,
     cms.InputTag('akPFJetsRU','SubJets'),
     'AKSub', 'PF',
     doJTA=True,
-    doBTagging=True,
-    btagInfo     = bTagInfos,
-    btagdiscriminators = bTagDiscriminatorsSub,
+    doBTagging=options.doBTagging,
+    btagInfo=bTagInfos,
+    btagdiscriminators=bTagDiscriminatorsSub,
     jetCorrLabel=inputJetCorrLabelAK5,
     doType1MET=False,
     doL1Cleaning=False,
     doL1Counters=False,
-    doJetID = False,
-    genJetCollection = cms.InputTag('akGenJetsNoNuRU','SubJets')
+    doJetID=False,
+    genJetCollection=cms.InputTag('akGenJetsNoNuRU','SubJets')
 )
 addJetCollection(
     process,
     cms.InputTag('akPFJetsTrimmed'),
     'AKTrimmed','PF',
     doJTA=True,
-    doBTagging=True,
-    btagInfo     = bTagInfos,
-    btagdiscriminators = bTagDiscriminators,
-    jetCorrLabel=inputJetCorrLabelAK5,
+    doBTagging=options.doBTagging,
+    btagInfo=bTagInfos,
+    btagdiscriminators=bTagDiscriminators,
+    jetCorrLabel=inputJetCorrLabelAK7,
     doType1MET=False,
     doL1Cleaning=False,
     doL1Counters=False,
-    doJetID = False,
-    genJetCollection = cms.InputTag("akGenJetsNoNu")
+    doJetID=False,
+    genJetCollection=cms.InputTag("akGenJetsNoNu")
 )
-#addJetCollection(
-    #process,
-    #cms.InputTag('akPFJetsFiltered'),
-    #'AKFiltered','PF',
-    #doJTA=True,
-    #doBTagging=True,
-    #btagInfo     = bTagInfos,
-    #btagdiscriminators = bTagDiscriminators,
-    #jetCorrLabel=inputJetCorrLabelAK5,
-    #doType1MET=False,
-    #doL1Cleaning=False,
-    #doL1Counters=False,
-    #doJetID = False,
-    #genJetCollection = cms.InputTag("akGenJetsNoNu")
-#)
-#addJetCollection(
-    #process,
-    #cms.InputTag('akPFJetsPruned'),
-    #'AKPruned','PF',
-    #doJTA=True,
-    #doBTagging=True,
-    #btagInfo     = bTagInfos,
-    #btagdiscriminators = bTagDiscriminators,
-    #jetCorrLabel=inputJetCorrLabelAK5,
-    #doType1MET=False,
-    #doL1Cleaning=False,
-    #doL1Counters=False,
-    #doJetID = False,
-    #genJetCollection = cms.InputTag("akGenJetsNoNu")
-#)
+addJetCollection(
+    process,
+    cms.InputTag('akPFJetsFiltered'),
+    'AKFiltered','PF',
+    doJTA=True,
+    doBTagging=options.doBTagging,
+    btagInfo=bTagInfos,
+    btagdiscriminators = bTagDiscriminators,
+    jetCorrLabel=inputJetCorrLabelAK7,
+    doType1MET=False,
+    doL1Cleaning=False,
+    doL1Counters=False,
+    doJetID=False,
+    genJetCollection=cms.InputTag("akGenJetsNoNu")
+)
+addJetCollection(
+    process,
+    cms.InputTag('akPFJetsPruned'),
+    'AKPruned','PF',
+    doJTA=True,
+    doBTagging=options.doBTagging,
+    btagInfo=bTagInfos,
+    btagdiscriminators=bTagDiscriminators,
+    jetCorrLabel=inputJetCorrLabelAK7,
+    doType1MET=False,
+    doL1Cleaning=False,
+    doL1Counters=False,
+    doJetID=False,
+    genJetCollection=cms.InputTag("akGenJetsNoNu")
+)
+addJetCollection(
+    process,
+    cms.InputTag('caPFJetsPruned'),
+    'CAPruned','PF',
+    doJTA=True,
+    doBTagging=options.doBTagging,
+    btagInfo=bTagInfos,
+    btagdiscriminators=bTagDiscriminators,
+    jetCorrLabel=inputJetCorrLabelAK7,
+    doType1MET=False,
+    doL1Cleaning=False,
+    doL1Counters=False,
+    doJetID=False,
+    genJetCollection=cms.InputTag("caGenJetsNoNu")
+)
 
 ## Define a sequence for jets
 process.jetSeq = cms.Sequence(
@@ -265,12 +313,14 @@ process.jetSeq = cms.Sequence(
     (
     process.akGenJetsNoNu
     + process.akGenJetsNoNuRU
+    + process.caGenJetsNoNu
     )
     + process.akPFJets
     + process.akPFJetsRU
     + process.akPFJetsTrimmed
-    #+ process.akPFJetsFiltered
-    #+ process.akPFJetsPruned
+    + process.akPFJetsFiltered
+    + process.akPFJetsPruned
+    + process.caPFJetsPruned
 )
 
 ## If running over data, remove GenJets
@@ -278,6 +328,7 @@ if options.runOnData:
     process.jetSeq.remove(process.genParticlesForJetsNoNu)
     process.jetSeq.remove(process.akGenJetsNoNu)
     process.jetSeq.remove(process.akGenJetsNoNuRU)
+    process.jetSeq.remove(process.caGenJetsNoNu)
 
 process.jetPATSequence = cms.Sequence( process.jetSeq + process.patDefaultSequence)
 

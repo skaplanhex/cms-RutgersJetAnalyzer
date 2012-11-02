@@ -13,7 +13,7 @@
 //
 // Original Author:  Dinko Ferencek
 //         Created:  Fri Jul 20 12:32:38 CDT 2012
-// $Id: RutgersJetAnalyzer.cc,v 1.7.2.6 2012/11/01 21:47:06 ferencek Exp $
+// $Id: RutgersJetAnalyzer.cc,v 1.7.2.7 2012/11/02 02:44:07 ferencek Exp $
 //
 //
 
@@ -49,6 +49,14 @@
 // class declaration
 //
 
+struct ordering {
+    const pat::Jet* mJet;
+    ordering(const pat::Jet* fJet) : mJet(fJet) {}
+    bool operator ()(const pat::Jet* const& a, const pat::Jet* const& b) {
+      return reco::deltaR( mJet->p4(), a->p4() ) < reco::deltaR( mJet->p4(), b->p4() );
+    }
+};
+
 class RutgersJetAnalyzer : public edm::EDAnalyzer {
 public:
     explicit RutgersJetAnalyzer(const edm::ParameterSet&);
@@ -64,7 +72,7 @@ private:
     virtual void beginJob() ;
     virtual void analyze(const edm::Event&, const edm::EventSetup&);
     virtual void endJob() ;
-    
+
     virtual void beginRun(edm::Run const&, edm::EventSetup const&);
     virtual void endRun(edm::Run const&, edm::EventSetup const&);
     virtual void beginLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&);
@@ -79,19 +87,19 @@ private:
     const bool          useSubJets;
     const edm::InputTag subJetsTag;
     const edm::InputTag pvTag;
-    const double	jetRadius;	    // radius for jet clustering
+    const double        jetRadius;          // radius for jet clustering
     const bool          doBosonMatching;    // parameter for deciding if matching is on or off
-    const double	bosonMatchingRadius;
-    const int    	bosonPdgId;
+    const double        bosonMatchingRadius;
+    const int           bosonPdgId;
     const bool          doBosonDecayProdSelection;
     const std::vector<int> bosonDecayProdPdgIds;
     const bool          useMassDrop;
-    const double	jetPtMin;
+    const double        jetPtMin;
     const unsigned      jetPtBins;
     const double        jetPtBinWidth;
-    const double	jetAbsEtaMax;
-    const double	jetMassMin;
-    const double	jetMassMax;
+    const double        jetAbsEtaMax;
+    const double        jetMassMin;
+    const double        jetMassMax;
     const double        nsubjCut;
     bool                useUncorrectedJets;
 
@@ -275,7 +283,7 @@ RutgersJetAnalyzer::RutgersJetAnalyzer(const edm::ParameterSet& iConfig) :
 
 RutgersJetAnalyzer::~RutgersJetAnalyzer()
 {
-    
+
     // do anything here that needs to be done at desctruction time
     // (e.g. close files, deallocate resources etc.)
 
@@ -329,14 +337,15 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
       if( abs(it->pdgId()) == abs(bosonPdgId) && it->status() == 3 )
       {
         h1_BosonPt->Fill( it->pt(), eventWeight );
-	h1_BosonEta->Fill( it->eta(), eventWeight );
+        h1_BosonEta->Fill( it->eta(), eventWeight );
 
-	if( doBosonDecayProdSelection )
-	{
-	  bool decayProductsFound = false;
+        if( doBosonDecayProdSelection )
+        {
+          bool decayProductsFound = false;
 
-	  for(unsigned i=0; i<it->numberOfDaughters(); ++i)
-	  {
+          for(unsigned i=0; i<it->numberOfDaughters(); ++i)
+          {
+            //std::cout << "Daughter " << i << " PDG ID: " << it->daughter(i)->pdgId() << std::endl;
             for(std::vector<int>::const_iterator pdgIdIt = bosonDecayProdPdgIds.begin(); pdgIdIt != bosonDecayProdPdgIds.end(); ++pdgIdIt)
             {
               if( abs(it->daughter(i)->pdgId()) == abs(*pdgIdIt) )
@@ -345,26 +354,26 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
                 decayProducts[&(*it)].push_back(it->daughter(i));
               }
             }
-	  }
+          }
 
-	  if( decayProductsFound )
-	  {
-	    if( decayProducts[&(*it)].size()>2 ) edm::LogError("TooManyDecayProducts") << "More than two boson decay products found.";
-	    if( decayProducts[&(*it)].size()<2 ) edm::LogError("TooFewDecayProducts") << "Less than two boson decay products found.";
+          if( decayProductsFound )
+          {
+            if( decayProducts[&(*it)].size()>2 ) edm::LogError("TooManyDecayProducts") << "More than two boson decay products found.";
+            if( decayProducts[&(*it)].size()<2 ) edm::LogError("TooFewDecayProducts") << "Less than two boson decay products found.";
 
-	    bosons.push_back(&(*it));
-	    h1_BosonPt_DecaySel->Fill( it->pt(), eventWeight );
-	    h1_BosonEta_DecaySel->Fill( it->eta(), eventWeight );
-	    if( decayProducts[&(*it)].size()>1 )
-	      h2_BosonPt_dRdecay->Fill( it->pt(), reco::deltaR( decayProducts[&(*it)].at(0)->p4(), decayProducts[&(*it)].at(1)->p4() ), eventWeight );
-	  }
-	}
-	else
-	{
-	  bosons.push_back(&(*it));
-	  h1_BosonPt_DecaySel->Fill( it->pt(), eventWeight );
-	  h1_BosonEta_DecaySel->Fill( it->eta(), eventWeight );
-	}
+            bosons.push_back(&(*it));
+            h1_BosonPt_DecaySel->Fill( it->pt(), eventWeight );
+            h1_BosonEta_DecaySel->Fill( it->eta(), eventWeight );
+            if( decayProducts[&(*it)].size()>1 )
+              h2_BosonPt_dRdecay->Fill( it->pt(), reco::deltaR( decayProducts[&(*it)].at(0)->p4(), decayProducts[&(*it)].at(1)->p4() ), eventWeight );
+          }
+        }
+        else
+        {
+          bosons.push_back(&(*it));
+          h1_BosonPt_DecaySel->Fill( it->pt(), eventWeight );
+          h1_BosonEta_DecaySel->Fill( it->eta(), eventWeight );
+        }
       }
     }
 
@@ -407,16 +416,17 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
       if( useGroomedJets )
       {
         bool matchFound = false;
-	for(PatJetCollection::const_iterator gjIt = groomedJets->begin(); gjIt != groomedJets->end(); ++gjIt)
-	{
-          if( reco::deltaR( it->p4(), gjIt->p4() ) < jetRadius )
-	  {
+        double dR = jetRadius;
+        for(PatJetCollection::const_iterator gjIt = groomedJets->begin(); gjIt != groomedJets->end(); ++gjIt)
+        {
+          if( reco::deltaR( it->p4(), gjIt->p4() ) < dR )
+          {
             matchFound = true;
-	    jetMass = gjIt->mass();
-	    break;
-	  }
-	}
-	if( !matchFound ) edm::LogError("NoMatchingGroomedJet") << "Matching groomed jet not found. Using the original jet mass.";
+            dR = reco::deltaR( it->p4(), gjIt->p4() );
+            jetMass = gjIt->mass();
+          }
+        }
+        if( !matchFound ) edm::LogError("NoMatchingGroomedJet") << "Matching groomed jet not found. Using the original jet mass.";
       }
 
       bool isMatched = false;
@@ -425,27 +435,27 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
       if( doBosonMatching )
       {
         for(std::vector<const reco::GenParticle*>::const_iterator bosonIt = bosons.begin(); bosonIt != bosons.end(); ++bosonIt)
-	{
+        {
           if( reco::deltaR( (*bosonIt)->p4(), it->p4() ) < bosonMatchingRadius )
-	  {
+          {
             isMatched = true;
-	    break;
-	  }
-	}
-	for(std::vector<const reco::GenParticle*>::const_iterator bosonIt = bosons.begin(); bosonIt != bosons.end(); ++bosonIt)
-	{
-	  if( decayProducts[*bosonIt].size()>1 )
-	  {
+            break;
+          }
+        }
+        for(std::vector<const reco::GenParticle*>::const_iterator bosonIt = bosons.begin(); bosonIt != bosons.end(); ++bosonIt)
+        {
+          if( decayProducts[*bosonIt].size()>1 )
+          {
             if( reco::deltaR( decayProducts[*bosonIt].at(0)->p4(), it->p4() ) < jetRadius &&
-	        reco::deltaR( decayProducts[*bosonIt].at(1)->p4(), it->p4() ) < jetRadius )
-	    {
-	      h1_JetPt_BosonDecayProdMatched->Fill( jetPt, eventWeight );
+                reco::deltaR( decayProducts[*bosonIt].at(1)->p4(), it->p4() ) < jetRadius )
+            {
+              h1_JetPt_BosonDecayProdMatched->Fill( jetPt, eventWeight );
               if( jetMass > jetMassMin && jetMass < jetMassMax )
-	        h1_JetPt_BosonDecayProdMatched_JetMass->Fill( jetPt, eventWeight );
-	      break;
-	    }
-	  }
-	}
+                h1_JetPt_BosonDecayProdMatched_JetMass->Fill( jetPt, eventWeight );
+              break;
+            }
+          }
+        }
       }
       else
         isMatched = true;
@@ -464,7 +474,14 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
             subjets.push_back(&(*sjIt));
           }
         }
-        if( subjets.size()>2 ) edm::LogError("TooManySubjets") << "More than two subjets found.";
+        if( subjets.size()>2 )
+        {
+          edm::LogError("TooManySubjets") << "More than two subjets found. Will take the two subjets closest to the jet axis.";
+          std::sort(subjets.begin(), subjets.end(), ordering(&(*it)));
+          subjets.erase(subjets.begin()+2,subjets.end());
+          //for(unsigned i=0; i<subjets.size(); ++i)
+            //std::cout << "dR(jet,subjet) for subjet" << i << ": " << reco::deltaR( it->p4(), subjets.at(i)->p4() ) << std::endl;
+        }
         if( subjets.size()<2 ) edm::LogError("TooFewSubjets") << "Less than two subjets found.";
       }
 
@@ -592,37 +609,37 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
 
 
 // ------------ method called once each job just before starting event loop  ------------
-void 
+void
 RutgersJetAnalyzer::beginJob()
 {
 }
 
 // ------------ method called once each job just after ending the event loop  ------------
-void 
-RutgersJetAnalyzer::endJob() 
+void
+RutgersJetAnalyzer::endJob()
 {
 }
 
 // ------------ method called when starting to processes a run  ------------
-void 
+void
 RutgersJetAnalyzer::beginRun(edm::Run const&, edm::EventSetup const&)
 {
 }
 
 // ------------ method called when ending the processing of a run  ------------
-void 
+void
 RutgersJetAnalyzer::endRun(edm::Run const&, edm::EventSetup const&)
 {
 }
 
 // ------------ method called when starting to processes a luminosity block  ------------
-void 
+void
 RutgersJetAnalyzer::beginLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&)
 {
 }
 
 // ------------ method called when ending the processing of a luminosity block  ------------
-void 
+void
 RutgersJetAnalyzer::endLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&)
 {
 }

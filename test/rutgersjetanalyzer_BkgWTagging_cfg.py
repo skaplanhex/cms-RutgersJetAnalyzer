@@ -147,6 +147,7 @@ if options.runOnData:
 ## GenParticles for GenJets
 from RecoJets.Configuration.GenJetParticles_cff import genParticlesForJetsNoNu
 process.genParticlesForJetsNoNu = genParticlesForJetsNoNu
+
 ## Define Anti-kT jets (GEN and RECO)
 from RecoJets.JetProducers.ak5GenJets_cfi import ak5GenJets
 process.akGenJetsNoNu = ak5GenJets.clone(
@@ -336,13 +337,15 @@ from PhysicsTools.PatAlgos.tools.pfTools import *
 ## Adapt primary vertex collection
 adaptPVs(process, pvCollection=cms.InputTag('goodOfflinePrimaryVertices'), postfix='', sequence='jetPATSequence', skipAddedJets=False)
 
-# Initialize RutgersJetAnalyzer
+## Initialize instances of the RutgersJetAnalyzer
 process.jetAnalyzerDefaultJetMass = cms.EDAnalyzer('RutgersJetAnalyzer',
     UseEventWeight            = cms.bool(True),
     GenParticleTag            = cms.InputTag('genParticles'),
     JetsTag                   = cms.InputTag('selectedPatJets'),
     UseGroomedJets            = cms.bool(False),
     GroomedJetsTag            = cms.InputTag('selectedPatJetsAKTrimmedPF'),
+    UseSubJets                = cms.bool(False),
+    SubJetsTag                = cms.InputTag('selectedPatJetsAKSubPF'),
     PvTag                     = cms.InputTag('goodOfflinePrimaryVertices'),
     JetRadius                 = cms.double(options.jetRadius),
     DoBosonMatching           = cms.bool(False),
@@ -356,7 +359,8 @@ process.jetAnalyzerDefaultJetMass = cms.EDAnalyzer('RutgersJetAnalyzer',
     JetPtBinWidth             = cms.double(200.),
     JetAbsEtaMax              = cms.double(1.5),
     JetMassMin                = cms.double(70.),
-    JetMassMax                = cms.double(105.)
+    JetMassMax                = cms.double(105.),
+    NsubjCut                  = cms.double(0.45)
 )
 process.jetAnalyzerTrimmedJetMass = cms.EDAnalyzer('RutgersJetAnalyzer',
     UseEventWeight            = cms.bool(True),
@@ -364,6 +368,8 @@ process.jetAnalyzerTrimmedJetMass = cms.EDAnalyzer('RutgersJetAnalyzer',
     JetsTag                   = cms.InputTag('selectedPatJets'),
     UseGroomedJets            = cms.bool(True),
     GroomedJetsTag            = cms.InputTag('selectedPatJetsAKTrimmedPF'),
+    UseSubJets                = cms.bool(False),
+    SubJetsTag                = cms.InputTag('selectedPatJetsAKSubPF'),
     PvTag                     = cms.InputTag('goodOfflinePrimaryVertices'),
     JetRadius                 = cms.double(options.jetRadius),
     DoBosonMatching           = cms.bool(False),
@@ -377,7 +383,8 @@ process.jetAnalyzerTrimmedJetMass = cms.EDAnalyzer('RutgersJetAnalyzer',
     JetPtBinWidth             = cms.double(200.),
     JetAbsEtaMax              = cms.double(1.5),
     JetMassMin                = cms.double(65.),
-    JetMassMax                = cms.double(95.)
+    JetMassMax                = cms.double(95.),
+    NsubjCut                  = cms.double(0.45)
 )
 #process.jetAnalyzerTrimmedJets = cms.EDAnalyzer('RutgersJetAnalyzer',
     #UseEventWeight            = cms.bool(True),
@@ -385,6 +392,8 @@ process.jetAnalyzerTrimmedJetMass = cms.EDAnalyzer('RutgersJetAnalyzer',
     #JetsTag                   = cms.InputTag('selectedPatJetsAKTrimmedPF'),
     #UseGroomedJets            = cms.bool(False),
     #GroomedJetsTag            = cms.InputTag('selectedPatJetsAKTrimmedPF'),
+    #UseSubJets                = cms.bool(False),
+    #SubJetsTag                = cms.InputTag('selectedPatJetsAKSubPF'),
     #PvTag                     = cms.InputTag('goodOfflinePrimaryVertices'),
     #JetRadius                 = cms.double(options.jetRadius),
     #DoBosonMatching           = cms.bool(False),
@@ -398,7 +407,8 @@ process.jetAnalyzerTrimmedJetMass = cms.EDAnalyzer('RutgersJetAnalyzer',
     #JetPtBinWidth             = cms.double(200.),
     #JetAbsEtaMax              = cms.double(1.5),
     #JetMassMin                = cms.double(65.),
-    #JetMassMax                = cms.double(95.)
+    #JetMassMax                = cms.double(95.),
+    #NsubjCut                  = cms.double(0.45)
 #)
 #process.jetAnalyzerFilteredJetMass = cms.EDAnalyzer('RutgersJetAnalyzer',
     #UseEventWeight            = cms.bool(True),
@@ -406,6 +416,8 @@ process.jetAnalyzerTrimmedJetMass = cms.EDAnalyzer('RutgersJetAnalyzer',
     #JetsTag                   = cms.InputTag('selectedPatJets'),
     #UseGroomedJets            = cms.bool(True),
     #GroomedJetsTag            = cms.InputTag('selectedPatJetsAKFilteredPF'),
+    #UseSubJets                = cms.bool(False),
+    #SubJetsTag                = cms.InputTag('selectedPatJetsAKSubPF'),
     #PvTag                     = cms.InputTag('goodOfflinePrimaryVertices'),
     #JetRadius                 = cms.double(options.jetRadius),
     #DoBosonMatching           = cms.bool(False),
@@ -419,7 +431,8 @@ process.jetAnalyzerTrimmedJetMass = cms.EDAnalyzer('RutgersJetAnalyzer',
     #JetPtBinWidth             = cms.double(200.),
     #JetAbsEtaMax              = cms.double(1.5),
     #JetMassMin                = cms.double(70.),
-    #JetMassMax                = cms.double(100.)
+    #JetMassMax                = cms.double(100.),
+    #NsubjCut                  = cms.double(0.45)
 #)
 #process.jetAnalyzerPrunedJetMass = cms.EDAnalyzer('RutgersJetAnalyzer',
     #UseEventWeight            = cms.bool(True),
@@ -427,6 +440,8 @@ process.jetAnalyzerTrimmedJetMass = cms.EDAnalyzer('RutgersJetAnalyzer',
     #JetsTag                   = cms.InputTag('selectedPatJets'),
     #UseGroomedJets            = cms.bool(True),
     #GroomedJetsTag            = cms.InputTag('selectedPatJetsAKPrunedPF'),
+    #UseSubJets                = cms.bool(False),
+    #SubJetsTag                = cms.InputTag('selectedPatJetsAKSubPF'),
     #PvTag                     = cms.InputTag('goodOfflinePrimaryVertices'),
     #JetRadius                 = cms.double(options.jetRadius),
     #DoBosonMatching           = cms.bool(False),
@@ -440,7 +455,8 @@ process.jetAnalyzerTrimmedJetMass = cms.EDAnalyzer('RutgersJetAnalyzer',
     #JetPtBinWidth             = cms.double(200.),
     #JetAbsEtaMax              = cms.double(1.5),
     #JetMassMin                = cms.double(60.),
-    #JetMassMax                = cms.double(90.)
+    #JetMassMax                = cms.double(90.),
+    #NsubjCut                  = cms.double(0.45)
 #)
 process.jetAnalyzerCAPrunedJets = cms.EDAnalyzer('RutgersJetAnalyzer',
     UseEventWeight            = cms.bool(True),
@@ -448,6 +464,8 @@ process.jetAnalyzerCAPrunedJets = cms.EDAnalyzer('RutgersJetAnalyzer',
     JetsTag                   = cms.InputTag('selectedPatJetsCAPrunedPF'),
     UseGroomedJets            = cms.bool(False),
     GroomedJetsTag            = cms.InputTag('selectedPatJetsCAPrunedPF'),
+    UseSubJets                = cms.bool(False),
+    SubJetsTag                = cms.InputTag('selectedPatJetsAKSubPF'),
     PvTag                     = cms.InputTag('goodOfflinePrimaryVertices'),
     JetRadius                 = cms.double(options.jetRadius),
     DoBosonMatching           = cms.bool(False),
@@ -461,7 +479,8 @@ process.jetAnalyzerCAPrunedJets = cms.EDAnalyzer('RutgersJetAnalyzer',
     JetPtBinWidth             = cms.double(200.),
     JetAbsEtaMax              = cms.double(1.5),
     JetMassMin                = cms.double(60.),
-    JetMassMax                = cms.double(90.)
+    JetMassMax                = cms.double(90.),
+    NsubjCut                  = cms.double(0.45)
 )
 
 ## Path definition

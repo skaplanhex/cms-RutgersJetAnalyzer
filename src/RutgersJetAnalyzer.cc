@@ -13,7 +13,7 @@
 //
 // Original Author:  Dinko Ferencek
 //         Created:  Fri Jul 20 12:32:38 CDT 2012
-// $Id: RutgersJetAnalyzer.cc,v 1.7.2.5 2012/11/01 03:48:59 ferencek Exp $
+// $Id: RutgersJetAnalyzer.cc,v 1.7.2.6 2012/11/01 21:47:06 ferencek Exp $
 //
 //
 
@@ -76,6 +76,8 @@ private:
     const edm::InputTag jetsTag;
     const bool          useGroomedJets;
     const edm::InputTag groomedJetsTag;
+    const bool          useSubJets;
+    const edm::InputTag subJetsTag;
     const edm::InputTag pvTag;
     const double	jetRadius;	    // radius for jet clustering
     const bool          doBosonMatching;    // parameter for deciding if matching is on or off
@@ -90,6 +92,7 @@ private:
     const double	jetAbsEtaMax;
     const double	jetMassMin;
     const double	jetMassMax;
+    const double        nsubjCut;
     bool                useUncorrectedJets;
 
     Njettiness nsubjettinessCalculator;
@@ -110,11 +113,25 @@ private:
     TH1D *h1_JetPt;
     TH1D *h1_JetPt_BosonMatched;
     TH1D *h1_JetPt_BosonMatched_JetMass;
+    TH1D *h1_JetPt_BosonMatched_JetMass_CSVL;
+    TH1D *h1_JetPt_BosonMatched_JetMass_CSVM;
+    TH1D *h1_JetPt_BosonMatched_JetMass_SubJetCSVL;
+    TH1D *h1_JetPt_BosonMatched_JetMass_SubJetCSVM;
+    TH1D *h1_JetPt_BosonMatched_JetMass_DoubleB;
+    TH1D *h1_JetPt_BosonMatched_JetMass_Nsubj_CSVL;
+    TH1D *h1_JetPt_BosonMatched_JetMass_Nsubj_CSVM;
+    TH1D *h1_JetPt_BosonMatched_JetMass_Nsubj_SubJetCSVL;
+    TH1D *h1_JetPt_BosonMatched_JetMass_Nsubj_SubJetCSVM;
+    TH1D *h1_JetPt_BosonMatched_JetMass_Nsubj_DoubleB;
     TH1D *h1_JetPt_BosonDecayProdMatched;
     TH1D *h1_JetPt_BosonDecayProdMatched_JetMass;
     TH1D *h1_JetEta;
     TH1D *h1_JetEta_BosonMatched;
     TH1D *h1_JetEta_BosonMatched_JetMass;
+
+    TH1D *h1_JetCSVDiscr_BosonMatched_JetMass;
+    TH1D *h1_SubJetCSVDiscr_BosonMatched_JetMass;
+    TH1D *h1_JetDoubleBDiscr_BosonMatched_JetMass;
 
     std::map<std::string, TH2D*> h2_nPV_JetMass_Pt;
     std::map<std::string, TH2D*> h2_nPV_tau1_Pt;
@@ -141,6 +158,8 @@ RutgersJetAnalyzer::RutgersJetAnalyzer(const edm::ParameterSet& iConfig) :
   jetsTag(iConfig.getParameter<edm::InputTag>("JetsTag")),
   useGroomedJets(iConfig.getParameter<bool>("UseGroomedJets")),
   groomedJetsTag(iConfig.getParameter<edm::InputTag>("GroomedJetsTag")),
+  useSubJets(iConfig.getParameter<bool>("UseSubJets")),
+  subJetsTag(iConfig.getParameter<edm::InputTag>("SubJetsTag")),
   pvTag(iConfig.getParameter<edm::InputTag>("PvTag")),
   jetRadius(iConfig.getParameter<double>("JetRadius")),
   doBosonMatching(iConfig.getParameter<bool>("DoBosonMatching")),
@@ -155,6 +174,7 @@ RutgersJetAnalyzer::RutgersJetAnalyzer(const edm::ParameterSet& iConfig) :
   jetAbsEtaMax(iConfig.getParameter<double>("JetAbsEtaMax")),
   jetMassMin(iConfig.getParameter<double>("JetMassMin")),
   jetMassMax(iConfig.getParameter<double>("JetMassMax")),
+  nsubjCut(iConfig.getParameter<double>("NsubjCut")),
   useUncorrectedJets(false),
   nsubjettinessCalculator(Njettiness::onepass_kt_axes, NsubParameters(1.0, jetRadius, jetRadius))
 
@@ -191,12 +211,26 @@ RutgersJetAnalyzer::RutgersJetAnalyzer(const edm::ParameterSet& iConfig) :
 
     h1_JetPt = fs->make<TH1D>("h1_JetPt",";p_{T} [GeV];",ptBins,ptMin,ptMax);
     h1_JetPt_BosonMatched = fs->make<TH1D>("h1_JetPt_BosonMatched",";p_{T} [GeV];",ptBins,ptMin,ptMax);
-    h1_JetPt_BosonMatched_JetMass  = fs->make<TH1D>("h1_JetPt_BosonMatched_JetMass","Jet mass cut;p_{T} [GeV];",ptBins,ptMin,ptMax);
+    h1_JetPt_BosonMatched_JetMass = fs->make<TH1D>("h1_JetPt_BosonMatched_JetMass",";p_{T} [GeV];",ptBins,ptMin,ptMax);
+    h1_JetPt_BosonMatched_JetMass_CSVL = fs->make<TH1D>("h1_JetPt_BosonMatched_JetMass_CSVL",";p_{T} [GeV];",ptBins,ptMin,ptMax);
+    h1_JetPt_BosonMatched_JetMass_CSVM = fs->make<TH1D>("h1_JetPt_BosonMatched_JetMass_CSVM",";p_{T} [GeV];",ptBins,ptMin,ptMax);
+    h1_JetPt_BosonMatched_JetMass_SubJetCSVL = fs->make<TH1D>("h1_JetPt_BosonMatched_JetMass_SubJetCSVL",";p_{T} [GeV];",ptBins,ptMin,ptMax);
+    h1_JetPt_BosonMatched_JetMass_SubJetCSVM = fs->make<TH1D>("h1_JetPt_BosonMatched_JetMass_SubJetCSVM",";p_{T} [GeV];",ptBins,ptMin,ptMax);
+    h1_JetPt_BosonMatched_JetMass_DoubleB = fs->make<TH1D>("h1_JetPt_BosonMatched_JetMass_DoubleB",";p_{T} [GeV];",ptBins,ptMin,ptMax);
+    h1_JetPt_BosonMatched_JetMass_Nsubj_CSVL = fs->make<TH1D>("h1_JetPt_BosonMatched_JetMass_Nsubj_CSVL",";p_{T} [GeV];",ptBins,ptMin,ptMax);
+    h1_JetPt_BosonMatched_JetMass_Nsubj_CSVM = fs->make<TH1D>("h1_JetPt_BosonMatched_JetMass_Nsubj_CSVM",";p_{T} [GeV];",ptBins,ptMin,ptMax);
+    h1_JetPt_BosonMatched_JetMass_Nsubj_SubJetCSVL = fs->make<TH1D>("h1_JetPt_BosonMatched_JetMass_Nsubj_SubJetCSVL",";p_{T} [GeV];",ptBins,ptMin,ptMax);
+    h1_JetPt_BosonMatched_JetMass_Nsubj_SubJetCSVM = fs->make<TH1D>("h1_JetPt_BosonMatched_JetMass_Nsubj_SubJetCSVM",";p_{T} [GeV];",ptBins,ptMin,ptMax);
+    h1_JetPt_BosonMatched_JetMass_Nsubj_DoubleB = fs->make<TH1D>("h1_JetPt_BosonMatched_JetMass_Nsubj_DoubleB",";p_{T} [GeV];",ptBins,ptMin,ptMax);
     h1_JetPt_BosonDecayProdMatched = fs->make<TH1D>("h1_JetPt_BosonDecayProdMatched",";p_{T} [GeV];",ptBins,ptMin,ptMax);
-    h1_JetPt_BosonDecayProdMatched_JetMass  = fs->make<TH1D>("h1_JetPt_BosonDecayProdMatched_JetMass","Jet mass cut;p_{T} [GeV];",ptBins,ptMin,ptMax);
+    h1_JetPt_BosonDecayProdMatched_JetMass  = fs->make<TH1D>("h1_JetPt_BosonDecayProdMatched_JetMass",";p_{T} [GeV];",ptBins,ptMin,ptMax);
     h1_JetEta = fs->make<TH1D>("h1_JetEta",";#eta;",etaBins,etaMin,etaMax);
     h1_JetEta_BosonMatched = fs->make<TH1D>("h1_JetEta_BosonMatched",";#eta;",etaBins,etaMin,etaMax);
-    h1_JetEta_BosonMatched_JetMass = fs->make<TH1D>("h1_JetEta_BosonMatched_JetMass","Jet mass cut;#eta;",etaBins,etaMin,etaMax);
+    h1_JetEta_BosonMatched_JetMass = fs->make<TH1D>("h1_JetEta_BosonMatched_JetMass",";#eta;",etaBins,etaMin,etaMax);
+
+    h1_JetCSVDiscr_BosonMatched_JetMass = fs->make<TH1D>("h1_JetCSVDiscr_BosonMatched_JetMass",";Jet CSV Discr;",100,0.,1.);
+    h1_SubJetCSVDiscr_BosonMatched_JetMass = fs->make<TH1D>("h1_SubJetCSVDiscr_BosonMatched_JetMass",";SubJet CSV Discr;",100,0.,1.);
+    h1_JetDoubleBDiscr_BosonMatched_JetMass = fs->make<TH1D>("h1_JetDoubleBDiscr_BosonMatched_JetMass",";Jet DoubleB Discr;",100,0.,10.);
 
     for(unsigned i=0; i<=(jetPtBins+1); ++i)
     {
@@ -264,6 +298,9 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
 
     edm::Handle<PatJetCollection> groomedJets;
     if( useGroomedJets ) iEvent.getByLabel(groomedJetsTag,groomedJets);
+
+    edm::Handle<PatJetCollection> subJets;
+    if( useSubJets ) iEvent.getByLabel(subJetsTag,subJets);
 
     edm::Handle<reco::VertexCollection> PVs;
     iEvent.getByLabel(pvTag,PVs);
@@ -416,6 +453,21 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
       // skip the jet if it is not matched to a boson
       if( !isMatched ) continue;
 
+      // vector of pointers to subjets
+      std::vector<const pat::Jet*> subjets;
+      if( useSubJets )
+      {
+        for(PatJetCollection::const_iterator sjIt = subJets->begin(); sjIt != subJets->end(); ++sjIt)
+        {
+          if( reco::deltaR( it->p4(), sjIt->p4() ) < jetRadius )
+          {
+            subjets.push_back(&(*sjIt));
+          }
+        }
+        if( subjets.size()>2 ) edm::LogError("TooManySubjets") << "More than two subjets found.";
+        if( subjets.size()<2 ) edm::LogError("TooFewSubjets") << "Less than two subjets found.";
+      }
+
       h1_JetPt_BosonMatched->Fill(jetPt, eventWeight);
       h1_JetEta_BosonMatched->Fill(it->eta(), eventWeight);
 
@@ -441,6 +493,27 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
 
       h1_JetPt_BosonMatched_JetMass->Fill(jetPt, eventWeight);
       h1_JetEta_BosonMatched_JetMass->Fill(it->eta(), eventWeight);
+
+      // get b-tag discriminators
+      double jet_CSV_discr = it->bDiscriminator("combinedSecondaryVertexBJetTags");
+      double subJet1_CSV_discr = -999., subJet2_CSV_discr = -999.;
+      if( subjets.size()>1 )
+      {
+        subJet1_CSV_discr = subjets.at(0)->bDiscriminator("combinedSecondaryVertexBJetTags");
+        subJet2_CSV_discr = subjets.at(1)->bDiscriminator("combinedSecondaryVertexBJetTags");
+      }
+      double jet_DoubleB_discr = it->bDiscriminator("doubleSecondaryVertexHighEffBJetTags");
+
+      h1_JetCSVDiscr_BosonMatched_JetMass->Fill( jet_CSV_discr, eventWeight);
+      h1_SubJetCSVDiscr_BosonMatched_JetMass->Fill( subJet1_CSV_discr, eventWeight);
+      h1_SubJetCSVDiscr_BosonMatched_JetMass->Fill( subJet2_CSV_discr, eventWeight);
+      h1_JetDoubleBDiscr_BosonMatched_JetMass->Fill( jet_DoubleB_discr, eventWeight);
+
+      if( jet_CSV_discr>0.244 ) h1_JetPt_BosonMatched_JetMass_CSVL->Fill(jetPt, eventWeight);
+      if( jet_CSV_discr>0.679 ) h1_JetPt_BosonMatched_JetMass_CSVM->Fill(jetPt, eventWeight);
+      if( subJet1_CSV_discr>0.244 && subJet2_CSV_discr>0.244 ) h1_JetPt_BosonMatched_JetMass_SubJetCSVL->Fill(jetPt, eventWeight);
+      if( subJet1_CSV_discr>0.679 && subJet2_CSV_discr>0.679 ) h1_JetPt_BosonMatched_JetMass_SubJetCSVM->Fill(jetPt, eventWeight);
+      if( jet_DoubleB_discr>0. ) h1_JetPt_BosonMatched_JetMass_DoubleB->Fill(jetPt, eventWeight);
 
       if( !useMassDrop )
       {
@@ -483,6 +556,15 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
           h2_nPV_tau1_Pt[suffix]->Fill(nPV, tau1, eventWeight);
           h2_nPV_tau2_Pt[suffix]->Fill(nPV, tau2, eventWeight);
           h2_nPV_tau2tau1_Pt[suffix]->Fill(nPV, (tau1>0 ? tau2/tau1 : -10.), eventWeight);
+        }
+
+        if( tau2/tau1<nsubjCut )
+        {
+          if( jet_CSV_discr>0.244 ) h1_JetPt_BosonMatched_JetMass_Nsubj_CSVL->Fill(jetPt, eventWeight);
+          if( jet_CSV_discr>0.679 ) h1_JetPt_BosonMatched_JetMass_Nsubj_CSVM->Fill(jetPt, eventWeight);
+          if( subJet1_CSV_discr>0.244 && subJet2_CSV_discr>0.244 ) h1_JetPt_BosonMatched_JetMass_Nsubj_SubJetCSVL->Fill(jetPt, eventWeight);
+          if( subJet1_CSV_discr>0.679 && subJet2_CSV_discr>0.679 ) h1_JetPt_BosonMatched_JetMass_Nsubj_SubJetCSVM->Fill(jetPt, eventWeight);
+          if( jet_DoubleB_discr>0. ) h1_JetPt_BosonMatched_JetMass_Nsubj_DoubleB->Fill(jetPt, eventWeight);
         }
       }
       else

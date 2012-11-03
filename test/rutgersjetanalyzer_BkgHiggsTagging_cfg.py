@@ -409,7 +409,7 @@ process.jetAnalyzerTrimmedJetMass = cms.EDAnalyzer('RutgersJetAnalyzer',
     NsubjCut                  = cms.double(0.45)
 )
 process.jetAnalyzerTrimmedJetMassJTACone = cms.EDAnalyzer('RutgersJetAnalyzer',
-    UseEventWeight            = cms.bool(False),
+    UseEventWeight            = cms.bool(True),
     GenParticleTag            = cms.InputTag('genParticles'),
     JetsTag                   = cms.InputTag('selectedPatJetsAKPF'),
     UseGroomedJets            = cms.bool(True),

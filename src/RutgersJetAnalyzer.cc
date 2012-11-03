@@ -553,12 +553,13 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
 
         double tau1 = nsubjettinessCalculator.getTau(1,fjConstituents);
         double tau2 = nsubjettinessCalculator.getTau(2,fjConstituents);
+        double tau2overtau1 = (tau1>0 ? tau2/tau1 : -10.);
 
         // fill nPV_tau histograms
         suffix = Form("%.0ftoInf",jetPtMin);
         h2_nPV_tau1_Pt[suffix]->Fill(nPV, tau1, eventWeight);
         h2_nPV_tau2_Pt[suffix]->Fill(nPV, tau2, eventWeight);
-        h2_nPV_tau2tau1_Pt[suffix]->Fill(nPV, (tau1>0 ? tau2/tau1 : -10.), eventWeight);
+        h2_nPV_tau2tau1_Pt[suffix]->Fill(nPV, tau2overtau1, eventWeight);
         for(unsigned i=0; i<jetPtBins; ++i)
         {
           if( jetPt>(jetPtMin + jetPtBinWidth*i) && jetPt<=(jetPtMin + jetPtBinWidth*(i+1)) )
@@ -566,7 +567,7 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
             suffix = Form("%.0fto%.0f",(jetPtMin + jetPtBinWidth*i),(jetPtMin + jetPtBinWidth*(i+1)));
             h2_nPV_tau1_Pt[suffix]->Fill(nPV, tau1, eventWeight);
             h2_nPV_tau2_Pt[suffix]->Fill(nPV, tau2, eventWeight);
-            h2_nPV_tau2tau1_Pt[suffix]->Fill(nPV, (tau1>0 ? tau2/tau1 : -10.), eventWeight);
+            h2_nPV_tau2tau1_Pt[suffix]->Fill(nPV, tau2overtau1, eventWeight);
           }
         }
         if( jetPt>(jetPtMin+jetPtBinWidth*jetPtBins))
@@ -574,7 +575,7 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
           suffix = Form("%.0ftoInf",(jetPtMin+jetPtBinWidth*jetPtBins));
           h2_nPV_tau1_Pt[suffix]->Fill(nPV, tau1, eventWeight);
           h2_nPV_tau2_Pt[suffix]->Fill(nPV, tau2, eventWeight);
-          h2_nPV_tau2tau1_Pt[suffix]->Fill(nPV, (tau1>0 ? tau2/tau1 : -10.), eventWeight);
+          h2_nPV_tau2tau1_Pt[suffix]->Fill(nPV, tau2overtau1, eventWeight);
         }
 
         if( tau2/tau1<nsubjCut )
@@ -588,7 +589,7 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
       }
       else
       {
-        double massDrop = std::max( it->daughter(0)->mass(), it->daughter(1)->mass() ) / jetMass;
+        double massDrop = ( (jetMass>0. && it->numberOfDaughters()>1) ? std::max( it->daughter(0)->mass(), it->daughter(1)->mass() ) / jetMass : -10.);
         // fill nPV_MassDrop histograms
         suffix = Form("%.0ftoInf",jetPtMin);
         h2_nPV_MassDrop_Pt[suffix]->Fill(nPV, massDrop, eventWeight);

@@ -101,7 +101,7 @@ private:
     const double        jetMassMin;
     const double        jetMassMax;
     const double        nsubjCut;
-    bool                useUncorrectedJets;
+    bool                useUncorrMassForMassDrop;
 
     Njettiness nsubjettinessCalculator;
 
@@ -183,13 +183,13 @@ RutgersJetAnalyzer::RutgersJetAnalyzer(const edm::ParameterSet& iConfig) :
   jetMassMin(iConfig.getParameter<double>("JetMassMin")),
   jetMassMax(iConfig.getParameter<double>("JetMassMax")),
   nsubjCut(iConfig.getParameter<double>("NsubjCut")),
-  useUncorrectedJets(false),
+  useUncorrMassForMassDrop(false),
   nsubjettinessCalculator(Njettiness::onepass_kt_axes, NsubParameters(1.0, jetRadius, jetRadius))
 
 {
     //now do what ever initialization is needed
-    if ( iConfig.exists("UseUncorrectedJets") )
-      useUncorrectedJets = iConfig.getParameter<bool>("UseUncorrectedJets");
+    if ( iConfig.exists("UseUncorrMassForMassDrop") )
+      useUncorrMassForMassDrop = iConfig.getParameter<bool>("UseUncorrMassForMassDrop");
 
     int pvBins=51;
     double pvMin=-0.5, pvMax=50.5;
@@ -589,7 +589,9 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
       }
       else
       {
-        double massDrop = ( (jetMass>0. && it->numberOfDaughters()>1) ? std::max( it->daughter(0)->mass(), it->daughter(1)->mass() ) / jetMass : -10.);
+        double fatJetMass = jetMass;
+        if( useUncorrMassForMassDrop ) fatJetMass = it->correctedJet("Uncorrected").mass();
+        double massDrop = ( (jetMass>0. && it->numberOfDaughters()>1) ? std::max( it->daughter(0)->mass(), it->daughter(1)->mass() ) / fatJetMass : -10.);
         // fill nPV_MassDrop histograms
         suffix = Form("%.0ftoInf",jetPtMin);
         h2_nPV_MassDrop_Pt[suffix]->Fill(nPV, massDrop, eventWeight);

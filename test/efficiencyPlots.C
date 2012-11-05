@@ -451,7 +451,7 @@ void efficiency_vs_cut(const string& fInputFile, const string& fFileDir, const s
     g_eff->SetPoint(i,(h2_nPV_variable->GetYaxis()->GetBinUpEdge(101-(1+i*5))),(num/denom));
   }
 
-  TCanvas *c = new TCanvas("c", "",800,800);
+  TCanvas *c = new TCanvas("c", "",1000,800);
   c->cd();
 
   TH2D *bkg = new TH2D("bkg","",100,fXmin,fXmax,100,fYmin,fYmax);
@@ -521,7 +521,7 @@ void efficiency1D(const string& fInputFile, const string& fPlotPass, const strin
   g_efficiency->SetLineColor(kBlue+2);
   g_efficiency->SetMarkerSize(1.);
   g_efficiency->SetMarkerStyle(24);
-  g_efficiency->SetMarkerColor(kRed);
+  g_efficiency->SetMarkerColor(kBlue+2);
 
   g_efficiency->Draw("LP");
 
@@ -666,10 +666,14 @@ void makePlots()
 {
   //--------------------------------------------------------------------------------------------------------------------
   // W tagging
+ efficiency_curves_grooming("output_files_v2", "WW500_WTagging.root", "QCDPythia6_WTagging.root",
+                            "Pt500toInf", 0, 52, "W, anti-k_{T} R=0.6, p_{T}>500 GeV", "Trimmed jet mass", "Filtered jet mass",
+                            "Pruned jet mass", "Default jet mass", 0, 0.3, "W_tag_eff_grooming_Pt500toInf_WW500.eps");
+
   efficiency_curves_comp("output_files_v2", "WW500_WTagging.root", "QCDPythia6_WTagging.root",
-                         "jetAnalyzerTrimmedJetMass", "jetAnalyzerDefaultJetMass",
-                         "Pt500toInf", 0, 52, "W, R=0.6, p_{T}>500 GeV", "Trimmed jet mass", "Default jet mass",
-                         0, 0.3, "W_tag_eff_grooming_Pt500toInf_WW500.eps");
+                         "jetAnalyzerTrimmedJetMass", "jetAnalyzerTrimmedJets",
+                         "Pt500toInf", 0, 52, "W, anti-k_{T} R=0.6, p_{T}>500 GeV", "Default N-subj.", "Trimmed N-subj.",
+                         0, 0.3, "W_tag_eff_nsjgroomed_Pt500toInf_TrimmedJetMass_WW500.eps");
 
   efficiency_curves_nsj_massdrop("output_files_v2", "WW500_WTagging.root", "QCDPythia6_WTagging.root",
                                  "jetAnalyzerTrimmedJetMass", "jetAnalyzerCAPrunedJets",
@@ -679,23 +683,23 @@ void makePlots()
   efficiency_vs_cut("output_files_v2/WW500_WTagging.root", "jetAnalyzerCAPrunedJets",
                     "MassDrop", "Pt500toInf", 0, 52, "W, CA R=0.6 pruned, 60<m<90 GeV, p_{T}>500 GeV",
                     "#mu=m_{subjet1}/m_{jet}<", "Tagging efficiency", 0, 1., 0, 0.9,
-                    "W_tag_eff_vs_massdrop_cut_Pt500toInf_CAPrunedJets_WW500.eps", 1., 1.05);
+                    "W_tag_eff_vs_massdrop_cut_Pt500toInf_CAPrunedJets_WW500.eps", 0.9, 1.05);
 
   efficiency_vs_cut("output_files_v2/WW500_WTagging.root", "jetAnalyzerTrimmedJetMass",
                     "tau2tau1", "Pt500toInf", 0, 52, "W, anti-k_{T} R=0.6, 65<m<95 GeV (trimmed mass), p_{T}>500 GeV",
                     "#tau_{2}/#tau_{1}<", "Tagging efficiency", 0, 1., 0, 0.9,
-                    "W_tag_eff_vs_nsj_cut_Pt500toInf_TrimmedJetMass_WW500.eps", 1., 1.05);
+                    "W_tag_eff_vs_nsj_cut_Pt500toInf_TrimmedJetMass_WW500.eps", 0.9, 1.05);
 
   //--------------------------------------------------------------------------------------------------------------------
   // Higgs tagging
   efficiency_curves_grooming("output_files_v2", "BprimeBprimeToBHBHinc_M-800_HiggsTagging.root", "QCDPythia6_HiggsTagging.root",
-                             "Pt300toInf", 0, 52, "Higgs, R=0.8, p_{T}>300 GeV", "Trimmed jet mass", "Filtered jet mass",
+                             "Pt300toInf", 0, 52, "Higgs, anti-k_{T} R=0.8, p_{T}>300 GeV", "Trimmed jet mass", "Filtered jet mass",
                              "Pruned jet mass", "Default jet mass", 0, 0.3, "H_tag_eff_grooming_Pt300toInf_BprimeBprimeToBHBHinc_M-800.eps");
 
 
   efficiency_curves_comp("output_files_v2", "BprimeBprimeToBHBHinc_M-800_HiggsTagging.root", "QCDPythia6_HiggsTagging.root",
                          "jetAnalyzerTrimmedJetMass", "jetAnalyzerTrimmedJets",
-                         "Pt300toInf", 0, 52, "Higgs, R=0.8, p_{T}>300 GeV", "Default N-subj.", "Trimmed N-subj.",
+                         "Pt300toInf", 0, 52, "Higgs, anti-k_{T} R=0.8, p_{T}>300 GeV", "Default N-subj.", "Trimmed N-subj.",
                          0, 0.3, "H_tag_eff_nsjgroomed_Pt300toInf_TrimmedJetMass_BprimeBprimeToBHBHinc_M-800.eps");
 
 
@@ -708,59 +712,77 @@ void makePlots()
   efficiency_vs_cut("output_files_v2/BprimeBprimeToBHBHinc_M-800_HiggsTagging.root", "jetAnalyzerCAPrunedJets",
                     "MassDrop", "Pt300toInf", 0, 52, "Higgs, CA R=0.8 pruned, 75<m<130 GeV, p_{T}>300 GeV",
                     "#mu=m_{subjet1}/m_{jet}<", "Tagging efficiency", 0, 1., 0, 0.9,
-                    "H_tag_eff_vs_massdrop_cut_Pt300toInf_CAPrunedJets_BprimeBprimeToBHBHinc_M-800.eps", 1., 1.05);
+                    "H_tag_eff_vs_massdrop_cut_Pt300toInf_CAPrunedJets_BprimeBprimeToBHBHinc_M-800.eps", 0.9, 1.05);
 
   efficiency_vs_cut("output_files_v2/BprimeBprimeToBHBHinc_M-800_HiggsTagging.root", "jetAnalyzerTrimmedJetMass",
                     "tau2tau1", "Pt300toInf", 0, 52, "Higgs, anti-k_{T} R=0.8, 80<m<130 GeV (trimmed mass), p_{T}>300 GeV",
                     "#tau_{2}/#tau_{1}<", "Tagging efficiency", 0, 1., 0, 0.9,
-                    "H_tag_eff_vs_nsj_cut_Pt300toInf_TrimmedJetMass_BprimeBprimeToBHBHinc_M-800.eps", 1., 1.05);
+                    "H_tag_eff_vs_nsj_cut_Pt300toInf_TrimmedJetMass_BprimeBprimeToBHBHinc_M-800.eps", 0.9, 1.05);
 
   // Higgs true Pt
-  efficiency1D("output_files_v2/BprimeBprimeToBHBHinc_M-800_HiggsTaggingWithBTagging.root",
+  efficiency1D("output_files_v2/BprimeBprimeToBHBHinc_M-800_HiggsTagging.root",
                "jetAnalyzerTrimmedJetMass/h1_BosonPt_Matched", "jetAnalyzerTrimmedJetMass/h1_BosonPt_DecaySel",
                "H#rightarrowb#bar{b}, anti-k_{T} R=0.8, #DeltaR(H,jet)<0.5",
                "Higgs true p_{T} [GeV]", "Matching efficiency", 25, 0, 1000, 0, 1, "Matching_eff_dRHjet_BprimeBprimeToBHBHinc_M-800.eps", 1., 0.9);
 
-  efficiency1D("output_files_v2/BprimeBprimeToBHBHinc_M-800_HiggsTaggingWithBTagging.root",
+  efficiency1D("output_files_v2/BprimeBprimeToBHBHinc_M-800_HiggsTagging.root",
                "jetAnalyzerTrimmedJetMass/h1_BosonPt_DecayProdMatched", "jetAnalyzerTrimmedJetMass/h1_BosonPt_DecaySel",
                "H#rightarrowb#bar{b}, anti-k_{T} R=0.8, #DeltaR(b,jet)<0.8 & #DeltaR(#bar{b},jet)<0.8",
                "Higgs true p_{T} [GeV]", "Matching efficiency", 25, 0, 1000, 0, 1, "Matching_eff_dRbjet_BprimeBprimeToBHBHinc_M-800.eps", 1., 0.9);
 
   // Jet Pt
-  // Tagging efficiency
-  efficiency1D("output_files_v2/BprimeBprimeToBHBHinc_M-800_HiggsTaggingWithBTagging.root",
+  // Jet mass cut efficiency
+  efficiency1D("output_files_v2/BprimeBprimeToBHBHinc_M-800_HiggsTagging.root",
                "jetAnalyzerTrimmedJetMass/h1_JetPt_BosonMatched_JetMass", "jetAnalyzerTrimmedJetMass/h1_JetPt_BosonMatched",
                "H#rightarrowb#bar{b}, anti-k_{T} R=0.8, 80<m<130 GeV (trimmed mass)",
                "Jet p_{T} [GeV]", "Jet mass cut efficiency", 40, 0, 1000, 0, 1, "Jet_mass_cut_eff_HiggsToBBbar_BprimeBprimeToBHBHinc_M-800.eps", 1., 0.9);
 
-  //efficiency1D("output_files_v2/BprimeBprimeToBHBHinc_M-800_HiggsTaggingWithBTagging.root",
-  //             "jetAnalyzerTrimmedJetMass/h1_JetPt_BosonDecayProdMatched_JetMass", "jetAnalyzerTrimmedJetMass/h1_JetPt_BosonDecayProdMatched",
-  //             "H#rightarrowb#bar{b}, anti-k_{T} R=0.8, 80<m<130 GeV (trimmed mass)",
-  //             "Jet p_{T} [GeV]", "Jet mass cut efficiency", 40, 0, 1000, 0, 1, "Jet_mass_cut_eff_HiggsToBBbar_BosonDecayProdMatched_BprimeBprimeToBHBHinc_M-800.eps", 1., 0.9);
+  efficiency1D("output_files_v2/BprimeBprimeToBHBHinc_M-800_HiggsTagging.root",
+              "jetAnalyzerTrimmedJetMass/h1_JetPt_BosonDecayProdMatched_JetMass", "jetAnalyzerTrimmedJetMass/h1_JetPt_BosonDecayProdMatched",
+              "H#rightarrowb#bar{b}, anti-k_{T} R=0.8, 80<m<130 GeV (trimmed mass)",
+              "Jet p_{T} [GeV]", "Jet mass cut efficiency", 40, 0, 1000, 0, 1, "Jet_mass_cut_eff_HiggsToBBbar_BosonDecayProdMatched_BprimeBprimeToBHBHinc_M-800.eps", 1., 0.9);
 
-  efficiency1D_overlay("output_files_v2/BprimeBprimeToBHBHinc_M-800_HiggsTaggingWithBTagging.root",
+  efficiency1D("output_files_v2/QCDPythia6_HiggsTagging.root",
+               "jetAnalyzerTrimmedJetMass/h1_JetPt_BosonMatched_JetMass", "jetAnalyzerTrimmedJetMass/h1_JetPt_BosonMatched",
+               "QCD, anti-k_{T} R=0.8, 80<m<130 GeV (trimmed mass)",
+               "Jet p_{T} [GeV]", "Jet mass cut efficiency", 40, 0, 1000, 0, 1, "Jet_mass_cut_eff_QCDPythia6.eps", 1., 0.9);
+
+  // b-tagging efficiency
+  efficiency1D_overlay("output_files_v2/BprimeBprimeToBHBHinc_M-800_HiggsTagging.root",
                        "jetAnalyzerTrimmedJetMass/h1_JetPt_BosonMatched_JetMass", "jetAnalyzerTrimmedJetMass/h1_JetPt_BosonMatched_JetMass",
                        "H#rightarrowb#bar{b}, anti-k_{T} R=0.8, 80<m<130 GeV (trimmed mass)",
                        "Jet p_{T} [GeV]", "b-tagging efficiency", 40, 0, 1000, 0, 1, "b-tag_eff_HiggsToBBbar_BprimeBprimeToBHBHinc_M-800.eps", 1., 0.9);
-
-  //efficiency1D_overlay("output_files_v2/BprimeBprimeToBHBHinc_M-800_HiggsTaggingWithBTagging.root",
-  //                     "jetAnalyzerTrimmedJetMassJTACone/h1_JetPt_BosonMatched_JetMass", "jetAnalyzerTrimmedJetMassJTACone/h1_JetPt_BosonMatched_JetMass",
+  // b-tagging efficiency with enlarged JTA cone
+  //efficiency1D_overlay("output_files_v2/BprimeBprimeToBHBHinc_M-800_HiggsTagging.root",
+  //                    "jetAnalyzerTrimmedJetMassJTACone/h1_JetPt_BosonMatched_JetMass", "jetAnalyzerTrimmedJetMassJTACone/h1_JetPt_BosonMatched_JetMass",
+  //                    "H#rightarrowb#bar{b}, anti-k_{T} R=0.8, 80<m<130 GeV (trimmed mass)",
+  //                    "Jet p_{T} [GeV]", "b-tagging efficiency", 40, 0, 1000, 0, 1, "b-tag_eff_JTACone_HiggsToBBbar_BprimeBprimeToBHBHinc_M-800.eps", 1., 0.9);
+  // b-tagging efficiency with N-subj. cut applied
+  //efficiency1D_overlay("output_files_v2/BprimeBprimeToBHBHinc_M-800_HiggsTagging.root",
+  //                     "jetAnalyzerTrimmedJetMass/h1_JetPt_BosonMatched_JetMass_Nsubj", "jetAnalyzerTrimmedJetMass/h1_JetPt_BosonMatched_JetMass",
   //                     "H#rightarrowb#bar{b}, anti-k_{T} R=0.8, 80<m<130 GeV (trimmed mass)",
-  //                     "Jet p_{T} [GeV]", "b-tagging efficiency", 40, 0, 1000, 0, 1, "b-tag_eff_JTACone_HiggsToBBbar_BprimeBprimeToBHBHinc_M-800.eps", 1., 0.9);
+  //                     "Jet p_{T} [GeV]", "b-tagging efficiency", 40, 0, 1000, 0, 1, "b-tag_eff_Nsubj_HiggsToBBbar_BprimeBprimeToBHBHinc_M-800.eps", 1., 0.9);
 
-  efficiency1D_overlay("output_files_v2/BprimeBprimeToBHBHinc_M-800_HiggsTaggingWithBTagging.root",
-                       "jetAnalyzerTrimmedJetMass/h1_JetPt_BosonMatched_JetMass_Nsubj", "jetAnalyzerTrimmedJetMass/h1_JetPt_BosonMatched_JetMass",
-                       "H#rightarrowb#bar{b}, anti-k_{T} R=0.8, 80<m<130 GeV (trimmed mass)",
-                       "Jet p_{T} [GeV]", "b-tagging efficiency", 40, 0, 1000, 0, 1, "b-tag_eff_Nsubj_HiggsToBBbar_BprimeBprimeToBHBHinc_M-800.eps", 1., 0.9);
-
-  efficiency1D_overlay("output_files_v2/BprimeBprimeToBHBHinc_M-800_HiggsTaggingWithBTagging.root",
+  // Total Higgs tagging efficiency (jet mass cut + b tagging)
+  efficiency1D_overlay("output_files_v2/BprimeBprimeToBHBHinc_M-800_HiggsTagging.root",
                        "jetAnalyzerTrimmedJetMass/h1_JetPt_BosonMatched_JetMass", "jetAnalyzerTrimmedJetMass/h1_JetPt_BosonMatched",
                        "H#rightarrowb#bar{b}, anti-k_{T} R=0.8, 80<m<130 GeV (trimmed mass)",
                        "Jet p_{T} [GeV]", "Higgs tagging efficiency", 40, 0, 1000, 0, 1, "Higgs_tag_eff_total_HiggsToBBbar_BprimeBprimeToBHBHinc_M-800.eps", 1., 0.9);
-  
+
   // Mistag rate
-  efficiency1D_overlay("output_files_v2/QCDPythia6_HiggsTaggingWithBTagging.root",
+  efficiency1D_overlay("output_files_v2/QCDPythia6_HiggsTagging.root",
                        "jetAnalyzerTrimmedJetMass/h1_JetPt_BosonMatched_JetMass", "jetAnalyzerTrimmedJetMass/h1_JetPt_BosonMatched_JetMass",
                        "QCD, anti-k_{T} R=0.8, 80<m<130 GeV (trimmed mass)",
-                       "Jet p_{T} [GeV]", "b-tagging efficiency", 40, 0, 1000, 0, 1, "b-tag_eff_QCDPythia6.eps", 1., 0.9);
+                       "Jet p_{T} [GeV]", "b-tagging efficiency", 40, 0, 1000, 0, 0.2, "b-tag_eff_QCDPythia6.eps", 1., 1.);
+  // Mistag rate with enlarged JTA cone
+  //efficiency1D_overlay("output_files_v2/QCDPythia6_HiggsTagging.root",
+  //                     "jetAnalyzerTrimmedJetMassJTACone/h1_JetPt_BosonMatched_JetMass", "jetAnalyzerTrimmedJetMassJTACone/h1_JetPt_BosonMatched_JetMass",
+  //                     "QCD, anti-k_{T} R=0.8, 80<m<130 GeV (trimmed mass)",
+  //                     "Jet p_{T} [GeV]", "b-tagging efficiency", 40, 0, 1000, 0, 0.2, "b-tag_eff_JTACone_QCDPythia6.eps", 1., 1.);
+
+  // Total Higgs mistag rate (jet mass cut + b tagging)
+  efficiency1D_overlay("output_files_v2/QCDPythia6_HiggsTagging.root",
+                       "jetAnalyzerTrimmedJetMass/h1_JetPt_BosonMatched_JetMass", "jetAnalyzerTrimmedJetMass/h1_JetPt_BosonMatched",
+                       "QCD, anti-k_{T} R=0.8, 80<m<130 GeV (trimmed mass)",
+                       "Jet p_{T} [GeV]", "Higgs tagging efficiency", 40, 0, 1000, 0, 0.05, "Higgs_tag_eff_total_QCDPythia6.eps", 1., 1.);
 }

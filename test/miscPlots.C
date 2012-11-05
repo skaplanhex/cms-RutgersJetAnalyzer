@@ -154,8 +154,8 @@ void overlay1D(const string& fInputFileS, const string& fInputFileB, const strin
   h1_B->Rebin(fRebinX);
   h1_B->SetLineColor(kRed);
 
-  h1_S->DrawNormalized();
-  h1_B->DrawNormalized("same");
+  h1_S->DrawNormalized("hist");
+  h1_B->DrawNormalized("histsame");
 
   TLegend *legend = new TLegend(.65,.65,.95,.85);
   legend->SetBorderSize(0);
@@ -199,20 +199,20 @@ void makePlots()
 
   //--------------------------------------------------------------------------------------------------------------------
   // Higgs tagging
-  plot1D("output_files_v2/BprimeBprimeToBHBHinc_M-800_HiggsTaggingWithBTagging.root", "jetAnalyzerTrimmedJetMass/h1_nPV", "",
+  plot1D("output_files_v2/BprimeBprimeToBHBHinc_M-800_HiggsTagging.root", "jetAnalyzerTrimmedJetMass/h1_nPV", "",
          "Primary Vertex Multiplicity", "Events", 1, 0, 50, "nPV_BprimeBprimeToBHBHinc_M-800.eps", 1., 1.3);
 
-  plot1D("output_files_v2/BprimeBprimeToBHBHinc_M-800_HiggsTaggingWithBTagging.root", "jetAnalyzerTrimmedJetMass/h1_BosonPt", "H#rightarrowanything",
+  plot1D("output_files_v2/BprimeBprimeToBHBHinc_M-800_HiggsTagging.root", "jetAnalyzerTrimmedJetMass/h1_BosonPt", "H#rightarrowanything",
          "Higgs true p_{T} [GeV]", "Entries", 10, 0, 1000, "Pt_Higgs_BprimeBprimeToBHBHinc_M-800.eps", 1., 1.3);
 
-  plot1D("output_files_v2/BprimeBprimeToBHBHinc_M-800_HiggsTaggingWithBTagging.root", "jetAnalyzerTrimmedJetMass/h1_BosonEta", "H#rightarrowanything",
+  plot1D("output_files_v2/BprimeBprimeToBHBHinc_M-800_HiggsTagging.root", "jetAnalyzerTrimmedJetMass/h1_BosonEta", "H#rightarrowanything",
          "Higgs true #eta", "Entries", 1, -4, 4, "eta_Higgs_BprimeBprimeToBHBHinc_M-800.eps", 1., 1.3);
 
-  plot1D("output_files_v2/BprimeBprimeToBHBHinc_M-800_HiggsTaggingWithBTagging.root", "jetAnalyzerTrimmedJetMass/h1_BosonPt_DecaySel", "H#rightarrowb#bar{b}",
+  plot1D("output_files_v2/BprimeBprimeToBHBHinc_M-800_HiggsTagging.root", "jetAnalyzerTrimmedJetMass/h1_BosonPt_DecaySel", "H#rightarrowb#bar{b}",
          "Higgs true p_{T} [GeV]", "Entries", 10, 0, 1000, "Pt_HiggsToBBbar_BprimeBprimeToBHBHinc_M-800.eps", 1., 1.3);
 
 
-  plot2D("output_files_v2/BprimeBprimeToBHBHinc_M-800_HiggsTaggingWithBTagging.root", "jetAnalyzerTrimmedJetMass/h2_BosonPt_dRdecay", "H#rightarrowb#bar{b}",
+  plot2D("output_files_v2/BprimeBprimeToBHBHinc_M-800_HiggsTagging.root", "jetAnalyzerTrimmedJetMass/h2_BosonPt_dRdecay", "H#rightarrowb#bar{b}",
          "Higgs true p_{T} [GeV]", "#DeltaR(b,#bar{b})", 10, 0, 1000, 1, 0, 5, "Pt_HiggsToBBbar_dRdecay_BprimeBprimeToBHBHinc_M-800.eps", 1., 0.9, 0.11, 0.07, 0.77);
 
 

@@ -49,11 +49,22 @@
 // class declaration
 //
 
-struct ordering {
+struct ordering_dR {
     const pat::Jet* mJet;
-    ordering(const pat::Jet* fJet) : mJet(fJet) {}
+    ordering_dR(const pat::Jet* fJet) : mJet(fJet) {}
     bool operator ()(const pat::Jet* const& a, const pat::Jet* const& b) {
       return reco::deltaR( mJet->p4(), a->p4() ) < reco::deltaR( mJet->p4(), b->p4() );
+    }
+};
+
+struct ordering_Pt {
+    const std::string mCorrLevel;
+    ordering_Pt(const std::string fCorrLevel) : mCorrLevel(fCorrLevel) {}
+    bool operator ()(const pat::Jet* const& a, const pat::Jet* const& b) {
+      if( mCorrLevel=="Uncorrected" )
+        return a->correctedJet("Uncorrected").pt() > b->correctedJet("Uncorrected").pt();
+      else
+        return a->pt() > b->pt();
     }
 };
 
@@ -86,6 +97,7 @@ private:
     const edm::InputTag groomedJetsTag;
     const bool          useSubJets;
     const edm::InputTag subJetsTag;
+    const std::string   subJetMode;
     const edm::InputTag pvTag;
     const double        jetRadius;          // radius for jet clustering
     const bool          doBosonMatching;    // parameter for deciding if matching is on or off
@@ -177,6 +189,7 @@ RutgersJetAnalyzer::RutgersJetAnalyzer(const edm::ParameterSet& iConfig) :
   groomedJetsTag(iConfig.getParameter<edm::InputTag>("GroomedJetsTag")),
   useSubJets(iConfig.getParameter<bool>("UseSubJets")),
   subJetsTag(iConfig.getParameter<edm::InputTag>("SubJetsTag")),
+  subJetMode(iConfig.getParameter<std::string>("SubJetMode")),
   pvTag(iConfig.getParameter<edm::InputTag>("PvTag")),
   jetRadius(iConfig.getParameter<double>("JetRadius")),
   doBosonMatching(iConfig.getParameter<bool>("DoBosonMatching")),
@@ -250,11 +263,11 @@ RutgersJetAnalyzer::RutgersJetAnalyzer(const edm::ParameterSet& iConfig) :
     h1_JetEta_BosonMatched = fs->make<TH1D>("h1_JetEta_BosonMatched",";#eta;",etaBins,etaMin,etaMax);
     h1_JetEta_BosonMatched_JetMass = fs->make<TH1D>("h1_JetEta_BosonMatched_JetMass",";#eta;",etaBins,etaMin,etaMax);
 
-    h2_JetPt_JetPtOverBosonPt = fs->make<TH2D>("h2_JetPt_JetPtOverBosonPt",";p_{T} [GeV];p_{T}^{jet}/p_{T}^{boson}",ptBins,ptMin,ptMax,200,0.,2.);
-    h2_JetPt_JetPtOverGenJetPt = fs->make<TH2D>("h2_JetPt_JetPtOverGenJetPt",";p_{T} [GeV];p_{T}^{jet}/p_{T}^{genjet}",ptBins,ptMin,ptMax,200,0.,2.);
-    h2_JetPt_JetPtOverGenJetPt_BosonMatched = fs->make<TH2D>("h2_JetPt_JetPtOverGenJetPt_BosonMatched",";p_{T} [GeV];p_{T}^{jet}/p_{T}^{genjet}",ptBins,ptMin,ptMax,200,0.,2.);
-    h2_JetPt_JetMass = fs->make<TH2D>("h2_JetPt_JetMass",";p_{T} [GeV];m_{jet} [GeV]",ptBins,ptMin,ptMax,massBins,massMin,massMax);
-    h2_JetPt_JetMass_BosonMatched = fs->make<TH2D>("h2_JetPt_JetMass_BosonMatched",";p_{T} [GeV];m_{jet} [GeV]",ptBins,ptMin,ptMax,massBins,massMin,massMax);
+    h2_JetPt_JetPtOverBosonPt = fs->make<TH2D>("h2_JetPt_JetPtOverBosonPt",";p_{T} [GeV];p_{T}^{jet}/p_{T}^{boson}",ptBins/2,ptMin,ptMax,100,0.,2.);
+    h2_JetPt_JetPtOverGenJetPt = fs->make<TH2D>("h2_JetPt_JetPtOverGenJetPt",";p_{T} [GeV];p_{T}^{jet}/p_{T}^{genjet}",ptBins/2,ptMin,ptMax,100,0.,2.);
+    h2_JetPt_JetPtOverGenJetPt_BosonMatched = fs->make<TH2D>("h2_JetPt_JetPtOverGenJetPt_BosonMatched",";p_{T} [GeV];p_{T}^{jet}/p_{T}^{genjet}",ptBins/2,ptMin,ptMax,100,0.,2.);
+    h2_JetPt_JetMass = fs->make<TH2D>("h2_JetPt_JetMass",";p_{T} [GeV];m_{jet} [GeV]",ptBins/2,ptMin,ptMax,massBins/2,massMin,massMax);
+    h2_JetPt_JetMass_BosonMatched = fs->make<TH2D>("h2_JetPt_JetMass_BosonMatched",";p_{T} [GeV];m_{jet} [GeV]",ptBins/2,ptMin,ptMax,massBins/2,massMin,massMax);
 
     h1_JetCSVDiscr_BosonMatched_JetMass = fs->make<TH1D>("h1_JetCSVDiscr_BosonMatched_JetMass",";Jet CSV Discr;",100,0.,1.);
     h1_SubJetCSVDiscr_BosonMatched_JetMass = fs->make<TH1D>("h1_SubJetCSVDiscr_BosonMatched_JetMass",";SubJet CSV Discr;",100,0.,1.);
@@ -348,87 +361,90 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
 
     // vector of pointers to status=3 b' decay products
     std::vector<const reco::GenParticle*> bPrimeDecayProducts;
-    int bPrimeCount = 0;
-    for(reco::GenParticleCollection::const_iterator it = genParticles->begin(); it != genParticles->end(); ++it)
-    {
-      if( abs(it->pdgId()) == 7 && it->status() == 3 ) bPrimeCount++;
-
-      if( bPrimeCount>1 && it->status() == 3 ) bPrimeDecayProducts.push_back(&(*it));
-    }
-
     // vector of pointers to bosons
     std::vector<const reco::GenParticle*> bosons;
     // map to vectors of pointers to boson decay products
     std::map<const reco::GenParticle*,std::vector<const reco::Candidate*> > decayProducts;
 
-    // loop over GenParticles and select bosons isolated from other b' decay products
-    for(reco::GenParticleCollection::const_iterator it = genParticles->begin(); it != genParticles->end(); ++it)
+    if( doBosonMatching )
     {
-      if( abs(it->pdgId()) == abs(bosonPdgId) && it->status() == 3 )
+      int bPrimeCount = 0;
+      for(reco::GenParticleCollection::const_iterator it = genParticles->begin(); it != genParticles->end(); ++it)
       {
-        h1_BosonPt->Fill( it->pt(), eventWeight );
-        h1_BosonEta->Fill( it->eta(), eventWeight );
+        if( abs(it->pdgId()) == 7 && it->status() == 3 ) bPrimeCount++;
 
-        bool isIsolated = true;
-        if( applyBosonIsolation )
+        if( bPrimeCount>1 && it->status() == 3 ) bPrimeDecayProducts.push_back(&(*it));
+      }
+
+      // loop over GenParticles and select bosons isolated from other b' decay products
+      for(reco::GenParticleCollection::const_iterator it = genParticles->begin(); it != genParticles->end(); ++it)
+      {
+        if( abs(it->pdgId()) == abs(bosonPdgId) && it->status() == 3 )
         {
-          for(std::vector<const reco::GenParticle*>::const_iterator pIt = bPrimeDecayProducts.begin(); pIt != bPrimeDecayProducts.end(); ++pIt)
+          h1_BosonPt->Fill( it->pt(), eventWeight );
+          h1_BosonEta->Fill( it->eta(), eventWeight );
+
+          bool isIsolated = true;
+          if( applyBosonIsolation )
           {
-            if( &(*it)==(*pIt) ) continue; // skip the boson itself
-            bool isBosonDecayProduct = false;
+            for(std::vector<const reco::GenParticle*>::const_iterator pIt = bPrimeDecayProducts.begin(); pIt != bPrimeDecayProducts.end(); ++pIt)
+            {
+              if( &(*it)==(*pIt) ) continue; // skip the boson itself
+              bool isBosonDecayProduct = false;
+              for(unsigned i=0; i<it->numberOfDaughters(); ++i)
+              {
+                if( it->daughter(i) == (*pIt) )
+                {
+                  isBosonDecayProduct = true;
+                  break;
+                }
+              }
+              if( isBosonDecayProduct ) continue; // skip the boson decay products
+
+              if( reco::deltaR( it->p4(), (*pIt)->p4() ) < jetRadius ) isIsolated = false;
+            }
+          }
+
+          if( !isIsolated ) continue;
+
+          h1_BosonPt_Isolated->Fill( it->pt(), eventWeight );
+          h1_BosonEta_Isolated->Fill( it->eta(), eventWeight );
+
+          if( doBosonDecayProdSelection )
+          {
+            bool decayProductsFound = false;
+
             for(unsigned i=0; i<it->numberOfDaughters(); ++i)
             {
-              if( it->daughter(i) == (*pIt) )
+              //std::cout << "Daughter " << i << " PDG ID: " << it->daughter(i)->pdgId() << std::endl;
+              for(std::vector<int>::const_iterator pdgIdIt = bosonDecayProdPdgIds.begin(); pdgIdIt != bosonDecayProdPdgIds.end(); ++pdgIdIt)
               {
-                isBosonDecayProduct = true;
-                break;
+                if( abs(it->daughter(i)->pdgId()) == abs(*pdgIdIt) )
+                {
+                  decayProductsFound = true;
+                  decayProducts[&(*it)].push_back(it->daughter(i));
+                }
               }
             }
-            if( isBosonDecayProduct ) continue; // skip the boson decay products
 
-            if( reco::deltaR( it->p4(), (*pIt)->p4() ) < jetRadius ) isIsolated = false;
-          }
-        }
-
-        if( !isIsolated ) continue;
-
-        h1_BosonPt_Isolated->Fill( it->pt(), eventWeight );
-        h1_BosonEta_Isolated->Fill( it->eta(), eventWeight );
-
-        if( doBosonDecayProdSelection )
-        {
-          bool decayProductsFound = false;
-
-          for(unsigned i=0; i<it->numberOfDaughters(); ++i)
-          {
-            //std::cout << "Daughter " << i << " PDG ID: " << it->daughter(i)->pdgId() << std::endl;
-            for(std::vector<int>::const_iterator pdgIdIt = bosonDecayProdPdgIds.begin(); pdgIdIt != bosonDecayProdPdgIds.end(); ++pdgIdIt)
+            if( decayProductsFound )
             {
-              if( abs(it->daughter(i)->pdgId()) == abs(*pdgIdIt) )
-              {
-                decayProductsFound = true;
-                decayProducts[&(*it)].push_back(it->daughter(i));
-              }
+              if( decayProducts[&(*it)].size()>2 ) edm::LogError("TooManyDecayProducts") << "More than two boson decay products found.";
+              if( decayProducts[&(*it)].size()<2 ) edm::LogError("TooFewDecayProducts") << "Less than two boson decay products found.";
+
+              bosons.push_back(&(*it));
+              h1_BosonPt_DecaySel->Fill( it->pt(), eventWeight );
+              h1_BosonEta_DecaySel->Fill( it->eta(), eventWeight );
+              if( decayProducts[&(*it)].size()>1 )
+                h2_BosonPt_dRdecay->Fill( it->pt(), reco::deltaR( decayProducts[&(*it)].at(0)->p4(), decayProducts[&(*it)].at(1)->p4() ), eventWeight );
             }
           }
-
-          if( decayProductsFound )
+          else
           {
-            if( decayProducts[&(*it)].size()>2 ) edm::LogError("TooManyDecayProducts") << "More than two boson decay products found.";
-            if( decayProducts[&(*it)].size()<2 ) edm::LogError("TooFewDecayProducts") << "Less than two boson decay products found.";
-
             bosons.push_back(&(*it));
             h1_BosonPt_DecaySel->Fill( it->pt(), eventWeight );
             h1_BosonEta_DecaySel->Fill( it->eta(), eventWeight );
-            if( decayProducts[&(*it)].size()>1 )
-              h2_BosonPt_dRdecay->Fill( it->pt(), reco::deltaR( decayProducts[&(*it)].at(0)->p4(), decayProducts[&(*it)].at(1)->p4() ), eventWeight );
           }
-        }
-        else
-        {
-          bosons.push_back(&(*it));
-          h1_BosonPt_DecaySel->Fill( it->pt(), eventWeight );
-          h1_BosonEta_DecaySel->Fill( it->eta(), eventWeight );
         }
       }
     }
@@ -444,6 +460,7 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
           break;
         }
       }
+
       if( decayProducts[*bosonIt].size()>1 )
       {
         for(PatJetCollection::const_iterator it = jets->begin(); it != jets->end(); ++it)
@@ -533,15 +550,31 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
             subjets.push_back(&(*sjIt));
           }
         }
-        if( subjets.size()>2 )
+
+        if( subjets.size()<2 )
+          edm::LogError("TooFewSubjets") << "Less than two subjets found.";
+        else
         {
-          edm::LogError("TooManySubjets") << "More than two subjets found. Will take the two subjets closest to the jet axis.";
-          std::sort(subjets.begin(), subjets.end(), ordering(&(*it)));
-          subjets.erase(subjets.begin()+2,subjets.end());
-          //for(unsigned i=0; i<subjets.size(); ++i)
-            //std::cout << "dR(jet,subjet) for subjet" << i << ": " << reco::deltaR( it->p4(), subjets.at(i)->p4() ) << std::endl;
+          if( subJetMode=="Kt" )
+          {
+            if( subjets.size()>2 )
+            {
+              edm::LogError("TooManySubjets") << "More than two subjets found. Will take the two subjets closest to the jet axis.";
+              std::sort(subjets.begin(), subjets.end(), ordering_dR(&(*it)));
+              subjets.erase(subjets.begin()+2,subjets.end());
+              //for(unsigned i=0; i<subjets.size(); ++i)
+                //std::cout << "dR(jet,subjet) for subjet" << i << ": " << reco::deltaR( it->p4(), subjets.at(i)->p4() ) << std::endl;
+            }
+          }
+          else if( subJetMode=="Filtered" )
+          {
+            std::sort(subjets.begin(), subjets.end(), ordering_Pt("Uncorrected"));
+            //for(unsigned i=0; i<subjets.size(); ++i)
+              //std::cout << "Uncorrected Pt for subjet" << i << ": " << subjets.at(i)->correctedJet("Uncorrected").pt() << std::endl;
+          }
+          else
+            edm::LogError("IllegalSubJetMode") << "Allowed subjet modes are Kt and Filtered.";
         }
-        if( subjets.size()<2 ) edm::LogError("TooFewSubjets") << "Less than two subjets found.";
       }
 
       h1_JetPt_BosonMatched->Fill(jetPt, eventWeight);

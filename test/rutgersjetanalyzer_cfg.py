@@ -412,6 +412,7 @@ adaptPVs(process, pvCollection=cms.InputTag('goodOfflinePrimaryVertices'), postf
 if options.doBTagging:
     # Set the cone size for the jet-track association to the jet radius
     process.jetTracksAssociatorAtVertexAKPF.coneSize = cms.double(options.jetRadius)
+    process.secondaryVertexTagInfosAKPF.trackSelection.jetDeltaRMax = cms.double(options.jetRadius)
     # Set the jet-SV dR to the jet radius
     process.inclusiveSecondaryVertexFinderTagInfosFilteredAOD.extSVDeltaRToJet = cms.double(options.jetRadius)
     process.inclusiveSecondaryVertexFinderTagInfosFilteredAKPF.extSVDeltaRToJet = cms.double(options.jetRadius)

@@ -13,7 +13,7 @@
 //
 // Original Author:  Dinko Ferencek
 //         Created:  Fri Jul 20 12:32:38 CDT 2012
-// $Id: RutgersJetAnalyzer.cc,v 1.7.2.11 2012/11/03 17:31:15 ferencek Exp $
+// $Id: RutgersJetAnalyzer.cc,v 1.7.2.13 2012/11/19 05:27:06 ferencek Exp $
 //
 //
 
@@ -114,6 +114,7 @@ private:
     const double        jetMassMin;
     const double        jetMassMax;
     const double        nsubjCut;
+    bool                useGroomedJetSubstr;
     bool                useUncorrMassForMassDrop;
 
     Njettiness nsubjettinessCalculator;
@@ -206,11 +207,14 @@ RutgersJetAnalyzer::RutgersJetAnalyzer(const edm::ParameterSet& iConfig) :
   jetMassMin(iConfig.getParameter<double>("JetMassMin")),
   jetMassMax(iConfig.getParameter<double>("JetMassMax")),
   nsubjCut(iConfig.getParameter<double>("NsubjCut")),
+  useGroomedJetSubstr(false),
   useUncorrMassForMassDrop(false),
   nsubjettinessCalculator(Njettiness::onepass_kt_axes, NsubParameters(1.0, jetRadius, jetRadius))
 
 {
     //now do what ever initialization is needed
+    if ( iConfig.exists("UseGroomedJetSubstructure") )
+      useGroomedJetSubstr = iConfig.getParameter<bool>("UseGroomedJetSubstructure");
     if ( iConfig.exists("UseUncorrMassForMassDrop") )
       useUncorrMassForMassDrop = iConfig.getParameter<bool>("UseUncorrMassForMassDrop");
 
@@ -486,20 +490,22 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
       h1_JetEta->Fill(it->eta(), eventWeight);
 
       double jetMass = it->mass();
+      PatJetCollection::const_iterator groomedJetMatch;
+      bool groomedJetMatchFound = false;
       if( useGroomedJets )
       {
-        bool matchFound = false;
         double dR = jetRadius;
         for(PatJetCollection::const_iterator gjIt = groomedJets->begin(); gjIt != groomedJets->end(); ++gjIt)
         {
           if( reco::deltaR( it->p4(), gjIt->p4() ) < dR )
           {
-            matchFound = true;
+            groomedJetMatchFound = true;
             dR = reco::deltaR( it->p4(), gjIt->p4() );
             jetMass = gjIt->mass();
+            groomedJetMatch = gjIt;
           }
         }
-        if( !matchFound ) edm::LogError("NoMatchingGroomedJet") << "Matching groomed jet not found. Using the original jet mass.";
+        if( !groomedJetMatchFound ) edm::LogError("NoMatchingGroomedJet") << "Matching groomed jet not found. Using the original jet mass.";
       }
 
       h2_JetPt_JetPtOverGenJetPt->Fill(jetPt, (it->genJet()!=0 ? jetPt/(it->genJet()->pt()) : -10.), eventWeight);
@@ -626,10 +632,12 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
       if( subJet1_CSV_discr>0.679 && subJet2_CSV_discr>0.679 ) h1_JetPt_BosonMatched_JetMass_SubJetCSVM->Fill(jetPt, eventWeight);
       if( jet_DoubleB_discr>0. ) h1_JetPt_BosonMatched_JetMass_DoubleB->Fill(jetPt, eventWeight);
 
+      PatJetCollection::const_iterator substructJet = it;
+      if( useGroomedJetSubstr && groomedJetMatchFound ) substructJet = groomedJetMatch;
       if( !useMassDrop )
       {
         std::vector<fastjet::PseudoJet> fjConstituents;
-        std::vector<edm::Ptr<reco::PFCandidate> > constituents = it->getPFConstituents();
+        std::vector<edm::Ptr<reco::PFCandidate> > constituents = substructJet->getPFConstituents();
         std::vector<edm::Ptr<reco::PFCandidate> >::const_iterator m;
         for ( m = constituents.begin(); m != constituents.end(); ++m )
         {
@@ -682,8 +690,8 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
       else
       {
         double fatJetMass = jetMass;
-        if( useUncorrMassForMassDrop ) fatJetMass = it->correctedJet("Uncorrected").mass();
-        double massDrop = ( (jetMass>0. && it->numberOfDaughters()>1) ? std::max( it->daughter(0)->mass(), it->daughter(1)->mass() ) / fatJetMass : -10.);
+        if( useUncorrMassForMassDrop ) fatJetMass = substructJet->correctedJet("Uncorrected").mass();
+        double massDrop = ( (jetMass>0. && substructJet->numberOfDaughters()>1) ? std::max( substructJet->daughter(0)->mass(), substructJet->daughter(1)->mass() ) / fatJetMass : -10.);
         // fill nPV_MassDrop histograms
         suffix = Form("%.0ftoInf",jetPtMin);
         h2_nPV_MassDrop_Pt[suffix]->Fill(nPV, massDrop, eventWeight);

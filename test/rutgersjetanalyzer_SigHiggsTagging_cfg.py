@@ -170,7 +170,8 @@ from RecoJets.JetProducers.ak5PFJets_cfi import ak5PFJets
 process.akPFJets = ak5PFJets.clone(
     rParam = options.jetRadius,
     doAreaFastjet = cms.bool(True),
-    src = cms.InputTag("pfNoElectronPFlow")
+    src = cms.InputTag("pfNoElectronPFlow"),
+    srcPVs = cms.InputTag("goodOfflinePrimaryVertices")
 )
 
 ## Anti-kT jets and subjets (GEN and RECO) (two collections are produced)
@@ -259,13 +260,20 @@ process.caGenJetsNoNu = ca4GenJets.clone(
     rParam = options.jetRadius,
     src = cms.InputTag("genParticlesForJetsNoNu")
 )
+from RecoJets.JetProducers.ca4PFJets_cfi import ca4PFJets
+process.caPFJets = ca4PFJets.clone(
+    rParam = options.jetRadius,
+    src = process.akPFJets.src,
+    srcPVs = process.akPFJets.srcPVs,
+    doAreaFastjet = process.akPFJets.doAreaFastjet
+)
 from RecoJets.JetProducers.ak5PFJetsPruned_cfi import ak5PFJetsPruned
 process.caPFJetsPruned = ak5PFJetsPruned.clone(
     jetAlgorithm = cms.string("CambridgeAachen"),
     rParam = options.jetRadius,
     src = process.akPFJets.src,
     srcPVs = process.akPFJets.srcPVs,
-    doAreaFastjet = process.akPFJets.doAreaFastjet,
+    doAreaFastjet = process.akPFJets.doAreaFastjet
 )
 
 ## PATify above jets
@@ -389,6 +397,21 @@ addJetCollection(
 )
 addJetCollection(
     process,
+    cms.InputTag('caPFJets'),
+    'CA','PF',
+    doJTA=False,
+    doBTagging=False,
+    btagInfo=bTagInfos,
+    btagdiscriminators=bTagDiscriminators,
+    jetCorrLabel=inputJetCorrLabelAK7,
+    doType1MET=False,
+    doL1Cleaning=False,
+    doL1Counters=False,
+    doJetID=False,
+    genJetCollection=cms.InputTag("caGenJetsNoNu")
+)
+addJetCollection(
+    process,
     cms.InputTag('caPFJetsPruned'),
     'CAPruned','PF',
     doJTA=False,
@@ -404,7 +427,7 @@ addJetCollection(
 )
 
 ## Define a sequence for jets
-process.jetSeq = cms.Sequence(
+process.genJetSeq = cms.Sequence(
     process.genParticlesForJetsNoNu *
     (
     process.akGenJetsNoNu
@@ -413,27 +436,22 @@ process.jetSeq = cms.Sequence(
     + process.akGenJetsNoNuPruned
     + process.caGenJetsNoNu
     )
-    + process.akPFJets
+)
+process.recoJetSeq = cms.Sequence(
+    process.akPFJets
     + process.akPFJetsRU
     + process.akPFJetsTrimmed
     + process.akPFJetsFiltered
     + process.akPFJetsFilteredCompound
     + process.akPFJetsPruned
     + process.akPFJetsPrunedCompound
+    + process.caPFJets
     + process.caPFJetsPruned
 )
 
-## If running over data, remove GenJets
-if options.runOnData:
-    process.jetSeq.remove(process.genParticlesForJetsNoNu)
-    process.jetSeq.remove(process.akGenJetsNoNu)
-    process.jetSeq.remove(process.akGenJetsNoNuRU)
-    process.jetSeq.remove(process.akGenJetsNoNuFiltered)
-    process.jetSeq.remove(process.akGenJetsNoNuPruned)
-    process.jetSeq.remove(process.caGenJetsNoNu)
+process.jetPATSequence = cms.Sequence( process.recoJetSeq + process.patDefaultSequence )
 
-process.jetPATSequence = cms.Sequence( process.jetSeq + process.patDefaultSequence)
-
+## If using explicit jet-track association
 if options.useExplicitJTA:
     from RecoJets.JetAssociationProducers.ak5JTA_cff import ak5JetTracksAssociatorExplicit
     for m in getattr(process,'jetPATSequence').moduleNames():
@@ -561,9 +579,10 @@ process.jetAnalyzerTrimmedJetMassJTACone = cms.EDAnalyzer('RutgersJetAnalyzer',
 process.jetAnalyzerTrimmedJets = cms.EDAnalyzer('RutgersJetAnalyzer',
     UseEventWeight            = cms.bool(False),
     GenParticleTag            = cms.InputTag('genParticles'),
-    JetsTag                   = cms.InputTag('selectedPatJetsAKTrimmedPF'),
-    UseGroomedJets            = cms.bool(False),
+    JetsTag                   = cms.InputTag('selectedPatJets'),
+    UseGroomedJets            = cms.bool(True),
     GroomedJetsTag            = cms.InputTag('selectedPatJetsAKTrimmedPF'),
+    UseGroomedJetSubstructure = cms.bool(True),
     UseSubJets                = cms.bool(False),
     SubJetsTag                = cms.InputTag('selectedPatJetsAKSubPF'),
     SubJetMode                = cms.string('Kt'),
@@ -639,11 +658,12 @@ process.jetAnalyzerPrunedJetMass = cms.EDAnalyzer('RutgersJetAnalyzer',
 process.jetAnalyzerPrunedJets = cms.EDAnalyzer('RutgersJetAnalyzer',
     UseEventWeight            = cms.bool(False),
     GenParticleTag            = cms.InputTag('genParticles'),
-    JetsTag                   = cms.InputTag('selectedPatJetsAKPrunedPF'),
-    UseGroomedJets            = cms.bool(False),
+    JetsTag                   = cms.InputTag('selectedPatJets'),
+    UseGroomedJets            = cms.bool(True),
     GroomedJetsTag            = cms.InputTag('selectedPatJetsAKPrunedPF'),
+    UseGroomedJetSubstructure = cms.bool(True),
     UseSubJets                = cms.bool(False),
-    SubJetsTag                = cms.InputTag('selectedPatJetsAKSubPF'),
+    SubJetsTag                = cms.InputTag('selectedPatJetsAKPrunedSubPF'),
     SubJetMode                = cms.string('Kt'),
     PvTag                     = cms.InputTag('goodOfflinePrimaryVertices'),
     JetRadius                 = cms.double(options.jetRadius),
@@ -665,11 +685,12 @@ process.jetAnalyzerPrunedJets = cms.EDAnalyzer('RutgersJetAnalyzer',
 process.jetAnalyzerCAPrunedJets = cms.EDAnalyzer('RutgersJetAnalyzer',
     UseEventWeight            = cms.bool(False),
     GenParticleTag            = cms.InputTag('genParticles'),
-    JetsTag                   = cms.InputTag('selectedPatJetsCAPrunedPF'),
-    UseGroomedJets            = cms.bool(False),
+    JetsTag                   = cms.InputTag('selectedPatJetsCAPF'),
+    UseGroomedJets            = cms.bool(True),
     GroomedJetsTag            = cms.InputTag('selectedPatJetsCAPrunedPF'),
+    UseGroomedJetSubstructure = cms.bool(True),
     UseSubJets                = cms.bool(False),
-    SubJetsTag                = cms.InputTag('selectedPatJetsAKSubPF'),
+    SubJetsTag                = cms.InputTag('selectedPatJetsAKPrunedSubPF'),
     SubJetMode                = cms.string('Kt'),
     PvTag                     = cms.InputTag('goodOfflinePrimaryVertices'),
     JetRadius                 = cms.double(options.jetRadius),
@@ -689,6 +710,10 @@ process.jetAnalyzerCAPrunedJets = cms.EDAnalyzer('RutgersJetAnalyzer',
     JetMassMax                = cms.double(135.),
     NsubjCut                  = cms.double(0.45)
 )
+
+## If running over MC, add GenJets
+if not options.runOnData:
+    process.jetPATSequence = cms.Sequence( process.genJetSeq + process.jetPATSequence )
 
 ## Path definition
 process.p = cms.Path(

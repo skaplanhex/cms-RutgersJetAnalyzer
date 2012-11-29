@@ -187,15 +187,15 @@ void makePlots()
 {
   //--------------------------------------------------------------------------------------------------------------------
   // W tagging
-  overlay1D("output_files_v2/WW500_WTagging.root", "output_files_v2/QCDPythia6_WTagging.root",
-            "jetAnalyzerCAPrunedJets/h2_nPV_MassDrop_Pt500toInf", 0, 52, 2,
-            "CA R=0.6 pruned, p_{T}>500 Ge, 60<m<90 GeVV", "#mu=m_{subjet1}/m_{jet}", "Entries", "Boosted W", "QCD",
-            "Mass_drop_BoostedW_QCD_Pt500toInf.eps", 0.9);
-
-  overlay1D("output_files_v2/WW500_WTagging.root", "output_files_v2/QCDPythia6_WTagging.root",
-            "jetAnalyzerTrimmedJetMass/h2_nPV_tau2tau1_Pt500toInf", 0, 52, 2,
-            "AK R=0.6, p_{T}>500 Ge, 65<m<95 GeV (trimmed)", "#tau_{2}/#tau_{1}", "Entries", "Boosted W", "QCD",
-            "tau2tau1_BoostedW_QCD_Pt500toInf.eps", 0.9);
+//   overlay1D("output_files_v2/WW500_WTagging.root", "output_files_v2/QCDPythia6_WTagging.root",
+//             "jetAnalyzerCAPrunedJets/h2_nPV_MassDrop_Pt500toInf", 0, 52, 2,
+//             "CA R=0.6 pruned, p_{T}>500 Ge, 60<m<90 GeVV", "#mu=m_{subjet1}/m_{jet}", "Entries", "Boosted W", "QCD",
+//             "Mass_drop_BoostedW_QCD_Pt500toInf.eps", 0.9);
+// 
+//   overlay1D("output_files_v2/WW500_WTagging.root", "output_files_v2/QCDPythia6_WTagging.root",
+//             "jetAnalyzerTrimmedJetMass/h2_nPV_tau2tau1_Pt500toInf", 0, 52, 2,
+//             "AK R=0.6, p_{T}>500 Ge, 65<m<95 GeV (trimmed)", "#tau_{2}/#tau_{1}", "Entries", "Boosted W", "QCD",
+//             "tau2tau1_BoostedW_QCD_Pt500toInf.eps", 0.9);
 
   //--------------------------------------------------------------------------------------------------------------------
   // Higgs tagging
@@ -216,6 +216,9 @@ void makePlots()
 
   plot1D("output_files_v2/BprimeBprimeToBHBHinc_M-800_HiggsTagging.root", "jetAnalyzerTrimmedJetMass/h1_BosonPt_DecaySel", "H#rightarrowb#bar{b}, #DeltaR(H,other b' decay products)>0.8",
          "Higgs true p_{T} [GeV]", "Entries", 10, 0, 1000, "Pt_HiggsToBBbar_Isolated_BprimeBprimeToBHBHinc_M-800.eps", 1., 1.3);
+
+  plot1D("output_files_v2/BprimeBprimeToBHBHinc_M-800_HiggsTagging.root", "jetAnalyzerTrimmedJetMass/h1_BosonEta_DecaySel", "H#rightarrowb#bar{b}, #DeltaR(H,other b' decay products)>0.8",
+         "Higgs true #eta", "Entries", 1, -4, 4, "eta_HiggsToBBbar_Isolated_BprimeBprimeToBHBHinc_M-800.eps", 1., 1.3);
 
 
   plot2D("output_files_v2/BprimeBprimeToBHBHinc_M-800_HiggsTagging.root", "jetAnalyzerTrimmedJetMass/h2_BosonPt_dRdecay", "H#rightarrowb#bar{b}, #DeltaR(H,other b' decay products)>0.8",

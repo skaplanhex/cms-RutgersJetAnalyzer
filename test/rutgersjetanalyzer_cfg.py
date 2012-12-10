@@ -497,7 +497,8 @@ process.jetAnalyzerDefaultJetMass = cms.EDAnalyzer('RutgersJetAnalyzer',
     JetAbsEtaMax              = cms.double(1.5),
     JetMassMin                = cms.double(85.),
     JetMassMax                = cms.double(150.),
-    NsubjCut                  = cms.double(0.45)
+    NsubjCut                  = cms.double(0.45),
+    Bdiscriminator	      = cms.string("combinedInclusiveSecondaryVertexBJetTags")
 )
 process.jetAnalyzerTrimmedJetMass = cms.EDAnalyzer('RutgersJetAnalyzer',
     UseEventWeight            = cms.bool(False),
@@ -523,7 +524,8 @@ process.jetAnalyzerTrimmedJetMass = cms.EDAnalyzer('RutgersJetAnalyzer',
     JetAbsEtaMax              = cms.double(1.5),
     JetMassMin                = cms.double(75.),
     JetMassMax                = cms.double(135.),
-    NsubjCut                  = cms.double(0.45)
+    NsubjCut                  = cms.double(0.45),
+    Bdiscriminator	      = cms.string("combinedInclusiveSecondaryVertexBJetTags")
 )
 process.jetAnalyzerTrimmedJetMassFilteredSub = cms.EDAnalyzer('RutgersJetAnalyzer',
     UseEventWeight            = cms.bool(False),
@@ -549,7 +551,8 @@ process.jetAnalyzerTrimmedJetMassFilteredSub = cms.EDAnalyzer('RutgersJetAnalyze
     JetAbsEtaMax              = cms.double(1.5),
     JetMassMin                = cms.double(75.),
     JetMassMax                = cms.double(135.),
-    NsubjCut                  = cms.double(0.45)
+    NsubjCut                  = cms.double(0.45),
+    Bdiscriminator	      = cms.string("combinedInclusiveSecondaryVertexBJetTags")
 )
 process.jetAnalyzerTrimmedJetMassJTACone = cms.EDAnalyzer('RutgersJetAnalyzer',
     UseEventWeight            = cms.bool(False),
@@ -575,7 +578,8 @@ process.jetAnalyzerTrimmedJetMassJTACone = cms.EDAnalyzer('RutgersJetAnalyzer',
     JetAbsEtaMax              = cms.double(1.5),
     JetMassMin                = cms.double(75.),
     JetMassMax                = cms.double(135.),
-    NsubjCut                  = cms.double(0.45)
+    NsubjCut                  = cms.double(0.45),
+    Bdiscriminator	      = cms.string("combinedInclusiveSecondaryVertexBJetTags")
 )
 process.jetAnalyzerTrimmedJets = cms.EDAnalyzer('RutgersJetAnalyzer',
     UseEventWeight            = cms.bool(False),
@@ -602,7 +606,8 @@ process.jetAnalyzerTrimmedJets = cms.EDAnalyzer('RutgersJetAnalyzer',
     JetAbsEtaMax              = cms.double(1.5),
     JetMassMin                = cms.double(75.),
     JetMassMax                = cms.double(135.),
-    NsubjCut                  = cms.double(0.45)
+    NsubjCut                  = cms.double(0.45),
+    Bdiscriminator	      = cms.string("combinedInclusiveSecondaryVertexBJetTags")
 )
 process.jetAnalyzerFilteredJetMass = cms.EDAnalyzer('RutgersJetAnalyzer',
     UseEventWeight            = cms.bool(False),
@@ -628,7 +633,8 @@ process.jetAnalyzerFilteredJetMass = cms.EDAnalyzer('RutgersJetAnalyzer',
     JetAbsEtaMax              = cms.double(1.5),
     JetMassMin                = cms.double(80.),
     JetMassMax                = cms.double(140.),
-    NsubjCut                  = cms.double(0.45)
+    NsubjCut                  = cms.double(0.45),
+    Bdiscriminator	      = cms.string("combinedInclusiveSecondaryVertexBJetTags")
 )
 process.jetAnalyzerPrunedJetMass = cms.EDAnalyzer('RutgersJetAnalyzer',
     UseEventWeight            = cms.bool(False),
@@ -654,7 +660,8 @@ process.jetAnalyzerPrunedJetMass = cms.EDAnalyzer('RutgersJetAnalyzer',
     JetAbsEtaMax              = cms.double(1.5),
     JetMassMin                = cms.double(75.),
     JetMassMax                = cms.double(135.),
-    NsubjCut                  = cms.double(0.45)
+    NsubjCut                  = cms.double(0.45),
+    Bdiscriminator	      = cms.string("combinedInclusiveSecondaryVertexBJetTags")
 )
 process.jetAnalyzerPrunedJets = cms.EDAnalyzer('RutgersJetAnalyzer',
     UseEventWeight            = cms.bool(False),
@@ -681,7 +688,8 @@ process.jetAnalyzerPrunedJets = cms.EDAnalyzer('RutgersJetAnalyzer',
     JetAbsEtaMax              = cms.double(1.5),
     JetMassMin                = cms.double(75.),
     JetMassMax                = cms.double(135.),
-    NsubjCut                  = cms.double(0.45)
+    NsubjCut                  = cms.double(0.45),
+    Bdiscriminator	      = cms.string("combinedInclusiveSecondaryVertexBJetTags")
 )
 process.jetAnalyzerCAPrunedJets = cms.EDAnalyzer('RutgersJetAnalyzer',
     UseEventWeight            = cms.bool(False),
@@ -709,7 +717,8 @@ process.jetAnalyzerCAPrunedJets = cms.EDAnalyzer('RutgersJetAnalyzer',
     JetAbsEtaMax              = cms.double(1.5),
     JetMassMin                = cms.double(75.),
     JetMassMax                = cms.double(135.),
-    NsubjCut                  = cms.double(0.45)
+    NsubjCut                  = cms.double(0.45),
+    Bdiscriminator	      = cms.string("combinedInclusiveSecondaryVertexBJetTags")
 )
 
 ## If running over MC, add GenJets

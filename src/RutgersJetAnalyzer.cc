@@ -13,7 +13,7 @@
 //
 // Original Author:  Dinko Ferencek
 //         Created:  Fri Jul 20 12:32:38 CDT 2012
-// $Id: RutgersJetAnalyzer.cc,v 1.7.2.13 2012/11/19 05:27:06 ferencek Exp $
+// $Id: RutgersJetAnalyzer.cc,v 1.7.2.14 2012/11/27 20:08:56 ferencek Exp $
 //
 //
 
@@ -116,6 +116,10 @@ private:
     const double        nsubjCut;
     bool                useGroomedJetSubstr;
     bool                useUncorrMassForMassDrop;
+    std::string		bdiscriminator;
+    bool		findGluonSplitting;
+    bool		doJetFlavor;
+    const std::vector<int> jetFlavorPdgId;
 
     Njettiness nsubjettinessCalculator;
 
@@ -209,6 +213,10 @@ RutgersJetAnalyzer::RutgersJetAnalyzer(const edm::ParameterSet& iConfig) :
   nsubjCut(iConfig.getParameter<double>("NsubjCut")),
   useGroomedJetSubstr(false),
   useUncorrMassForMassDrop(false),
+  bdiscriminator(iConfig.getParameter<std::string>("Bdiscriminator")),
+  findGluonSplitting(iConfig.getParameter<bool>("FindGluonSplitting")),
+  doJetFlavor(iConfig.getParameter<bool>("DoJetFlavor")),
+  jetFlavorPdgId(iConfig.getParameter<std::vector<int> >("JetFlavorPdgId")),
   nsubjettinessCalculator(Njettiness::onepass_kt_axes, NsubParameters(1.0, jetRadius, jetRadius))
 
 {
@@ -370,6 +378,27 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
     // map to vectors of pointers to boson decay products
     std::map<const reco::GenParticle*,std::vector<const reco::Candidate*> > decayProducts;
 
+    bool isGluonSplitting = false;
+    if( findGluonSplitting )
+    {
+      bool bFoundS3Quark = false;
+      bool bFoundS2Quark = false;
+      for(reco::GenParticleCollection::const_iterator it = genParticles->begin(); it != genParticles->end(); ++it)
+      {
+	for(std::vector<int>::const_iterator pdgIdIt = jetFlavorPdgId.begin(); pdgIdIt != jetFlavorPdgId.end(); ++pdgIdIt)
+	{
+	if( abs(it->pdgId()) == abs(*pdgIdIt) && it->status()==3 ) bFoundS3Quark = true;
+	if( abs(it->pdgId()) == abs(*pdgIdIt) && it->status()==2 ) bFoundS2Quark = true;
+	}
+      }
+      //if no status 3 quarks but status 2
+      if( (!bFoundS3Quark) && bFoundS2Quark) isGluonSplitting = true;
+    }
+    else
+    {
+      isGluonSplitting = true;
+    }
+
     if( doBosonMatching )
     {
       int bPrimeCount = 0;
@@ -490,6 +519,22 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
       h1_JetEta->Fill(it->eta(), eventWeight);
 
       double jetMass = it->mass();
+
+      bool isRightFlavor = false;
+      if( doJetFlavor )
+      {
+	if( isGluonSplitting )
+	{
+	  double jetflavor = it->partonFlavour();
+	  for(std::vector<int>::const_iterator pdgIdIt = jetFlavorPdgId.begin(); pdgIdIt != jetFlavorPdgId.end(); ++pdgIdIt)
+	  {
+	    if( abs(jetflavor) == abs(*pdgIdIt)) isRightFlavor = true;
+	  }	 
+	}
+      }
+      else 
+	isRightFlavor = true;
+
       PatJetCollection::const_iterator groomedJetMatch;
       bool groomedJetMatchFound = false;
       if( useGroomedJets )
@@ -542,8 +587,8 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
       else
         isBosonMatched = true;
 
-      // skip the jet if it is not matched to a boson
-      if( !isBosonMatched ) continue;
+      // skip the jet if it is not matched to a boson or not right flavor
+      if( !isBosonMatched || !isRightFlavor ) continue;
 
       // vector of pointers to subjets
       std::vector<const pat::Jet*> subjets;
@@ -612,12 +657,15 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
       h1_JetEta_BosonMatched_JetMass->Fill(it->eta(), eventWeight);
 
       // get b-tag discriminators
-      double jet_CSV_discr = it->bDiscriminator("combinedSecondaryVertexBJetTags");
+      //double jet_CSV_discr = it->bDiscriminator("combinedSecondaryVertexBJetTags");
+      double jet_CSV_discr = it->bDiscriminator((bdiscriminator).c_str());
       double subJet1_CSV_discr = -999., subJet2_CSV_discr = -999.;
       if( subjets.size()>1 )
       {
-        subJet1_CSV_discr = subjets.at(0)->bDiscriminator("combinedSecondaryVertexBJetTags");
-        subJet2_CSV_discr = subjets.at(1)->bDiscriminator("combinedSecondaryVertexBJetTags");
+//      subJet1_CSV_discr = subjets.at(0)->bDiscriminator("combinedSecondaryVertexBJetTags");
+//      subJet2_CSV_discr = subjets.at(1)->bDiscriminator("combinedSecondaryVertexBJetTags");
+        subJet1_CSV_discr = subjets.at(0)->bDiscriminator((bdiscriminator).c_str());
+        subJet2_CSV_discr = subjets.at(1)->bDiscriminator((bdiscriminator).c_str());
       }
       double jet_DoubleB_discr = it->bDiscriminator("doubleSecondaryVertexHighEffBJetTags");
 

@@ -831,6 +831,21 @@ void makePlots()
                        "jetAnalyzerTrimmedJetMass/h1_JetPt_BosonMatched_JetMass", "jetAnalyzerTrimmedJetMass/h1_JetPt_BosonMatched_JetMass",
                        "QCD, AK R=0.8, 75<m<135 GeV (trimmed)",
                        "Jet p_{T} [GeV]", "Mistag rate", 40, 0, 1000, 0, 0.2, "b-tag_mistag_rate_QCDPythia6.eps", 1., 1., 0.12, 0.07, 0.8, "k_{T}");
+  // mistag rate when b from gluon splitting
+  efficiency1D_overlay("QCDPythia6_HiggsTagging.root",
+                       "jetAnalyzerTrimmedJetMassbquarks/h1_JetPt_BosonMatched_JetMass", "jetAnalyzerTrimmedJetMassbquarks/h1_JetPt_BosonMatched_JetMass",
+                       "QCD, AK R=0.8, 75<m<135 GeV (trimmed)",
+                       "Jet p_{T} [GeV]", "Mistag rate", 40, 0, 1000, 0, 1, "b-tag_mistag_rate_QCDPythia6_bquarks.eps", 1., 1., 0.12, 0.07, 0.8, "k_{T}");
+  // mistag rate when jet is a c quark jet
+  efficiency1D_overlay("QCDPythia6_HiggsTagging.root",
+                       "jetAnalyzerTrimmedJetMasscquarks/h1_JetPt_BosonMatched_JetMass", "jetAnalyzerTrimmedJetMasscquarks/h1_JetPt_BosonMatched_JetMass",
+                       "QCD, AK R=0.8, 75<m<135 GeV (trimmed)",
+                       "Jet p_{T} [GeV]", "Mistag rate", 40, 0, 1000, 0, 0.4, "b-tag_mistag_rate_QCDPythia6_cquarks.eps", 1., 1., 0.12, 0.07, 0.8, "k_{T}");
+  // mistage rate when jet is from u,d,s quark or gluon
+  efficiency1D_overlay("QCDPythia6_HiggsTagging.root",
+                       "jetAnalyzerTrimmedJetMassudsquarks/h1_JetPt_BosonMatched_JetMass", "jetAnalyzerTrimmedJetMassudsquarks/h1_JetPt_BosonMatched_JetMass",
+                       "QCD, AK R=0.8, 75<m<135 GeV (trimmed)",
+                       "Jet p_{T} [GeV]", "Mistag rate", 40, 0, 1000, 0, 0.2, "b-tag_mistag_rate_QCDPythia6_udsquarks.eps", 1., 1., 0.12, 0.07, 0.8, "k_{T}");
   // b-tagging mistag rate with filtered subjets
   efficiency1D_overlay("output_files_v2/QCDPythia6_HiggsTagging.root",
                        "jetAnalyzerTrimmedJetMassFilteredSub/h1_JetPt_BosonMatched_JetMass", "jetAnalyzerTrimmedJetMassFilteredSub/h1_JetPt_BosonMatched_JetMass",

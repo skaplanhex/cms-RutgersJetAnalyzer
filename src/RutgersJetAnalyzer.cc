@@ -13,7 +13,7 @@
 //
 // Original Author:  Dinko Ferencek
 //         Created:  Fri Jul 20 12:32:38 CDT 2012
-// $Id: RutgersJetAnalyzer.cc,v 1.7.2.14 2012/11/27 20:08:56 ferencek Exp $
+// $Id: RutgersJetAnalyzer.cc,v 1.7.2.15 2012/12/10 03:29:02 mzientek Exp $
 //
 //
 
@@ -120,6 +120,7 @@ private:
     bool		findGluonSplitting;
     bool		doJetFlavor;
     const std::vector<int> jetFlavorPdgId;
+    bool		findMatrixElement;
 
     Njettiness nsubjettinessCalculator;
 
@@ -217,7 +218,8 @@ RutgersJetAnalyzer::RutgersJetAnalyzer(const edm::ParameterSet& iConfig) :
   findGluonSplitting(iConfig.getParameter<bool>("FindGluonSplitting")),
   doJetFlavor(iConfig.getParameter<bool>("DoJetFlavor")),
   jetFlavorPdgId(iConfig.getParameter<std::vector<int> >("JetFlavorPdgId")),
-  nsubjettinessCalculator(Njettiness::onepass_kt_axes, NsubParameters(1.0, jetRadius, jetRadius))
+  nsubjettinessCalculator(Njettiness::onepass_kt_axes, NsubParameters(1.0, jetRadius, jetRadius)),
+  findMatrixElement(iConfig.getParameter<bool>("FindMatrixElement"))
 
 {
     //now do what ever initialization is needed
@@ -379,7 +381,9 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
     std::map<const reco::GenParticle*,std::vector<const reco::Candidate*> > decayProducts;
 
     bool isGluonSplitting = false;
-    if( findGluonSplitting )
+    bool isMatrixElement = false;
+    bool isAllJets = true;
+    if( findGluonSplitting || findMatrixElement)
     {
       bool bFoundS3Quark = false;
       bool bFoundS2Quark = false;
@@ -393,10 +397,14 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
       }
       //if no status 3 quarks but status 2
       if( (!bFoundS3Quark) && bFoundS2Quark) isGluonSplitting = true;
+      //if status 2 quark found
+      if( bFoundS2Quark ) isMatrixElement = true;
+      if( ((!bFoundS3Quark) && bFoundS2Quark) || bFoundS2Quark ) isAllJets = false;
     }
     else
     {
-      isGluonSplitting = true;
+      //isGluonSplitting = true;
+      //isMatrixElement = true;
     }
 
     if( doBosonMatching )
@@ -520,7 +528,9 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
 
       double jetMass = it->mass();
 
-      bool isRightFlavor = false;
+      bool isRightFlavor_gluon = false;
+      bool isRightFlavor_matrix = false;
+      bool isRightFlavor_all = false;
       if( doJetFlavor )
       {
 	if( isGluonSplitting )
@@ -528,12 +538,32 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
 	  double jetflavor = it->partonFlavour();
 	  for(std::vector<int>::const_iterator pdgIdIt = jetFlavorPdgId.begin(); pdgIdIt != jetFlavorPdgId.end(); ++pdgIdIt)
 	  {
-	    if( abs(jetflavor) == abs(*pdgIdIt)) isRightFlavor = true;
+	    if( abs(jetflavor) == abs(*pdgIdIt)) isRightFlavor_gluon = true;
+	  }	 
+	}
+	if( isMatrixElement )
+	{
+	  double jetflavor = it->partonFlavour();
+	  for(std::vector<int>::const_iterator pdgIdIt = jetFlavorPdgId.begin(); pdgIdIt != jetFlavorPdgId.end(); ++pdgIdIt)
+	  {
+	    if( abs(jetflavor) == abs(*pdgIdIt)) isRightFlavor_matrix = true;
+	  }	 
+	}
+	if( isAllJets )
+	{
+	  double jetflavor = it->partonFlavour();
+	  for(std::vector<int>::const_iterator pdgIdIt = jetFlavorPdgId.begin(); pdgIdIt != jetFlavorPdgId.end(); ++pdgIdIt)
+	  {
+	    if( abs(jetflavor) == abs(*pdgIdIt)) isRightFlavor_all = true;
 	  }	 
 	}
       }
       else 
-	isRightFlavor = true;
+      {
+	isRightFlavor_all = true;
+      }
+
+
 
       PatJetCollection::const_iterator groomedJetMatch;
       bool groomedJetMatchFound = false;
@@ -588,7 +618,7 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
         isBosonMatched = true;
 
       // skip the jet if it is not matched to a boson or not right flavor
-      if( !isBosonMatched || !isRightFlavor ) continue;
+      if( !isBosonMatched || (findGluonSplitting && !isRightFlavor_gluon) || (findMatrixElement && !isRightFlavor_matrix) || ((!findGluonSplitting && !findMatrixElement) && !isRightFlavor_all) ) continue;
 
       // vector of pointers to subjets
       std::vector<const pat::Jet*> subjets;

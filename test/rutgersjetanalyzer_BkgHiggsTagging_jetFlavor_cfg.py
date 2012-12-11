@@ -127,12 +127,14 @@ process.options   = cms.untracked.PSet( wantSummary = cms.untracked.bool(options
 process.source = cms.Source("PoolSource",
     fileNames = cms.untracked.vstring(
 DUMMY_INPUTFILES
+#	'file:/cms/ferencek/store/ferencek/QCD_Pt-15to3000_TuneZ2star_Flat_8TeV_pythia6/Summer12_DR53X-PU_S10_START53_V7A-v1_PATTuple_v2/6950c4b6452599a829ed09f6192c8cf5/patTuple_PF2PAT_v2_259_1_m8u.root'
     )
 )
 
 ## Output file
 process.TFileService = cms.Service("TFileService",
    fileName = cms.string(DUMMY_OUTPUTFILE)
+#   fileName = cms.string("Test.root")
 )
 
 ## Standard PAT Configuration File
@@ -499,7 +501,7 @@ process.jetAnalyzerDefaultJetMass = cms.EDAnalyzer('RutgersJetAnalyzer',
     NsubjCut                  = cms.double(0.45),
     Bdiscriminator	      = cms.string("combinedSecondaryVertexBJetTags")
 )
-process.jetAnalyzerTrimmedJetMassbquarks_gluon = cms.EDAnalyzer('RutgersJetAnalyzer',
+process.jetAnalyzerTrimmedJetMassbquarksgluon = cms.EDAnalyzer('RutgersJetAnalyzer',
     UseEventWeight            = cms.bool(True),
     GenParticleTag            = cms.InputTag('genParticles'),
     JetsTag                   = cms.InputTag('selectedPatJets'),
@@ -530,7 +532,7 @@ process.jetAnalyzerTrimmedJetMassbquarks_gluon = cms.EDAnalyzer('RutgersJetAnaly
     JetFlavorPdgId	      = cms.vint32(5),
     FindMatrixElement	      = cms.bool(False)
 )
-process.jetAnalyzerTrimmedJetMassbquarks_matrix = cms.EDAnalyzer('RutgersJetAnalyzer',
+process.jetAnalyzerTrimmedJetMassbquarksmatrix = cms.EDAnalyzer('RutgersJetAnalyzer',
     UseEventWeight            = cms.bool(True),
     GenParticleTag            = cms.InputTag('genParticles'),
     JetsTag                   = cms.InputTag('selectedPatJets'),
@@ -826,8 +828,8 @@ process.p = cms.Path(
     process.jetPATSequence
     * (
     #process.jetAnalyzerDefaultJetMass
-     process.jetAnalyzerTrimmedJetMassbquarks_gluon
-     + process.jetAnalyzerTrimmedJetMassbquarks_matrix
+     process.jetAnalyzerTrimmedJetMassbquarksgluon
+     + process.jetAnalyzerTrimmedJetMassbquarksmatrix
      + process.jetAnalyzerTrimmedJetMasscquarks
      + process.jetAnalyzerTrimmedJetMassudsquarks
     #+ process.jetAnalyzerTrimmedJetMassFilteredSub

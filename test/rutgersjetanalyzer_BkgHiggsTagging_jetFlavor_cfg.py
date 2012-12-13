@@ -127,7 +127,7 @@ process.options   = cms.untracked.PSet( wantSummary = cms.untracked.bool(options
 process.source = cms.Source("PoolSource",
     fileNames = cms.untracked.vstring(
 DUMMY_INPUTFILES
-#	'file:/cms/ferencek/store/ferencek/QCD_Pt-15to3000_TuneZ2star_Flat_8TeV_pythia6/Summer12_DR53X-PU_S10_START53_V7A-v1_PATTuple_v2/6950c4b6452599a829ed09f6192c8cf5/patTuple_PF2PAT_v2_259_1_m8u.root'
+	#'file:/cms/ferencek/store/ferencek/QCD_Pt-15to3000_TuneZ2star_Flat_8TeV_pythia6/Summer12_DR53X-PU_S10_START53_V7A-v1_PATTuple_v2/6950c4b6452599a829ed09f6192c8cf5/patTuple_PF2PAT_v2_259_1_m8u.root'
     )
 )
 
@@ -499,7 +499,11 @@ process.jetAnalyzerDefaultJetMass = cms.EDAnalyzer('RutgersJetAnalyzer',
     JetMassMin                = cms.double(85.),
     JetMassMax                = cms.double(150.),
     NsubjCut                  = cms.double(0.45),
-    Bdiscriminator	      = cms.string("combinedSecondaryVertexBJetTags")
+    Bdiscriminator	      = cms.string("combinedSecondaryVertexBJetTags"),
+    FindGluonSplitting	      = cms.bool(False),
+    DoJetFlavor		      = cms.bool(False),
+    JetFlavorPdgId	      = cms.vint32(5),
+    FindMatrixElement	      = cms.bool(False)
 )
 process.jetAnalyzerTrimmedJetMassbquarksgluon = cms.EDAnalyzer('RutgersJetAnalyzer',
     UseEventWeight            = cms.bool(True),

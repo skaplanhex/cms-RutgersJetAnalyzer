@@ -13,7 +13,7 @@
 //
 // Original Author:  Dinko Ferencek
 //         Created:  Fri Jul 20 12:32:38 CDT 2012
-// $Id: RutgersJetAnalyzer.cc,v 1.7.2.15 2012/12/10 03:29:02 mzientek Exp $
+// $Id: RutgersJetAnalyzer.cc,v 1.7.2.16 2012/12/11 19:19:22 mzientek Exp $
 //
 //
 
@@ -218,8 +218,8 @@ RutgersJetAnalyzer::RutgersJetAnalyzer(const edm::ParameterSet& iConfig) :
   findGluonSplitting(iConfig.getParameter<bool>("FindGluonSplitting")),
   doJetFlavor(iConfig.getParameter<bool>("DoJetFlavor")),
   jetFlavorPdgId(iConfig.getParameter<std::vector<int> >("JetFlavorPdgId")),
-  nsubjettinessCalculator(Njettiness::onepass_kt_axes, NsubParameters(1.0, jetRadius, jetRadius)),
-  findMatrixElement(iConfig.getParameter<bool>("FindMatrixElement"))
+  findMatrixElement(iConfig.getParameter<bool>("FindMatrixElement")),
+  nsubjettinessCalculator(Njettiness::onepass_kt_axes, NsubParameters(1.0, jetRadius, jetRadius))
 
 {
     //now do what ever initialization is needed
@@ -383,7 +383,7 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
     bool isGluonSplitting = false;
     bool isMatrixElement = false;
     bool isAllJets = true;
-    if( findGluonSplitting || findMatrixElement)
+    if( findGluonSplitting || findMatrixElement )
     {
       bool bFoundS3Quark = false;
       bool bFoundS2Quark = false;
@@ -398,8 +398,8 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
       //if no status 3 quarks but status 2
       if( (!bFoundS3Quark) && bFoundS2Quark) isGluonSplitting = true;
       //if status 2 quark found
-      if( bFoundS2Quark ) isMatrixElement = true;
-      if( ((!bFoundS3Quark) && bFoundS2Quark) || bFoundS2Quark ) isAllJets = false;
+      if( bFoundS3Quark ) isMatrixElement = true;
+      if( ((!bFoundS3Quark) && bFoundS2Quark) || bFoundS3Quark ) isAllJets = false;
     }
     else
     {

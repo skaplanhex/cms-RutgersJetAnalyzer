@@ -13,7 +13,7 @@
 //
 // Original Author:  Dinko Ferencek
 //         Created:  Fri Jul 20 12:32:38 CDT 2012
-// $Id: RutgersJetAnalyzer.cc,v 1.7.2.16 2012/12/11 19:19:22 mzientek Exp $
+// $Id: RutgersJetAnalyzer.cc,v 1.7.2.17 2012/12/13 04:51:00 mzientek Exp $
 //
 //
 
@@ -114,13 +114,14 @@ private:
     const double        jetMassMin;
     const double        jetMassMax;
     const double        nsubjCut;
-    bool                useGroomedJetSubstr;
-    bool                useUncorrMassForMassDrop;
-    std::string		bdiscriminator;
-    bool		findGluonSplitting;
-    bool		doJetFlavor;
+    const bool          useOnePassKtAxes;
+    const bool          useGroomedJetSubstr;
+    const bool          useUncorrMassForMassDrop;
+    const std::string   bdiscriminator;
+    const bool          doJetFlavor;
     const std::vector<int> jetFlavorPdgId;
-    bool		findMatrixElement;
+    const bool          findGluonSplitting;
+    const bool          findMatrixElement;
 
     Njettiness nsubjettinessCalculator;
 
@@ -212,22 +213,18 @@ RutgersJetAnalyzer::RutgersJetAnalyzer(const edm::ParameterSet& iConfig) :
   jetMassMin(iConfig.getParameter<double>("JetMassMin")),
   jetMassMax(iConfig.getParameter<double>("JetMassMax")),
   nsubjCut(iConfig.getParameter<double>("NsubjCut")),
-  useGroomedJetSubstr(false),
-  useUncorrMassForMassDrop(false),
+  useOnePassKtAxes( iConfig.exists("UseOnePassKtAxes") ? iConfig.getParameter<bool>("UseOnePassKtAxes") : true ),
+  useGroomedJetSubstr( iConfig.exists("UseGroomedJetSubstructure") ? iConfig.getParameter<bool>("UseGroomedJetSubstructure") : false ),
+  useUncorrMassForMassDrop( iConfig.exists("UseUncorrMassForMassDrop") ? iConfig.getParameter<bool>("UseUncorrMassForMassDrop") : false ),
   bdiscriminator(iConfig.getParameter<std::string>("Bdiscriminator")),
-  findGluonSplitting(iConfig.getParameter<bool>("FindGluonSplitting")),
   doJetFlavor(iConfig.getParameter<bool>("DoJetFlavor")),
   jetFlavorPdgId(iConfig.getParameter<std::vector<int> >("JetFlavorPdgId")),
+  findGluonSplitting(iConfig.getParameter<bool>("FindGluonSplitting")),
   findMatrixElement(iConfig.getParameter<bool>("FindMatrixElement")),
-  nsubjettinessCalculator(Njettiness::onepass_kt_axes, NsubParameters(1.0, jetRadius, jetRadius))
+  nsubjettinessCalculator(( useOnePassKtAxes ? Njettiness::onepass_kt_axes : Njettiness::kt_axes ), NsubParameters(1.0, jetRadius, jetRadius))
 
 {
     //now do what ever initialization is needed
-    if ( iConfig.exists("UseGroomedJetSubstructure") )
-      useGroomedJetSubstr = iConfig.getParameter<bool>("UseGroomedJetSubstructure");
-    if ( iConfig.exists("UseUncorrMassForMassDrop") )
-      useUncorrMassForMassDrop = iConfig.getParameter<bool>("UseUncorrMassForMassDrop");
-
     int pvBins=51;
     double pvMin=-0.5, pvMax=50.5;
     int ptBins=1000;

@@ -27,7 +27,7 @@ options.register('outFilename',
     "Output file name"
 )
 options.register('reportEvery',
-    1,
+    100,
     VarParsing.multiplicity.singleton,
     VarParsing.varType.int,
     "Report every N events (default is N=10)"
@@ -70,7 +70,7 @@ options.register('doBTagging',
 )
 
 ## 'maxEvents' is already registered by the Framework, changing default value
-options.setDefault('maxEvents', 10)
+options.setDefault('maxEvents', -1)
 
 options.parseArguments()
 
@@ -126,14 +126,13 @@ process.options   = cms.untracked.PSet( wantSummary = cms.untracked.bool(options
 ## Input files
 process.source = cms.Source("PoolSource",
     fileNames = cms.untracked.vstring(
-        #'file:patTuple_PF2PAT_v2.root'
-        'file:/cms/ferencek/store/skaplan/BprimeBprimeToBHBHinc_M-800_TuneZ2star_8TeV-madgraph/Summer12_DR53X-PU_S10_START53_V7A-v1_PATTuple_v2/6950c4b6452599a829ed09f6192c8cf5/patTuple_PF2PAT_v2_1_1_gEk.root'
+DUMMY_INPUTFILES
     )
 )
 
 ## Output file
 process.TFileService = cms.Service("TFileService",
-   fileName = cms.string(options.outFilename)
+   fileName = cms.string(DUMMY_OUTPUTFILE)
 )
 
 ## Standard PAT Configuration File
@@ -476,7 +475,7 @@ if options.doBTagging:
 
 ## Initialize instances of the RutgersJetAnalyzer
 process.jetAnalyzerDefaultJetMass = cms.EDAnalyzer('RutgersJetAnalyzer',
-    UseEventWeight            = cms.bool(False),
+    UseEventWeight            = cms.bool(True),
     GenParticleTag            = cms.InputTag('genParticles'),
     JetsTag                   = cms.InputTag('selectedPatJets'),
     UseGroomedJets            = cms.bool(False),
@@ -486,7 +485,7 @@ process.jetAnalyzerDefaultJetMass = cms.EDAnalyzer('RutgersJetAnalyzer',
     SubJetMode                = cms.string('Kt'),
     PvTag                     = cms.InputTag('goodOfflinePrimaryVertices'),
     JetRadius                 = cms.double(options.jetRadius),
-    DoBosonMatching           = cms.bool(True),
+    DoBosonMatching           = cms.bool(False),
     BosonMatchingRadius       = cms.double(0.5),
     BosonPdgId                = cms.int32(25),
     ApplyBosonIsolation       = cms.bool(True),
@@ -507,7 +506,7 @@ process.jetAnalyzerDefaultJetMass = cms.EDAnalyzer('RutgersJetAnalyzer',
     FindMatrixElement         = cms.bool(False)
 )
 process.jetAnalyzerTrimmedJetMass = cms.EDAnalyzer('RutgersJetAnalyzer',
-    UseEventWeight            = cms.bool(False),
+    UseEventWeight            = cms.bool(True),
     GenParticleTag            = cms.InputTag('genParticles'),
     JetsTag                   = cms.InputTag('selectedPatJets'),
     UseGroomedJets            = cms.bool(True),
@@ -517,7 +516,7 @@ process.jetAnalyzerTrimmedJetMass = cms.EDAnalyzer('RutgersJetAnalyzer',
     SubJetMode                = cms.string('Kt'),
     PvTag                     = cms.InputTag('goodOfflinePrimaryVertices'),
     JetRadius                 = cms.double(options.jetRadius),
-    DoBosonMatching           = cms.bool(True),
+    DoBosonMatching           = cms.bool(False),
     BosonMatchingRadius       = cms.double(0.5),
     BosonPdgId                = cms.int32(25),
     ApplyBosonIsolation       = cms.bool(True),
@@ -538,7 +537,7 @@ process.jetAnalyzerTrimmedJetMass = cms.EDAnalyzer('RutgersJetAnalyzer',
     FindMatrixElement         = cms.bool(False)
 )
 process.jetAnalyzerTrimmedJetMassFilteredSub = cms.EDAnalyzer('RutgersJetAnalyzer',
-    UseEventWeight            = cms.bool(False),
+    UseEventWeight            = cms.bool(True),
     GenParticleTag            = cms.InputTag('genParticles'),
     JetsTag                   = cms.InputTag('selectedPatJets'),
     UseGroomedJets            = cms.bool(True),
@@ -548,7 +547,7 @@ process.jetAnalyzerTrimmedJetMassFilteredSub = cms.EDAnalyzer('RutgersJetAnalyze
     SubJetMode                = cms.string('Filtered'),
     PvTag                     = cms.InputTag('goodOfflinePrimaryVertices'),
     JetRadius                 = cms.double(options.jetRadius),
-    DoBosonMatching           = cms.bool(True),
+    DoBosonMatching           = cms.bool(False),
     BosonMatchingRadius       = cms.double(0.5),
     BosonPdgId                = cms.int32(25),
     ApplyBosonIsolation       = cms.bool(True),
@@ -569,7 +568,7 @@ process.jetAnalyzerTrimmedJetMassFilteredSub = cms.EDAnalyzer('RutgersJetAnalyze
     FindMatrixElement         = cms.bool(False)
 )
 process.jetAnalyzerTrimmedJetMassJTACone = cms.EDAnalyzer('RutgersJetAnalyzer',
-    UseEventWeight            = cms.bool(False),
+    UseEventWeight            = cms.bool(True),
     GenParticleTag            = cms.InputTag('genParticles'),
     JetsTag                   = cms.InputTag('selectedPatJetsAKPF'),
     UseGroomedJets            = cms.bool(True),
@@ -579,7 +578,7 @@ process.jetAnalyzerTrimmedJetMassJTACone = cms.EDAnalyzer('RutgersJetAnalyzer',
     SubJetMode                = cms.string('Kt'),
     PvTag                     = cms.InputTag('goodOfflinePrimaryVertices'),
     JetRadius                 = cms.double(options.jetRadius),
-    DoBosonMatching           = cms.bool(True),
+    DoBosonMatching           = cms.bool(False),
     BosonMatchingRadius       = cms.double(0.5),
     BosonPdgId                = cms.int32(25),
     ApplyBosonIsolation       = cms.bool(True),
@@ -600,7 +599,7 @@ process.jetAnalyzerTrimmedJetMassJTACone = cms.EDAnalyzer('RutgersJetAnalyzer',
     FindMatrixElement         = cms.bool(False)
 )
 process.jetAnalyzerTrimmedJets = cms.EDAnalyzer('RutgersJetAnalyzer',
-    UseEventWeight            = cms.bool(False),
+    UseEventWeight            = cms.bool(True),
     GenParticleTag            = cms.InputTag('genParticles'),
     JetsTag                   = cms.InputTag('selectedPatJets'),
     UseGroomedJets            = cms.bool(True),
@@ -611,7 +610,7 @@ process.jetAnalyzerTrimmedJets = cms.EDAnalyzer('RutgersJetAnalyzer',
     SubJetMode                = cms.string('Kt'),
     PvTag                     = cms.InputTag('goodOfflinePrimaryVertices'),
     JetRadius                 = cms.double(options.jetRadius),
-    DoBosonMatching           = cms.bool(True),
+    DoBosonMatching           = cms.bool(False),
     BosonMatchingRadius       = cms.double(0.5),
     BosonPdgId                = cms.int32(25),
     ApplyBosonIsolation       = cms.bool(True),
@@ -632,7 +631,7 @@ process.jetAnalyzerTrimmedJets = cms.EDAnalyzer('RutgersJetAnalyzer',
     FindMatrixElement         = cms.bool(False)
 )
 process.jetAnalyzerFilteredJetMass = cms.EDAnalyzer('RutgersJetAnalyzer',
-    UseEventWeight            = cms.bool(False),
+    UseEventWeight            = cms.bool(True),
     GenParticleTag            = cms.InputTag('genParticles'),
     JetsTag                   = cms.InputTag('selectedPatJets'),
     UseGroomedJets            = cms.bool(True),
@@ -642,7 +641,7 @@ process.jetAnalyzerFilteredJetMass = cms.EDAnalyzer('RutgersJetAnalyzer',
     SubJetMode                = cms.string('Kt'),
     PvTag                     = cms.InputTag('goodOfflinePrimaryVertices'),
     JetRadius                 = cms.double(options.jetRadius),
-    DoBosonMatching           = cms.bool(True),
+    DoBosonMatching           = cms.bool(False),
     BosonMatchingRadius       = cms.double(0.5),
     BosonPdgId                = cms.int32(25),
     ApplyBosonIsolation       = cms.bool(True),
@@ -663,7 +662,7 @@ process.jetAnalyzerFilteredJetMass = cms.EDAnalyzer('RutgersJetAnalyzer',
     FindMatrixElement         = cms.bool(False)
 )
 process.jetAnalyzerPrunedJetMass = cms.EDAnalyzer('RutgersJetAnalyzer',
-    UseEventWeight            = cms.bool(False),
+    UseEventWeight            = cms.bool(True),
     GenParticleTag            = cms.InputTag('genParticles'),
     JetsTag                   = cms.InputTag('selectedPatJets'),
     UseGroomedJets            = cms.bool(True),
@@ -673,7 +672,7 @@ process.jetAnalyzerPrunedJetMass = cms.EDAnalyzer('RutgersJetAnalyzer',
     SubJetMode                = cms.string('Kt'),
     PvTag                     = cms.InputTag('goodOfflinePrimaryVertices'),
     JetRadius                 = cms.double(options.jetRadius),
-    DoBosonMatching           = cms.bool(True),
+    DoBosonMatching           = cms.bool(False),
     BosonMatchingRadius       = cms.double(0.5),
     BosonPdgId                = cms.int32(25),
     ApplyBosonIsolation       = cms.bool(True),
@@ -694,7 +693,7 @@ process.jetAnalyzerPrunedJetMass = cms.EDAnalyzer('RutgersJetAnalyzer',
     FindMatrixElement         = cms.bool(False)
 )
 process.jetAnalyzerPrunedJetMassKtAxes = cms.EDAnalyzer('RutgersJetAnalyzer',
-    UseEventWeight            = cms.bool(False),
+    UseEventWeight            = cms.bool(True),
     GenParticleTag            = cms.InputTag('genParticles'),
     JetsTag                   = cms.InputTag('selectedPatJets'),
     UseGroomedJets            = cms.bool(True),
@@ -704,7 +703,7 @@ process.jetAnalyzerPrunedJetMassKtAxes = cms.EDAnalyzer('RutgersJetAnalyzer',
     SubJetMode                = cms.string('Kt'),
     PvTag                     = cms.InputTag('goodOfflinePrimaryVertices'),
     JetRadius                 = cms.double(options.jetRadius),
-    DoBosonMatching           = cms.bool(True),
+    DoBosonMatching           = cms.bool(False),
     BosonMatchingRadius       = cms.double(0.5),
     BosonPdgId                = cms.int32(25),
     ApplyBosonIsolation       = cms.bool(True),
@@ -726,7 +725,7 @@ process.jetAnalyzerPrunedJetMassKtAxes = cms.EDAnalyzer('RutgersJetAnalyzer',
     FindMatrixElement         = cms.bool(False)
 )
 process.jetAnalyzerPrunedJets = cms.EDAnalyzer('RutgersJetAnalyzer',
-    UseEventWeight            = cms.bool(False),
+    UseEventWeight            = cms.bool(True),
     GenParticleTag            = cms.InputTag('genParticles'),
     JetsTag                   = cms.InputTag('selectedPatJets'),
     UseGroomedJets            = cms.bool(True),
@@ -737,7 +736,7 @@ process.jetAnalyzerPrunedJets = cms.EDAnalyzer('RutgersJetAnalyzer',
     SubJetMode                = cms.string('Kt'),
     PvTag                     = cms.InputTag('goodOfflinePrimaryVertices'),
     JetRadius                 = cms.double(options.jetRadius),
-    DoBosonMatching           = cms.bool(True),
+    DoBosonMatching           = cms.bool(False),
     BosonMatchingRadius       = cms.double(0.5),
     BosonPdgId                = cms.int32(25),
     ApplyBosonIsolation       = cms.bool(True),
@@ -758,7 +757,7 @@ process.jetAnalyzerPrunedJets = cms.EDAnalyzer('RutgersJetAnalyzer',
     FindMatrixElement         = cms.bool(False)
 )
 process.jetAnalyzerCAPrunedJetMass = cms.EDAnalyzer('RutgersJetAnalyzer',
-    UseEventWeight            = cms.bool(False),
+    UseEventWeight            = cms.bool(True),
     GenParticleTag            = cms.InputTag('genParticles'),
     JetsTag                   = cms.InputTag('selectedPatJetsCAPF'),
     UseGroomedJets            = cms.bool(True),
@@ -768,7 +767,7 @@ process.jetAnalyzerCAPrunedJetMass = cms.EDAnalyzer('RutgersJetAnalyzer',
     SubJetMode                = cms.string('Kt'),
     PvTag                     = cms.InputTag('goodOfflinePrimaryVertices'),
     JetRadius                 = cms.double(options.jetRadius),
-    DoBosonMatching           = cms.bool(True),
+    DoBosonMatching           = cms.bool(False),
     BosonMatchingRadius       = cms.double(0.5),
     BosonPdgId                = cms.int32(25),
     ApplyBosonIsolation       = cms.bool(True),
@@ -789,7 +788,7 @@ process.jetAnalyzerCAPrunedJetMass = cms.EDAnalyzer('RutgersJetAnalyzer',
     FindMatrixElement         = cms.bool(False)
 )
 process.jetAnalyzerCAPrunedJets = cms.EDAnalyzer('RutgersJetAnalyzer',
-    UseEventWeight            = cms.bool(False),
+    UseEventWeight            = cms.bool(True),
     GenParticleTag            = cms.InputTag('genParticles'),
     JetsTag                   = cms.InputTag('selectedPatJetsCAPF'),
     UseGroomedJets            = cms.bool(True),
@@ -800,7 +799,7 @@ process.jetAnalyzerCAPrunedJets = cms.EDAnalyzer('RutgersJetAnalyzer',
     SubJetMode                = cms.string('Kt'),
     PvTag                     = cms.InputTag('goodOfflinePrimaryVertices'),
     JetRadius                 = cms.double(options.jetRadius),
-    DoBosonMatching           = cms.bool(True),
+    DoBosonMatching           = cms.bool(False),
     BosonMatchingRadius       = cms.double(0.5),
     BosonPdgId                = cms.int32(25),
     ApplyBosonIsolation       = cms.bool(True),

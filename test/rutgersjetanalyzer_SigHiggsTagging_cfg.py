@@ -27,7 +27,7 @@ options.register('outFilename',
     "Output file name"
 )
 options.register('reportEvery',
-    1,
+    100,
     VarParsing.multiplicity.singleton,
     VarParsing.varType.int,
     "Report every N events (default is N=10)"
@@ -70,7 +70,7 @@ options.register('doBTagging',
 )
 
 ## 'maxEvents' is already registered by the Framework, changing default value
-options.setDefault('maxEvents', 10)
+options.setDefault('maxEvents', -1)
 
 options.parseArguments()
 
@@ -126,14 +126,13 @@ process.options   = cms.untracked.PSet( wantSummary = cms.untracked.bool(options
 ## Input files
 process.source = cms.Source("PoolSource",
     fileNames = cms.untracked.vstring(
-        #'file:patTuple_PF2PAT_v2.root'
-        'file:/cms/ferencek/store/skaplan/BprimeBprimeToBHBHinc_M-800_TuneZ2star_8TeV-madgraph/Summer12_DR53X-PU_S10_START53_V7A-v1_PATTuple_v2/6950c4b6452599a829ed09f6192c8cf5/patTuple_PF2PAT_v2_1_1_gEk.root'
+DUMMY_INPUTFILES
     )
 )
 
 ## Output file
 process.TFileService = cms.Service("TFileService",
-   fileName = cms.string(options.outFilename)
+   fileName = cms.string(DUMMY_OUTPUTFILE)
 )
 
 ## Standard PAT Configuration File

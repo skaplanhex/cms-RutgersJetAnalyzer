@@ -18,7 +18,7 @@ using namespace std;
 
 void jet_mass(const string& fFile, const string& fFileDir,
               const string& fPtRange, const int fPVLow, const int fPVHigh, const string& fTitle,
-              const double fXmin, const double fXmax, const string& fOutputFile)
+              const double fXmin, const double fXmax, const string& fOutputFile, const int fRebin=2)
 {
   gROOT->SetBatch(kTRUE);
   setEXOStyle();
@@ -42,7 +42,7 @@ void jet_mass(const string& fFile, const string& fFileDir,
   TCanvas *c = new TCanvas("c", "",1000,800);
   c->cd();
 
-  h1_JetMass->Rebin(2);
+  h1_JetMass->Rebin(fRebin);
   h1_JetMass->GetYaxis()->SetTitle("Entries");
   h1_JetMass->GetXaxis()->SetRangeUser(fXmin,fXmax);
   h1_JetMass->SetTitleOffset(1.0,"X");
@@ -69,66 +69,76 @@ void makePlots()
 {
   // WW500
   // nPV inclusive
-  jet_mass("output_files_v2/WW500_WTagging_JetSubstructure.root", "jetAnalyzerDefaultJetMass",
-           "Pt500toInf", 0, 52, "WW, AK R=0.8 default, p_{T}>500 GeV, #DeltaR(W,jet)<0.5",
-           0, 299.5, "Jet_mass_AKdefault_W_matched_Pt500toInf_WW500.eps");
+//   jet_mass("output_files_v2/WW500_WTagging_JetSubstructure.root", "jetAnalyzerDefaultJetMass",
+//            "Pt500toInf", 0, 52, "WW, AK R=0.8 default, p_{T}>500 GeV, #DeltaR(W,jet)<0.5",
+//            0, 299.5, "Jet_mass_AKdefault_W_matched_Pt500toInf_WW500.eps");
+// 
+//   jet_mass("output_files_v2/WW500_WTagging_JetSubstructure.root", "jetAnalyzerFilteredJetMass",
+//            "Pt500toInf", 0, 52, "WW, AK R=0.8 filtered, p_{T}>500 GeV, #DeltaR(W,jet)<0.5",
+//            0, 299.5, "Jet_mass_AKfiltered_W_matched_Pt500toInf_WW500.eps");
+// 
+//   jet_mass("output_files_v2/WW500_WTagging_JetSubstructure.root", "jetAnalyzerPrunedJetMass",
+//            "Pt500toInf", 0, 52, "WW, AK R=0.8 pruned, p_{T}>500 GeV, #DeltaR(W,jet)<0.5",
+//            0, 299.5, "Jet_mass_AKpruned_W_matched_Pt500toInf_WW500.eps");
+// 
+//   jet_mass("output_files_v2/WW500_WTagging_JetSubstructure.root", "jetAnalyzerTrimmedJetMass",
+//            "Pt500toInf", 0, 52, "WW, AK R=0.8 trimmed, p_{T}>500 GeV, #DeltaR(W,jet)<0.5",
+//            0, 299.5, "Jet_mass_AKtrimmed_W_matched_Pt500toInf_WW500.eps");
+// 
+//   jet_mass("output_files_v2/WW500_WTagging_JetSubstructure.root", "jetAnalyzerCAPrunedJetMass",
+//            "Pt500toInf", 0, 52, "WW, CA R=0.8 pruned, p_{T}>500 GeV, #DeltaR(W,jet)<0.5",
+//            0, 299.5, "Jet_mass_CApruned_W_matched_Pt500toInf_WW500.eps");
 
-  jet_mass("output_files_v2/WW500_WTagging_JetSubstructure.root", "jetAnalyzerFilteredJetMass",
-           "Pt500toInf", 0, 52, "WW, AK R=0.8 filtered, p_{T}>500 GeV, #DeltaR(W,jet)<0.5",
-           0, 299.5, "Jet_mass_AKfiltered_W_matched_Pt500toInf_WW500.eps");
-
-  jet_mass("output_files_v2/WW500_WTagging_JetSubstructure.root", "jetAnalyzerPrunedJetMass",
-           "Pt500toInf", 0, 52, "WW, AK R=0.8 pruned, p_{T}>500 GeV, #DeltaR(W,jet)<0.5",
-           0, 299.5, "Jet_mass_AKpruned_W_matched_Pt500toInf_WW500.eps");
-
-  jet_mass("output_files_v2/WW500_WTagging_JetSubstructure.root", "jetAnalyzerTrimmedJetMass",
-           "Pt500toInf", 0, 52, "WW, AK R=0.8 trimmed, p_{T}>500 GeV, #DeltaR(W,jet)<0.5",
-           0, 299.5, "Jet_mass_AKtrimmed_W_matched_Pt500toInf_WW500.eps");
-
-  jet_mass("output_files_v2/WW500_WTagging_JetSubstructure.root", "jetAnalyzerCAPrunedJetMass",
-           "Pt500toInf", 0, 52, "WW, CA R=0.8 pruned, p_{T}>500 GeV, #DeltaR(W,jet)<0.5",
-           0, 299.5, "Jet_mass_CApruned_W_matched_Pt500toInf_WW500.eps");
-
-  // BprimeBprimeToBHBHinc
+  // BprimeBprimeToBHBHinc_M-800
   // nPV inclusive
-  jet_mass("output_files_v2/BprimeBprimeToBHBHinc_M-800_HiggsTagging.root", "jetAnalyzerDefaultJetMass",
-           "Pt300toInf", 0, 52, "H#rightarrowb#bar{b}, AK R=0.8 default, p_{T}>300 GeV, #DeltaR(H,jet)<0.5",
-           0, 299.5, "Jet_mass_AKdefault_H_matched_Pt300toInf_BprimeBprimeToBHBHinc_M-800.eps");
-
-  jet_mass("output_files_v2/BprimeBprimeToBHBHinc_M-800_HiggsTagging.root", "jetAnalyzerFilteredJetMass",
-           "Pt300toInf", 0, 52, "H#rightarrowb#bar{b}, AK R=0.8 filtered, p_{T}>300 GeV, #DeltaR(H,jet)<0.5",
-           0, 299.5, "Jet_mass_AKfiltered_H_matched_Pt300toInf_BprimeBprimeToBHBHinc_M-800.eps");
-
-  jet_mass("output_files_v2/BprimeBprimeToBHBHinc_M-800_HiggsTagging.root", "jetAnalyzerPrunedJetMass",
-           "Pt300toInf", 0, 52, "H#rightarrowb#bar{b}, AK R=0.8 pruned, p_{T}>300 GeV, #DeltaR(H,jet)<0.5",
-           0, 299.5, "Jet_mass_AKpruned_H_matched_Pt300toInf_BprimeBprimeToBHBHinc_M-800.eps");
-
-  jet_mass("output_files_v2/BprimeBprimeToBHBHinc_M-800_HiggsTagging.root", "jetAnalyzerTrimmedJetMass",
-           "Pt300toInf", 0, 52, "H#rightarrowb#bar{b}, AK R=0.8 trimmed, p_{T}>300 GeV, #DeltaR(H,jet)<0.5",
-           0, 299.5, "Jet_mass_AKtrimmed_H_matched_Pt300toInf_BprimeBprimeToBHBHinc_M-800.eps");
-
-  jet_mass("output_files_v2/BprimeBprimeToBHBHinc_M-800_HiggsTagging.root", "jetAnalyzerCAPrunedJets",
-           "Pt300toInf", 0, 52, "H#rightarrowb#bar{b}, CA R=0.8 pruned, p_{T}>300 GeV, #DeltaR(H,jet)<0.5",
-           0, 299.5, "Jet_mass_CApruned_H_matched_Pt300toInf_BprimeBprimeToBHBHinc_M-800.eps");
+//   jet_mass("output_files_v2/BprimeBprimeToBHBHinc_M-800_HiggsTagging.root", "jetAnalyzerDefaultJetMass",
+//            "Pt300toInf", 0, 52, "H#rightarrowb#bar{b}, AK R=0.8 default, p_{T}>300 GeV, #DeltaR(H,jet)<0.5",
+//            0, 299.5, "Jet_mass_AKdefault_H_matched_Pt300toInf_BprimeBprimeToBHBHinc_M-800.eps");
+// 
+//   jet_mass("output_files_v2/BprimeBprimeToBHBHinc_M-800_HiggsTagging.root", "jetAnalyzerFilteredJetMass",
+//            "Pt300toInf", 0, 52, "H#rightarrowb#bar{b}, AK R=0.8 filtered, p_{T}>300 GeV, #DeltaR(H,jet)<0.5",
+//            0, 299.5, "Jet_mass_AKfiltered_H_matched_Pt300toInf_BprimeBprimeToBHBHinc_M-800.eps");
+// 
+//   jet_mass("output_files_v2/BprimeBprimeToBHBHinc_M-800_HiggsTagging.root", "jetAnalyzerPrunedJetMass",
+//            "Pt300toInf", 0, 52, "H#rightarrowb#bar{b}, AK R=0.8 pruned, p_{T}>300 GeV, #DeltaR(H,jet)<0.5",
+//            0, 299.5, "Jet_mass_AKpruned_H_matched_Pt300toInf_BprimeBprimeToBHBHinc_M-800.eps");
+// 
+//   jet_mass("output_files_v2/BprimeBprimeToBHBHinc_M-800_HiggsTagging.root", "jetAnalyzerTrimmedJetMass",
+//            "Pt300toInf", 0, 52, "H#rightarrowb#bar{b}, AK R=0.8 trimmed, p_{T}>300 GeV, #DeltaR(H,jet)<0.5",
+//            0, 299.5, "Jet_mass_AKtrimmed_H_matched_Pt300toInf_BprimeBprimeToBHBHinc_M-800.eps");
+// 
+//   jet_mass("output_files_v2/BprimeBprimeToBHBHinc_M-800_HiggsTagging.root", "jetAnalyzerCAPrunedJets",
+//            "Pt300toInf", 0, 52, "H#rightarrowb#bar{b}, CA R=0.8 pruned, p_{T}>300 GeV, #DeltaR(H,jet)<0.5",
+//            0, 299.5, "Jet_mass_CApruned_H_matched_Pt300toInf_BprimeBprimeToBHBHinc_M-800.eps");
 
   // nPV<=10
-  jet_mass("output_files_v2/BprimeBprimeToBHBHinc_M-800_HiggsTagging.root", "jetAnalyzerDefaultJetMass",
-           "Pt300toInf", 0, 11, "H#rightarrowb#bar{b}, AK R=0.8 default, p_{T}>300 GeV, #DeltaR(H,jet)<0.5, nPV#leq10",
-           0, 299.5, "Jet_mass_AKdefault_H_matched_Pt300toInf_nPV0to10_BprimeBprimeToBHBHinc_M-800.eps");
+//   jet_mass("output_files_v2/BprimeBprimeToBHBHinc_M-800_HiggsTagging.root", "jetAnalyzerDefaultJetMass",
+//            "Pt300toInf", 0, 11, "H#rightarrowb#bar{b}, AK R=0.8 default, p_{T}>300 GeV, #DeltaR(H,jet)<0.5, nPV#leq10",
+//            0, 299.5, "Jet_mass_AKdefault_H_matched_Pt300toInf_nPV0to10_BprimeBprimeToBHBHinc_M-800.eps");
+// 
+//   jet_mass("output_files_v2/BprimeBprimeToBHBHinc_M-800_HiggsTagging.root", "jetAnalyzerFilteredJetMass",
+//            "Pt300toInf", 0, 11, "H#rightarrowb#bar{b}, AK R=0.8 filtered, p_{T}>300 GeV, #DeltaR(H,jet)<0.5, nPV#leq10",
+//            0, 299.5, "Jet_mass_AKfiltered_H_matched_Pt300toInf_nPV0to10_BprimeBprimeToBHBHinc_M-800.eps");
+// 
+//   jet_mass("output_files_v2/BprimeBprimeToBHBHinc_M-800_HiggsTagging.root", "jetAnalyzerPrunedJetMass",
+//            "Pt300toInf", 0, 11, "H#rightarrowb#bar{b}, AK R=0.8 pruned, p_{T}>300 GeV, #DeltaR(H,jet)<0.5, nPV#leq10",
+//            0, 299.5, "Jet_mass_AKpruned_H_matched_Pt300toInf_nPV0to10_BprimeBprimeToBHBHinc_M-800.eps");
+// 
+//   jet_mass("output_files_v2/BprimeBprimeToBHBHinc_M-800_HiggsTagging.root", "jetAnalyzerTrimmedJetMass",
+//            "Pt300toInf", 0, 11, "H#rightarrowb#bar{b}, AK R=0.8 trimmed, p_{T}>300 GeV, #DeltaR(H,jet)<0.5, nPV#leq10",
+//            0, 299.5, "Jet_mass_AKtrimmed_H_matched_Pt300toInf_nPV0to10_BprimeBprimeToBHBHinc_M-800.eps");
+// 
+//   jet_mass("output_files_v2/BprimeBprimeToBHBHinc_M-800_HiggsTagging.root", "jetAnalyzerCAPrunedJets",
+//            "Pt300toInf", 0, 11, "H#rightarrowb#bar{b}, CA R=0.8 pruned, p_{T}>300 GeV, #DeltaR(H,jet)<0.5, nPV#leq10",
+//            0, 299.5, "Jet_mass_CApruned_H_matched_Pt300toInf_nPV0to10_BprimeBprimeToBHBHinc_M-800.eps");
 
-  jet_mass("output_files_v2/BprimeBprimeToBHBHinc_M-800_HiggsTagging.root", "jetAnalyzerFilteredJetMass",
-           "Pt300toInf", 0, 11, "H#rightarrowb#bar{b}, AK R=0.8 filtered, p_{T}>300 GeV, #DeltaR(H,jet)<0.5, nPV#leq10",
-           0, 299.5, "Jet_mass_AKfiltered_H_matched_Pt300toInf_nPV0to10_BprimeBprimeToBHBHinc_M-800.eps");
-
-  jet_mass("output_files_v2/BprimeBprimeToBHBHinc_M-800_HiggsTagging.root", "jetAnalyzerPrunedJetMass",
-           "Pt300toInf", 0, 11, "H#rightarrowb#bar{b}, AK R=0.8 pruned, p_{T}>300 GeV, #DeltaR(H,jet)<0.5, nPV#leq10",
-           0, 299.5, "Jet_mass_AKpruned_H_matched_Pt300toInf_nPV0to10_BprimeBprimeToBHBHinc_M-800.eps");
-
-  jet_mass("output_files_v2/BprimeBprimeToBHBHinc_M-800_HiggsTagging.root", "jetAnalyzerTrimmedJetMass",
-           "Pt300toInf", 0, 11, "H#rightarrowb#bar{b}, AK R=0.8 trimmed, p_{T}>300 GeV, #DeltaR(H,jet)<0.5, nPV#leq10",
-           0, 299.5, "Jet_mass_AKtrimmed_H_matched_Pt300toInf_nPV0to10_BprimeBprimeToBHBHinc_M-800.eps");
-
-  jet_mass("output_files_v2/BprimeBprimeToBHBHinc_M-800_HiggsTagging.root", "jetAnalyzerCAPrunedJets",
-           "Pt300toInf", 0, 11, "H#rightarrowb#bar{b}, CA R=0.8 pruned, p_{T}>300 GeV, #DeltaR(H,jet)<0.5, nPV#leq10",
-           0, 299.5, "Jet_mass_CApruned_H_matched_Pt300toInf_nPV0to10_BprimeBprimeToBHBHinc_M-800.eps");
+  // BprimeBprimeToBHBHinc_M-1500
+  // nPV inclusive
+//   jet_mass("output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRsubjetBhadron.root", "jetAnalyzerPrunedJetMass",
+//            "Pt300toInf", 0, 52, "H#rightarrowb#bar{b}, AK R=0.8 pruned, p_{T}>300 GeV, #DeltaR(H,jet)<0.5",
+//            0, 299.5, "Jet_mass_AKpruned_H_matched_Pt300toInf_BprimeBprimeToBHBHinc_M-1500.eps", 1);
+// 
+//   jet_mass("output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRsubjetBhadron.root", "jetAnalyzerCAPrunedJetMass",
+//            "Pt300toInf", 0, 52, "H#rightarrowb#bar{b}, CA R=0.8 pruned, p_{T}>300 GeV, #DeltaR(H,jet)<0.5",
+//            0, 299.5, "Jet_mass_CApruned_H_matched_Pt300toInf_BprimeBprimeToBHBHinc_M-1500.eps", 1);
 }

@@ -288,10 +288,10 @@ RutgersJetAnalyzer::RutgersJetAnalyzer(const edm::ParameterSet& iConfig) :
     h2_JetPt_JetMass = fs->make<TH2D>("h2_JetPt_JetMass",";p_{T} [GeV];m_{jet} [GeV]",ptBins/4,ptMin,ptMax,massBins,massMin,massMax);
     h2_JetPt_JetMass_BosonMatched = fs->make<TH2D>("h2_JetPt_JetMass_BosonMatched",";p_{T} [GeV];m_{jet} [GeV]",ptBins/4,ptMin,ptMax,massBins,massMin,massMax);
 
-    h2_JetPt_mindRSubjet1Bhadron = fs->make<TH2D>("h2_JetPt_mindRSubjet1Bhadron",";p_{T} [GeV];min #DeltaR(subjet_{1},B hadron)",ptBins/4,ptMin,ptMax,100,0.,5.);
-    h2_JetPt_mindRSubjet2Bhadron = fs->make<TH2D>("h2_JetPt_mindRSubjet2Bhadron",";p_{T} [GeV];min #DeltaR(subjet_{2},B hadron)",ptBins/4,ptMin,ptMax,100,0.,5.);
-    h2_JetPt_mindRSubjet1Bhadron_JetMass = fs->make<TH2D>("h2_JetPt_mindRSubjet1Bhadron_JetMass",";p_{T} [GeV];min #DeltaR(subjet_{1},B hadron)",ptBins/4,ptMin,ptMax,100,0.,5.);
-    h2_JetPt_mindRSubjet2Bhadron_JetMass = fs->make<TH2D>("h2_JetPt_mindRSubjet2Bhadron_JetMass",";p_{T} [GeV];min #DeltaR(subjet_{2},B hadron)",ptBins/4,ptMin,ptMax,100,0.,5.);
+    h2_JetPt_mindRSubjet1Bhadron = fs->make<TH2D>("h2_JetPt_mindRSubjet1Bhadron",";p_{T} [GeV];min #DeltaR(subjet_{1},B hadron)",ptBins/4,ptMin,ptMax,dRBins,0.,2.);
+    h2_JetPt_mindRSubjet2Bhadron = fs->make<TH2D>("h2_JetPt_mindRSubjet2Bhadron",";p_{T} [GeV];min #DeltaR(subjet_{2},B hadron)",ptBins/4,ptMin,ptMax,dRBins,0.,2.);
+    h2_JetPt_mindRSubjet1Bhadron_JetMass = fs->make<TH2D>("h2_JetPt_mindRSubjet1Bhadron_JetMass",";p_{T} [GeV];min #DeltaR(subjet_{1},B hadron)",ptBins/4,ptMin,ptMax,dRBins,0.,2.);
+    h2_JetPt_mindRSubjet2Bhadron_JetMass = fs->make<TH2D>("h2_JetPt_mindRSubjet2Bhadron_JetMass",";p_{T} [GeV];min #DeltaR(subjet_{2},B hadron)",ptBins/4,ptMin,ptMax,dRBins,0.,2.);
 
     h1_JetCSVDiscr_BosonMatched_JetMass = fs->make<TH1D>("h1_JetCSVDiscr_BosonMatched_JetMass",";Jet CSV Discr;",100,0.,1.);
     h1_SubJetCSVDiscr_BosonMatched_JetMass = fs->make<TH1D>("h1_SubJetCSVDiscr_BosonMatched_JetMass",";SubJet CSV Discr;",100,0.,1.);

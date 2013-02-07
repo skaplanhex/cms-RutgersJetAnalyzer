@@ -13,7 +13,7 @@
 //
 // Original Author:  Dinko Ferencek
 //         Created:  Fri Jul 20 12:32:38 CDT 2012
-// $Id: RutgersJetAnalyzer.cc,v 1.7.2.18 2012/12/17 22:07:34 ferencek Exp $
+// $Id: RutgersJetAnalyzer.cc,v 1.8 2013/02/06 20:33:16 ferencek Exp $
 //
 //
 
@@ -36,6 +36,7 @@
 #include "DataFormats/ParticleFlowCandidate/interface/PFCandidateFwd.h"
 #include "DataFormats/PatCandidates/interface/Jet.h"
 #include "DataFormats/JetReco/interface/GenJetCollection.h"
+#include "DataFormats/JetReco/interface/BasicJetCollection.h"
 #include "DataFormats/VertexReco/interface/VertexFwd.h"
 #include "DataFormats/VertexReco/interface/Vertex.h"
 #include "SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h"
@@ -96,6 +97,7 @@ private:
     const bool          useGroomedJets;
     const edm::InputTag groomedJetsTag;
     const bool          useSubJets;
+    const edm::InputTag groomedBasicJetsTag;
     const edm::InputTag subJetsTag;
     const std::string   subJetMode;
     const edm::InputTag pvTag;
@@ -165,6 +167,11 @@ private:
     TH2D *h2_JetPt_JetMass;
     TH2D *h2_JetPt_JetMass_BosonMatched;
 
+    TH2D *h2_JetPt_mindRSubjet1Bhadron;
+    TH2D *h2_JetPt_mindRSubjet2Bhadron;
+    TH2D *h2_JetPt_mindRSubjet1Bhadron_JetMass;
+    TH2D *h2_JetPt_mindRSubjet2Bhadron_JetMass;
+
     TH1D *h1_JetCSVDiscr_BosonMatched_JetMass;
     TH1D *h1_SubJetCSVDiscr_BosonMatched_JetMass;
     TH1D *h1_JetDoubleBDiscr_BosonMatched_JetMass;
@@ -195,6 +202,7 @@ RutgersJetAnalyzer::RutgersJetAnalyzer(const edm::ParameterSet& iConfig) :
   useGroomedJets(iConfig.getParameter<bool>("UseGroomedJets")),
   groomedJetsTag(iConfig.getParameter<edm::InputTag>("GroomedJetsTag")),
   useSubJets(iConfig.getParameter<bool>("UseSubJets")),
+  groomedBasicJetsTag(iConfig.getParameter<edm::InputTag>("GroomedBasicJetsTag")),
   subJetsTag(iConfig.getParameter<edm::InputTag>("SubJetsTag")),
   subJetMode(iConfig.getParameter<std::string>("SubJetMode")),
   pvTag(iConfig.getParameter<edm::InputTag>("PvTag")),
@@ -233,7 +241,7 @@ RutgersJetAnalyzer::RutgersJetAnalyzer(const edm::ParameterSet& iConfig) :
     double dRMin=0., dRMax=5.;
     int etaBins=160;
     double etaMin=-4., etaMax=4.;
-    int massBins=400;
+    int massBins=200;
     int massMin=0., massMax=400.;
     int tauBins=100;
     double tauMin=0., tauMax=1.;
@@ -274,11 +282,16 @@ RutgersJetAnalyzer::RutgersJetAnalyzer(const edm::ParameterSet& iConfig) :
     h1_JetEta_BosonMatched = fs->make<TH1D>("h1_JetEta_BosonMatched",";#eta;",etaBins,etaMin,etaMax);
     h1_JetEta_BosonMatched_JetMass = fs->make<TH1D>("h1_JetEta_BosonMatched_JetMass",";#eta;",etaBins,etaMin,etaMax);
 
-    h2_JetPt_JetPtOverBosonPt = fs->make<TH2D>("h2_JetPt_JetPtOverBosonPt",";p_{T} [GeV];p_{T}^{jet}/p_{T}^{boson}",ptBins/2,ptMin,ptMax,100,0.,2.);
-    h2_JetPt_JetPtOverGenJetPt = fs->make<TH2D>("h2_JetPt_JetPtOverGenJetPt",";p_{T} [GeV];p_{T}^{jet}/p_{T}^{genjet}",ptBins/2,ptMin,ptMax,100,0.,2.);
-    h2_JetPt_JetPtOverGenJetPt_BosonMatched = fs->make<TH2D>("h2_JetPt_JetPtOverGenJetPt_BosonMatched",";p_{T} [GeV];p_{T}^{jet}/p_{T}^{genjet}",ptBins/2,ptMin,ptMax,100,0.,2.);
-    h2_JetPt_JetMass = fs->make<TH2D>("h2_JetPt_JetMass",";p_{T} [GeV];m_{jet} [GeV]",ptBins/2,ptMin,ptMax,massBins/2,massMin,massMax);
-    h2_JetPt_JetMass_BosonMatched = fs->make<TH2D>("h2_JetPt_JetMass_BosonMatched",";p_{T} [GeV];m_{jet} [GeV]",ptBins/2,ptMin,ptMax,massBins/2,massMin,massMax);
+    h2_JetPt_JetPtOverBosonPt = fs->make<TH2D>("h2_JetPt_JetPtOverBosonPt",";p_{T} [GeV];p_{T}^{jet}/p_{T}^{boson}",ptBins/4,ptMin,ptMax,100,0.,2.);
+    h2_JetPt_JetPtOverGenJetPt = fs->make<TH2D>("h2_JetPt_JetPtOverGenJetPt",";p_{T} [GeV];p_{T}^{jet}/p_{T}^{genjet}",ptBins/4,ptMin,ptMax,100,0.,2.);
+    h2_JetPt_JetPtOverGenJetPt_BosonMatched = fs->make<TH2D>("h2_JetPt_JetPtOverGenJetPt_BosonMatched",";p_{T} [GeV];p_{T}^{jet}/p_{T}^{genjet}",ptBins/4,ptMin,ptMax,100,0.,2.);
+    h2_JetPt_JetMass = fs->make<TH2D>("h2_JetPt_JetMass",";p_{T} [GeV];m_{jet} [GeV]",ptBins/4,ptMin,ptMax,massBins,massMin,massMax);
+    h2_JetPt_JetMass_BosonMatched = fs->make<TH2D>("h2_JetPt_JetMass_BosonMatched",";p_{T} [GeV];m_{jet} [GeV]",ptBins/4,ptMin,ptMax,massBins,massMin,massMax);
+
+    h2_JetPt_mindRSubjet1Bhadron = fs->make<TH2D>("h2_JetPt_mindRSubjet1Bhadron",";p_{T} [GeV];min #DeltaR(subjet_{1},B hadron)",ptBins/4,ptMin,ptMax,100,0.,5.);
+    h2_JetPt_mindRSubjet2Bhadron = fs->make<TH2D>("h2_JetPt_mindRSubjet2Bhadron",";p_{T} [GeV];min #DeltaR(subjet_{2},B hadron)",ptBins/4,ptMin,ptMax,100,0.,5.);
+    h2_JetPt_mindRSubjet1Bhadron_JetMass = fs->make<TH2D>("h2_JetPt_mindRSubjet1Bhadron_JetMass",";p_{T} [GeV];min #DeltaR(subjet_{1},B hadron)",ptBins/4,ptMin,ptMax,100,0.,5.);
+    h2_JetPt_mindRSubjet2Bhadron_JetMass = fs->make<TH2D>("h2_JetPt_mindRSubjet2Bhadron_JetMass",";p_{T} [GeV];min #DeltaR(subjet_{2},B hadron)",ptBins/4,ptMin,ptMax,100,0.,5.);
 
     h1_JetCSVDiscr_BosonMatched_JetMass = fs->make<TH1D>("h1_JetCSVDiscr_BosonMatched_JetMass",";Jet CSV Discr;",100,0.,1.);
     h1_SubJetCSVDiscr_BosonMatched_JetMass = fs->make<TH1D>("h1_SubJetCSVDiscr_BosonMatched_JetMass",";SubJet CSV Discr;",100,0.,1.);
@@ -351,11 +364,17 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
     edm::Handle<PatJetCollection> groomedJets;
     if( useGroomedJets ) iEvent.getByLabel(groomedJetsTag,groomedJets);
 
+    edm::Handle<reco::BasicJetCollection> groomedBasicJets;
     edm::Handle<PatJetCollection> subJets;
-    if( useSubJets ) iEvent.getByLabel(subJetsTag,subJets);
+    if( useSubJets )
+    {
+      iEvent.getByLabel(groomedBasicJetsTag,groomedBasicJets);
+      iEvent.getByLabel(subJetsTag,subJets);
+    }
 
     edm::Handle<reco::VertexCollection> PVs;
     iEvent.getByLabel(pvTag,PVs);
+
 
     double eventWeight = 1.;
     if( !iEvent.isRealData() && useEventWeight )
@@ -379,38 +398,33 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
 
     bool isGluonSplitting = false;
     bool isMatrixElement = false;
-    bool isAllJets = true;
     if( findGluonSplitting || findMatrixElement )
     {
       bool bFoundS3Quark = false;
       bool bFoundS2Quark = false;
       for(reco::GenParticleCollection::const_iterator it = genParticles->begin(); it != genParticles->end(); ++it)
       {
-	for(std::vector<int>::const_iterator pdgIdIt = jetFlavorPdgId.begin(); pdgIdIt != jetFlavorPdgId.end(); ++pdgIdIt)
-	{
-	if( abs(it->pdgId()) == abs(*pdgIdIt) && it->status()==3 ) bFoundS3Quark = true;
-	if( abs(it->pdgId()) == abs(*pdgIdIt) && it->status()==2 ) bFoundS2Quark = true;
-	}
+        if( abs(it->pdgId()) == 5 && it->status()==3 ) bFoundS3Quark = true;
+        if( abs(it->pdgId()) == 5 && it->status()==2 ) bFoundS2Quark = true;
       }
-      //if no status 3 quarks but status 2
+      // if no status 3 b quark but status 2
       if( (!bFoundS3Quark) && bFoundS2Quark) isGluonSplitting = true;
-      //if status 2 quark found
+      // if status 3 b quark found
       if( bFoundS3Quark ) isMatrixElement = true;
-      if( ((!bFoundS3Quark) && bFoundS2Quark) || bFoundS3Quark ) isAllJets = false;
     }
-    else
-    {
-      //isGluonSplitting = true;
-      //isMatrixElement = true;
-    }
+
+    // skip event if it does not pass the selection
+    if( (findGluonSplitting && !isGluonSplitting) || (findMatrixElement && !isMatrixElement) ) return;
+
 
     if( doBosonMatching )
     {
       int bPrimeCount = 0;
       for(reco::GenParticleCollection::const_iterator it = genParticles->begin(); it != genParticles->end(); ++it)
       {
+        // count b' in the list of GenParticles
         if( abs(it->pdgId()) == 7 && it->status() == 3 ) bPrimeCount++;
-
+        // only take status=3 GenParticles that appear after b' and b'bar have appeared in the list
         if( bPrimeCount>1 && it->status() == 3 ) bPrimeDecayProducts.push_back(&(*it));
       }
 
@@ -513,55 +527,40 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
       }
     }
 
+
     // loop over jets
     for(PatJetCollection::const_iterator it = jets->begin(); it != jets->end(); ++it)
     {
+      bool isRightFlavor = false;
+      // check jet flavor
+      if( doJetFlavor )
+      {
+        for(std::vector<int>::const_iterator pdgIdIt = jetFlavorPdgId.begin(); pdgIdIt != jetFlavorPdgId.end(); ++pdgIdIt)
+        {
+          if( abs(it->partonFlavour()) == abs(*pdgIdIt))
+          {
+            isRightFlavor = true;
+            break;
+          }
+        }
+      }
+      else
+        isRightFlavor = true;
+
+      // skip the jet if it does not have the right flavor
+      if( !isRightFlavor ) continue;
+
+
       double jetPt = it->pt();
       // skip the jet if it does not pass pT and eta cuts
       if( !(jetPt > jetPtMin && fabs(it->eta()) < jetAbsEtaMax) ) continue;
 
+
       h1_JetPt->Fill(jetPt, eventWeight);
       h1_JetEta->Fill(it->eta(), eventWeight);
 
+
       double jetMass = it->mass();
-
-      bool isRightFlavor_gluon = false;
-      bool isRightFlavor_matrix = false;
-      bool isRightFlavor_all = false;
-      if( doJetFlavor )
-      {
-	if( isGluonSplitting )
-	{
-	  double jetflavor = it->partonFlavour();
-	  for(std::vector<int>::const_iterator pdgIdIt = jetFlavorPdgId.begin(); pdgIdIt != jetFlavorPdgId.end(); ++pdgIdIt)
-	  {
-	    if( abs(jetflavor) == abs(*pdgIdIt)) isRightFlavor_gluon = true;
-	  }	 
-	}
-	if( isMatrixElement )
-	{
-	  double jetflavor = it->partonFlavour();
-	  for(std::vector<int>::const_iterator pdgIdIt = jetFlavorPdgId.begin(); pdgIdIt != jetFlavorPdgId.end(); ++pdgIdIt)
-	  {
-	    if( abs(jetflavor) == abs(*pdgIdIt)) isRightFlavor_matrix = true;
-	  }	 
-	}
-	if( isAllJets )
-	{
-	  double jetflavor = it->partonFlavour();
-	  for(std::vector<int>::const_iterator pdgIdIt = jetFlavorPdgId.begin(); pdgIdIt != jetFlavorPdgId.end(); ++pdgIdIt)
-	  {
-	    if( abs(jetflavor) == abs(*pdgIdIt)) isRightFlavor_all = true;
-	  }	 
-	}
-      }
-      else 
-      {
-	isRightFlavor_all = true;
-      }
-
-
-
       PatJetCollection::const_iterator groomedJetMatch;
       bool groomedJetMatchFound = false;
       if( useGroomedJets )
@@ -569,10 +568,11 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
         double dR = jetRadius;
         for(PatJetCollection::const_iterator gjIt = groomedJets->begin(); gjIt != groomedJets->end(); ++gjIt)
         {
-          if( reco::deltaR( it->p4(), gjIt->p4() ) < dR )
+          double dR_temp = reco::deltaR( it->p4(), gjIt->p4() );
+          if( dR_temp < dR )
           {
             groomedJetMatchFound = true;
-            dR = reco::deltaR( it->p4(), gjIt->p4() );
+            dR = dR_temp;
             jetMass = gjIt->mass();
             groomedJetMatch = gjIt;
           }
@@ -582,6 +582,7 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
 
       h2_JetPt_JetPtOverGenJetPt->Fill(jetPt, (it->genJet()!=0 ? jetPt/(it->genJet()->pt()) : -10.), eventWeight);
       h2_JetPt_JetMass->Fill(jetPt, jetMass, eventWeight);
+
 
       bool isBosonMatched = false;
       // perform boson matching
@@ -614,46 +615,9 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
       else
         isBosonMatched = true;
 
-      // skip the jet if it is not matched to a boson or not right flavor
-      if( !isBosonMatched || (findGluonSplitting && !isRightFlavor_gluon) || (findMatrixElement && !isRightFlavor_matrix) || ((!findGluonSplitting && !findMatrixElement) && !isRightFlavor_all) ) continue;
+      // skip the jet if it is not matched to a boson
+      if( !isBosonMatched ) continue;
 
-      // vector of pointers to subjets
-      std::vector<const pat::Jet*> subjets;
-      if( useSubJets )
-      {
-        for(PatJetCollection::const_iterator sjIt = subJets->begin(); sjIt != subJets->end(); ++sjIt)
-        {
-          if( reco::deltaR( it->p4(), sjIt->p4() ) < jetRadius )
-          {
-            subjets.push_back(&(*sjIt));
-          }
-        }
-
-        if( subjets.size()<2 )
-          edm::LogError("TooFewSubjets") << "Less than two subjets found.";
-        else
-        {
-          if( subJetMode=="Kt" )
-          {
-            if( subjets.size()>2 )
-            {
-              edm::LogError("TooManySubjets") << "More than two subjets found. Will take the two subjets closest to the jet axis.";
-              std::sort(subjets.begin(), subjets.end(), ordering_dR(&(*it)));
-              subjets.erase(subjets.begin()+2,subjets.end());
-              //for(unsigned i=0; i<subjets.size(); ++i)
-                //std::cout << "dR(jet,subjet) for subjet" << i << ": " << reco::deltaR( it->p4(), subjets.at(i)->p4() ) << std::endl;
-            }
-          }
-          else if( subJetMode=="Filtered" )
-          {
-            std::sort(subjets.begin(), subjets.end(), ordering_Pt("Uncorrected"));
-            //for(unsigned i=0; i<subjets.size(); ++i)
-              //std::cout << "Uncorrected Pt for subjet" << i << ": " << subjets.at(i)->correctedJet("Uncorrected").pt() << std::endl;
-          }
-          else
-            edm::LogError("IllegalSubJetMode") << "Allowed subjet modes are Kt and Filtered.";
-        }
-      }
 
       h1_JetPt_BosonMatched->Fill(jetPt, eventWeight);
       h1_JetEta_BosonMatched->Fill(it->eta(), eventWeight);
@@ -677,11 +641,111 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
         h2_nPV_JetMass_Pt[suffix]->Fill(nPV, jetMass, eventWeight);
       }
 
+
+      // vector of pointers to subjets
+      std::vector<const pat::Jet*> subjets;
+      if( useSubJets )
+      {
+        double dR = jetRadius;
+        reco::BasicJetCollection::const_iterator groomedBasicJetMatch;
+        for(reco::BasicJetCollection::const_iterator gbjIt = groomedBasicJets->begin(); gbjIt != groomedBasicJets->end(); ++gbjIt)
+        {
+          double dR_temp = reco::deltaR( it->p4(), gbjIt->p4() );
+          if( dR_temp < dR )
+          {
+            dR = dR_temp;
+            groomedBasicJetMatch = gbjIt;
+          }
+        }
+        for(unsigned i=0; i<groomedBasicJetMatch->numberOfDaughters(); ++i)
+        {
+          for(PatJetCollection::const_iterator sjIt = subJets->begin(); sjIt != subJets->end(); ++sjIt)
+          {
+            double dRsj = reco::deltaR( groomedBasicJetMatch->daughter(i)->p4(), sjIt->p4() );
+            if( dRsj < 1e-4 )
+            {
+              subjets.push_back(&(*sjIt));
+              break;
+            }
+          }
+        }
+
+        //------------------------------------------------------------------------------
+        // old method of finding subjets based on dR(jet,subjet)
+        //------------------------------------------------------------------------------
+        //for(PatJetCollection::const_iterator sjIt = subJets->begin(); sjIt != subJets->end(); ++sjIt)
+        //{
+          //if( reco::deltaR( it->p4(), sjIt->p4() ) < jetRadius )
+          //{
+            //subjets.push_back(&(*sjIt));
+          //}
+        //}
+        //------------------------------------------------------------------------------
+
+        if( subjets.size()<2 )
+          edm::LogError("TooFewSubjets") << "Less than two subjets found.";
+        else
+        {
+          if( subJetMode=="Kt" || subJetMode=="Pruned" )
+          {
+            if( subjets.size()>2 )
+            {
+              edm::LogError("TooManySubjets") << "More than two subjets found. Will take the two subjets closest to the jet axis.";
+              std::sort(subjets.begin(), subjets.end(), ordering_dR(&(*it)));
+              subjets.erase(subjets.begin()+2,subjets.end());
+              //for(unsigned i=0; i<subjets.size(); ++i)
+                //std::cout << "dR(jet,subjet) for subjet" << i << ": " << reco::deltaR( it->p4(), subjets.at(i)->p4() ) << std::endl;
+            }
+            // sort subjets by uncorrected Pt
+            std::sort(subjets.begin(), subjets.end(), ordering_Pt("Uncorrected"));
+            //for(unsigned i=0; i<subjets.size(); ++i)
+              //std::cout << "Uncorrected Pt for subjet" << i << ": " << subjets.at(i)->correctedJet("Uncorrected").pt() << std::endl;
+          }
+          else if( subJetMode=="Filtered" )
+          {
+            // sort subjets by uncorrected Pt
+            std::sort(subjets.begin(), subjets.end(), ordering_Pt("Uncorrected"));
+            //for(unsigned i=0; i<subjets.size(); ++i)
+              //std::cout << "Uncorrected Pt for subjet" << i << ": " << subjets.at(i)->correctedJet("Uncorrected").pt() << std::endl;
+          }
+          else
+            edm::LogError("IllegalSubJetMode") << "Allowed subjet modes are Kt, Pruned, and Filtered.";
+        }
+      }
+
+
+      double mindRsubjet1 = 999., mindRsubjet2 = 999.;
+      // find the closest B hadron for each of the two subjets
+      if( subjets.size()>1 )
+      {
+        for(reco::GenParticleCollection::const_iterator gpIt = genParticles->begin(); gpIt != genParticles->end(); ++gpIt)
+        {
+          int id = abs(gpIt->pdgId());
+          // skip GenParticle if not B hadron
+          if ( !((id/100)%10 == 5 || (id/1000)%10 == 5) ) continue;
+
+          double dRsubjet1 = reco::deltaR( subjets.at(0)->p4(), gpIt->p4() );
+          double dRsubjet2 = reco::deltaR( subjets.at(1)->p4(), gpIt->p4() );
+          if( dRsubjet1 < mindRsubjet1 )
+            mindRsubjet1 = dRsubjet1;
+          if( dRsubjet2 < mindRsubjet2 )
+            mindRsubjet2 = dRsubjet2;
+        }
+      }
+
+      h2_JetPt_mindRSubjet1Bhadron->Fill(jetPt, (mindRsubjet1<999. ? mindRsubjet1 : -99.), eventWeight);
+      h2_JetPt_mindRSubjet2Bhadron->Fill(jetPt, (mindRsubjet2<999. ? mindRsubjet2 : -99.), eventWeight);
+
       // skip the jet if it does not pass the invariant mass cut
       if( !(jetMass > jetMassMin && jetMass < jetMassMax) ) continue;
 
+
       h1_JetPt_BosonMatched_JetMass->Fill(jetPt, eventWeight);
       h1_JetEta_BosonMatched_JetMass->Fill(it->eta(), eventWeight);
+
+      h2_JetPt_mindRSubjet1Bhadron_JetMass->Fill(jetPt, (mindRsubjet1<999. ? mindRsubjet1 : -99.), eventWeight);
+      h2_JetPt_mindRSubjet2Bhadron_JetMass->Fill(jetPt, (mindRsubjet2<999. ? mindRsubjet2 : -99.), eventWeight);
+
 
       // get b-tag discriminators
       //double jet_CSV_discr = it->bDiscriminator("combinedSecondaryVertexBJetTags");
@@ -689,8 +753,8 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
       double subJet1_CSV_discr = -999., subJet2_CSV_discr = -999.;
       if( subjets.size()>1 )
       {
-//      subJet1_CSV_discr = subjets.at(0)->bDiscriminator("combinedSecondaryVertexBJetTags");
-//      subJet2_CSV_discr = subjets.at(1)->bDiscriminator("combinedSecondaryVertexBJetTags");
+        //subJet1_CSV_discr = subjets.at(0)->bDiscriminator("combinedSecondaryVertexBJetTags");
+        //subJet2_CSV_discr = subjets.at(1)->bDiscriminator("combinedSecondaryVertexBJetTags");
         subJet1_CSV_discr = subjets.at(0)->bDiscriminator((bdiscriminator).c_str());
         subJet2_CSV_discr = subjets.at(1)->bDiscriminator((bdiscriminator).c_str());
       }
@@ -709,6 +773,7 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
 
       PatJetCollection::const_iterator substructJet = it;
       if( useGroomedJetSubstr && groomedJetMatchFound ) substructJet = groomedJetMatch;
+      // N-subjettiness
       if( !useMassDrop )
       {
         std::vector<fastjet::PseudoJet> fjConstituents;
@@ -719,7 +784,7 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
           reco::PFCandidatePtr constit = *m;
           if (constit->pt() == 0)
           {
-            edm::LogError("NullTransverseMomentum") << "dropping input candidate with pt=0";
+            edm::LogWarning("NullTransverseMomentum") << "dropping input candidate with pt=0";
             continue;
           }
           fjConstituents.push_back(fastjet::PseudoJet(constit->px(),constit->py(),constit->pz(),constit->energy()));
@@ -762,6 +827,7 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
           if( jet_DoubleB_discr>0. ) h1_JetPt_BosonMatched_JetMass_Nsubj_DoubleB->Fill(jetPt, eventWeight);
         }
       }
+      // mass drop
       else
       {
         double fatJetMass = jetMass;
@@ -785,6 +851,8 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
         }
       }
     }
+
+    return;
 }
 
 

@@ -13,7 +13,7 @@
 //
 // Original Author:  Dinko Ferencek
 //         Created:  Fri Jul 20 12:32:38 CDT 2012
-// $Id: RutgersJetAnalyzer.cc,v 1.8 2013/02/06 20:33:16 ferencek Exp $
+// $Id: RutgersJetAnalyzer.cc,v 1.10 2013/02/07 21:28:48 ferencek Exp $
 //
 //
 
@@ -657,11 +657,17 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
             groomedBasicJetMatch = gbjIt;
           }
         }
-        for(unsigned i=0; i<groomedBasicJetMatch->numberOfDaughters(); ++i)
+        //std::cout << "number of subjets: " << groomedBasicJetMatch->numberOfDaughters() << std::endl;
+        //std::cout << "jet pt: " << it->correctedJet("Uncorrected").p4().pt() << " eta=" << it->correctedJet("Uncorrected").p4().eta() << " phi=" << it->correctedJet("Uncorrected").p4().phi() << " nd=" << it->numberOfDaughters() << std::endl;
+        //std::cout << "groomed jet pt: " << groomedJetMatch->correctedJet("Uncorrected").p4().pt() << " eta=" << groomedJetMatch->correctedJet("Uncorrected").p4().eta() << " phi=" << groomedJetMatch->correctedJet("Uncorrected").p4().phi() << " nd=" << groomedJetMatch->numberOfDaughters() << std::endl;
+        //std::cout << "groomed basic jet pt: " << groomedBasicJetMatch->p4().pt() << " eta=" << groomedBasicJetMatch->p4().eta() << " phi=" << groomedBasicJetMatch->p4().phi() << std::endl;
+        for(unsigned d=0; d<groomedBasicJetMatch->numberOfDaughters(); ++d)
         {
+          //std::cout << "subjet " << d << ": pt=" << groomedBasicJetMatch->daughter(d)->p4().pt()  << " eta=" << groomedBasicJetMatch->daughter(d)->p4().eta()  << " phi=" << groomedBasicJetMatch->daughter(d)->p4().phi() << std::endl;
           for(PatJetCollection::const_iterator sjIt = subJets->begin(); sjIt != subJets->end(); ++sjIt)
           {
-            double dRsj = reco::deltaR( groomedBasicJetMatch->daughter(i)->p4(), sjIt->p4() );
+            double dRsj = reco::deltaR( groomedBasicJetMatch->daughter(d)->p4(), sjIt->p4() );
+            //std::cout << "          dRsj=" << dRsj << " pt=" << sjIt->correctedJet("Uncorrected").p4().pt()  << " eta=" << sjIt->p4().eta()  << " phi=" << sjIt->p4().phi() << std::endl;
             if( dRsj < 1e-4 )
             {
               subjets.push_back(&(*sjIt));

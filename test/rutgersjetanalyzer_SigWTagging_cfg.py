@@ -27,7 +27,7 @@ options.register('outFilename',
     "Output file name"
 )
 options.register('reportEvery',
-    1,
+    100,
     VarParsing.multiplicity.singleton,
     VarParsing.varType.int,
     "Report every N events (default is N=10)"
@@ -82,7 +82,7 @@ options.register('objectType',
 )
 
 ## 'maxEvents' is already registered by the Framework, changing default value
-options.setDefault('maxEvents', 10)
+options.setDefault('maxEvents', -1)
 
 options.parseArguments()
 

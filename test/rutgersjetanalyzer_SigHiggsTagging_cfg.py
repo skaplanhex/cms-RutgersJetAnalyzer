@@ -30,7 +30,7 @@ options.register('reportEvery',
     100,
     VarParsing.multiplicity.singleton,
     VarParsing.varType.int,
-    "Report every N events (default is N=10)"
+    "Report every N events (default is N=100)"
 )
 options.register('wantSummary',
     False,
@@ -102,11 +102,12 @@ if options.runOnData:
     inputJetCorrLabelAK7[1].append('L2L3Residual')
 
 ## b tagging
-bTagInfos = ['impactParameterTagInfos','secondaryVertexTagInfos','inclusiveSecondaryVertexFinderTagInfos','softMuonTagInfos','softElectronTagInfos','inclusiveSecondaryVertexFinderTagInfosFiltered']
+bTagInfos = ['impactParameterTagInfos','secondaryVertexTagInfos','inclusiveSecondaryVertexFinderTagInfos','inclusiveSecondaryVertexFinderTagInfosFiltered']
+             #,'softMuonTagInfos','softElectronTagInfos']
 bTagDiscriminators = ['jetProbabilityBJetTags','trackCountingHighPurBJetTags', 'trackCountingHighEffBJetTags','simpleSecondaryVertexHighEffBJetTags',
                       'simpleSecondaryVertexHighPurBJetTags','simpleInclusiveSecondaryVertexHighEffBJetTags','simpleInclusiveSecondaryVertexHighPurBJetTags',
-                      'combinedSecondaryVertexBJetTags','combinedSecondaryVertexMVABJetTags','combinedInclusiveSecondaryVertexBJetTags',
-                      'softMuonBJetTags','softMuonByPtBJetTags','softMuonByIP3dBJetTags','combinedMVABJetTags','doubleSecondaryVertexHighEffBJetTags']
+                      'combinedSecondaryVertexBJetTags','combinedInclusiveSecondaryVertexBJetTags','doubleSecondaryVertexHighEffBJetTags']
+                      #'combinedSecondaryVertexMVABJetTags','softMuonBJetTags','softMuonByPtBJetTags','softMuonByIP3dBJetTags','combinedMVABJetTags']
 bTagDiscriminatorsSub = copy.deepcopy(bTagDiscriminators)
 bTagDiscriminatorsSub.remove('doubleSecondaryVertexHighEffBJetTags')
 
@@ -361,36 +362,36 @@ switchJetCollection(process,
     genJetCollection=cms.InputTag("akGenJetsNoNu"),
     doJetID=False
 )
-addJetCollection(
-    process,
-    cms.InputTag('akPFJetsTrimmed'),
-    'AKTrimmed','PF',
-    doJTA=False,
-    doBTagging=False,
-    btagInfo=bTagInfos,
-    btagdiscriminators=bTagDiscriminators,
-    jetCorrLabel=inputJetCorrLabelAK7,
-    doType1MET=False,
-    doL1Cleaning=False,
-    doL1Counters=False,
-    doJetID=False,
-    genJetCollection=cms.InputTag("akGenJetsNoNu")
-)
-addJetCollection(
-    process,
-    cms.InputTag('akPFJetsFiltered'),
-    'AKFiltered','PF',
-    doJTA=False,
-    doBTagging=False,
-    btagInfo=bTagInfos,
-    btagdiscriminators = bTagDiscriminators,
-    jetCorrLabel=inputJetCorrLabelAK7,
-    doType1MET=False,
-    doL1Cleaning=False,
-    doL1Counters=False,
-    doJetID=False,
-    genJetCollection=cms.InputTag("akGenJetsNoNu")
-)
+#addJetCollection(
+    #process,
+    #cms.InputTag('akPFJetsTrimmed'),
+    #'AKTrimmed','PF',
+    #doJTA=False,
+    #doBTagging=False,
+    #btagInfo=bTagInfos,
+    #btagdiscriminators=bTagDiscriminators,
+    #jetCorrLabel=inputJetCorrLabelAK7,
+    #doType1MET=False,
+    #doL1Cleaning=False,
+    #doL1Counters=False,
+    #doJetID=False,
+    #genJetCollection=cms.InputTag("akGenJetsNoNu")
+#)
+#addJetCollection(
+    #process,
+    #cms.InputTag('akPFJetsFiltered'),
+    #'AKFiltered','PF',
+    #doJTA=False,
+    #doBTagging=False,
+    #btagInfo=bTagInfos,
+    #btagdiscriminators = bTagDiscriminators,
+    #jetCorrLabel=inputJetCorrLabelAK7,
+    #doType1MET=False,
+    #doL1Cleaning=False,
+    #doL1Counters=False,
+    #doJetID=False,
+    #genJetCollection=cms.InputTag("akGenJetsNoNu")
+#)
 addJetCollection(
     process,
     cms.InputTag('akPFJetsPruned'),
@@ -410,8 +411,8 @@ addJetCollection(
     process,
     cms.InputTag('caPFJets'),
     'CA','PF',
-    doJTA=False,
-    doBTagging=False,
+    doJTA=options.doJTA,
+    doBTagging=options.doBTagging,
     btagInfo=bTagInfos,
     btagdiscriminators=bTagDiscriminators,
     jetCorrLabel=inputJetCorrLabelAK7,
@@ -442,7 +443,7 @@ if options.objectType=='H':
     addJetCollection(
         process,
         cms.InputTag('akPFJets'),
-        'AK', 'PF',
+        'AKJTA', 'PF',
         doJTA=options.doJTA,
         doBTagging=options.doBTagging,
         btagInfo=bTagInfos,
@@ -453,6 +454,21 @@ if options.objectType=='H':
         doL1Counters=False,
         doJetID=False,
         genJetCollection=cms.InputTag('akGenJetsNoNu')
+    )
+    addJetCollection(
+        process,
+        cms.InputTag('caPFJets'),
+        'CAJTA', 'PF',
+        doJTA=options.doJTA,
+        doBTagging=options.doBTagging,
+        btagInfo=bTagInfos,
+        btagdiscriminators=bTagDiscriminators,
+        jetCorrLabel=inputJetCorrLabelAK7,
+        doType1MET=False,
+        doL1Cleaning=False,
+        doL1Counters=False,
+        doJetID=False,
+        genJetCollection=cms.InputTag('caGenJetsNoNu')
     )
     addJetCollection(
         process,
@@ -560,8 +576,8 @@ process.genJetSeqExtra = cms.Sequence(
 )
 process.recoJetSeq = cms.Sequence(
     process.akPFJets
-    + process.akPFJetsTrimmed
-    + process.akPFJetsFiltered
+    #+ process.akPFJetsTrimmed
+    #+ process.akPFJetsFiltered
     + process.akPFJetsPruned
     + process.caPFJets
     + process.caPFJetsPruned
@@ -597,15 +613,23 @@ adaptPVs(process, pvCollection=cms.InputTag('goodOfflinePrimaryVertices'), postf
 
 if options.doBTagging:
     # Set the cone size for the jet-track association to the jet radius
-    if hasattr( process, 'jetTracksAssociatorAtVertexAKPF' ):
-        process.jetTracksAssociatorAtVertexAKPF.coneSize = cms.double(options.jetRadius)
-    if hasattr( process, 'secondaryVertexTagInfosAKPF' ):
-        process.secondaryVertexTagInfosAKPF.trackSelection.jetDeltaRMax = cms.double(options.jetRadius)
+    if hasattr( process, 'jetTracksAssociatorAtVertexAKJTAPF' ):
+        process.jetTracksAssociatorAtVertexAKJTAPF.coneSize = cms.double(options.jetRadius)
+    if hasattr( process, 'secondaryVertexTagInfosAKJTAPF' ):
+        process.secondaryVertexTagInfosAKJTAPF.trackSelection.jetDeltaRMax = cms.double(options.jetRadius)
+    if hasattr( process, 'jetTracksAssociatorAtVertexCAJTAPF' ):
+        process.jetTracksAssociatorAtVertexCAJTAPF.coneSize = cms.double(options.jetRadius)
+    if hasattr( process, 'secondaryVertexTagInfosCAJTAPF' ):
+        process.secondaryVertexTagInfosCAJTAPF.trackSelection.jetDeltaRMax = cms.double(options.jetRadius)
     # Set the jet-SV dR to the jet radius
     if hasattr( process, 'inclusiveSecondaryVertexFinderTagInfosFilteredAOD' ):
         process.inclusiveSecondaryVertexFinderTagInfosFilteredAOD.extSVDeltaRToJet = cms.double(options.jetRadius)
-    if hasattr( process, 'inclusiveSecondaryVertexFinderTagInfosFilteredAKPF' ):
-        process.inclusiveSecondaryVertexFinderTagInfosFilteredAKPF.extSVDeltaRToJet = cms.double(options.jetRadius)
+    if hasattr( process, 'inclusiveSecondaryVertexFinderTagInfosFilteredCAPF' ):
+        process.inclusiveSecondaryVertexFinderTagInfosFilteredCAPF.extSVDeltaRToJet = cms.double(options.jetRadius)
+    if hasattr( process, 'inclusiveSecondaryVertexFinderTagInfosFilteredAKJTAPF' ):
+        process.inclusiveSecondaryVertexFinderTagInfosFilteredAKJTAPF.extSVDeltaRToJet = cms.double(options.jetRadius)
+    if hasattr( process, 'inclusiveSecondaryVertexFinderTagInfosFilteredCAJTAPF' ):
+        process.inclusiveSecondaryVertexFinderTagInfosFilteredCAJTAPF.extSVDeltaRToJet = cms.double(options.jetRadius)
 
 ## Initialize instances of the RutgersJetAnalyzer
 process.jetAnalyzerDefaultJetMass = cms.EDAnalyzer('RutgersJetAnalyzer',
@@ -644,70 +668,6 @@ process.jetAnalyzerTrimmedJetMass = cms.EDAnalyzer('RutgersJetAnalyzer',
     UseEventWeight            = cms.bool(False),
     GenParticleTag            = cms.InputTag('genParticles'),
     JetsTag                   = cms.InputTag('selectedPatJets'),
-    UseGroomedJets            = cms.bool(True),
-    GroomedJetsTag            = cms.InputTag('selectedPatJetsAKTrimmedPF'),
-    UseSubJets                = cms.bool(True),
-    GroomedBasicJetsTag       = cms.InputTag('akPFJetsRU'),
-    SubJetsTag                = cms.InputTag('selectedPatJetsAKSubPF'),
-    SubJetMode                = cms.string('Kt'),
-    PvTag                     = cms.InputTag('goodOfflinePrimaryVertices'),
-    JetRadius                 = cms.double(options.jetRadius),
-    DoBosonMatching           = cms.bool(True),
-    BosonMatchingRadius       = cms.double(0.5),
-    BosonPdgId                = cms.int32(25),
-    ApplyBosonIsolation       = cms.bool(True),
-    DoBosonDecayProdSelection = cms.bool(True),
-    BosonDecayProdPdgIds      = cms.vint32(5),
-    UseMassDrop               = cms.bool(False),
-    JetPtMin                  = cms.double(300.),
-    JetPtBins                 = cms.uint32(3),
-    JetPtBinWidth             = cms.double(200.),
-    JetAbsEtaMax              = cms.double(1.5),
-    JetMassMin                = cms.double(75.),
-    JetMassMax                = cms.double(135.),
-    NsubjCut                  = cms.double(0.45),
-    Bdiscriminator            = cms.string("combinedSecondaryVertexBJetTags"),
-    DoJetFlavor               = cms.bool(False),
-    JetFlavorPdgId            = cms.vint32(5),
-    FindGluonSplitting        = cms.bool(False),
-    FindMatrixElement         = cms.bool(False)
-)
-process.jetAnalyzerTrimmedJetMassFilteredSub = cms.EDAnalyzer('RutgersJetAnalyzer',
-    UseEventWeight            = cms.bool(False),
-    GenParticleTag            = cms.InputTag('genParticles'),
-    JetsTag                   = cms.InputTag('selectedPatJets'),
-    UseGroomedJets            = cms.bool(True),
-    GroomedJetsTag            = cms.InputTag('selectedPatJetsAKTrimmedPF'),
-    UseSubJets                = cms.bool(True),
-    GroomedBasicJetsTag       = cms.InputTag('akPFJetsFilteredCompound'),
-    SubJetsTag                = cms.InputTag('selectedPatJetsAKFilteredSubPF'),
-    SubJetMode                = cms.string('Filtered'),
-    PvTag                     = cms.InputTag('goodOfflinePrimaryVertices'),
-    JetRadius                 = cms.double(options.jetRadius),
-    DoBosonMatching           = cms.bool(True),
-    BosonMatchingRadius       = cms.double(0.5),
-    BosonPdgId                = cms.int32(25),
-    ApplyBosonIsolation       = cms.bool(True),
-    DoBosonDecayProdSelection = cms.bool(True),
-    BosonDecayProdPdgIds      = cms.vint32(5),
-    UseMassDrop               = cms.bool(False),
-    JetPtMin                  = cms.double(300.),
-    JetPtBins                 = cms.uint32(3),
-    JetPtBinWidth             = cms.double(200.),
-    JetAbsEtaMax              = cms.double(1.5),
-    JetMassMin                = cms.double(75.),
-    JetMassMax                = cms.double(135.),
-    NsubjCut                  = cms.double(0.45),
-    Bdiscriminator            = cms.string("combinedSecondaryVertexBJetTags"),
-    DoJetFlavor               = cms.bool(False),
-    JetFlavorPdgId            = cms.vint32(5),
-    FindGluonSplitting        = cms.bool(False),
-    FindMatrixElement         = cms.bool(False)
-)
-process.jetAnalyzerTrimmedJetMassJTACone = cms.EDAnalyzer('RutgersJetAnalyzer',
-    UseEventWeight            = cms.bool(False),
-    GenParticleTag            = cms.InputTag('genParticles'),
-    JetsTag                   = cms.InputTag('selectedPatJetsAKPF'),
     UseGroomedJets            = cms.bool(True),
     GroomedJetsTag            = cms.InputTag('selectedPatJetsAKTrimmedPF'),
     UseSubJets                = cms.bool(True),
@@ -897,6 +857,38 @@ process.jetAnalyzerPrunedJetMassFilteredSub = cms.EDAnalyzer('RutgersJetAnalyzer
     FindGluonSplitting        = cms.bool(False),
     FindMatrixElement         = cms.bool(False)
 )
+process.jetAnalyzerPrunedJetMassJTACone = cms.EDAnalyzer('RutgersJetAnalyzer',
+    UseEventWeight            = cms.bool(False),
+    GenParticleTag            = cms.InputTag('genParticles'),
+    JetsTag                   = cms.InputTag('selectedPatJetsAKJTAPF'),
+    UseGroomedJets            = cms.bool(True),
+    GroomedJetsTag            = cms.InputTag('selectedPatJetsAKPrunedPF'),
+    UseSubJets                = cms.bool(True),
+    GroomedBasicJetsTag       = cms.InputTag('akPFJetsPrunedCompound'),
+    SubJetsTag                = cms.InputTag('selectedPatJetsAKPrunedSubPF'),
+    SubJetMode                = cms.string('Pruned'),
+    PvTag                     = cms.InputTag('goodOfflinePrimaryVertices'),
+    JetRadius                 = cms.double(options.jetRadius),
+    DoBosonMatching           = cms.bool(True),
+    BosonMatchingRadius       = cms.double(0.5),
+    BosonPdgId                = cms.int32(25),
+    ApplyBosonIsolation       = cms.bool(True),
+    DoBosonDecayProdSelection = cms.bool(True),
+    BosonDecayProdPdgIds      = cms.vint32(5),
+    UseMassDrop               = cms.bool(False),
+    JetPtMin                  = cms.double(300.),
+    JetPtBins                 = cms.uint32(3),
+    JetPtBinWidth             = cms.double(200.),
+    JetAbsEtaMax              = cms.double(1.5),
+    JetMassMin                = cms.double(75.),
+    JetMassMax                = cms.double(135.),
+    NsubjCut                  = cms.double(0.45),
+    Bdiscriminator            = cms.string("combinedSecondaryVertexBJetTags"),
+    DoJetFlavor               = cms.bool(False),
+    JetFlavorPdgId            = cms.vint32(5),
+    FindGluonSplitting        = cms.bool(False),
+    FindMatrixElement         = cms.bool(False)
+)
 process.jetAnalyzerPrunedJetMassKtAxes = cms.EDAnalyzer('RutgersJetAnalyzer',
     UseEventWeight            = cms.bool(False),
     GenParticleTag            = cms.InputTag('genParticles'),
@@ -1059,6 +1051,38 @@ process.jetAnalyzerCAPrunedJetMassFilteredSub = cms.EDAnalyzer('RutgersJetAnalyz
     FindGluonSplitting        = cms.bool(False),
     FindMatrixElement         = cms.bool(False)
 )
+process.jetAnalyzerCAPrunedJetMassJTACone = cms.EDAnalyzer('RutgersJetAnalyzer',
+    UseEventWeight            = cms.bool(False),
+    GenParticleTag            = cms.InputTag('genParticles'),
+    JetsTag                   = cms.InputTag('selectedPatJetsCAJTAPF'),
+    UseGroomedJets            = cms.bool(True),
+    GroomedJetsTag            = cms.InputTag('selectedPatJetsCAPrunedPF'),
+    UseSubJets                = cms.bool(True),
+    GroomedBasicJetsTag       = cms.InputTag('caPFJetsPrunedCompound'),
+    SubJetsTag                = cms.InputTag('selectedPatJetsCAPrunedSubPF'),
+    SubJetMode                = cms.string('Pruned'),
+    PvTag                     = cms.InputTag('goodOfflinePrimaryVertices'),
+    JetRadius                 = cms.double(options.jetRadius),
+    DoBosonMatching           = cms.bool(True),
+    BosonMatchingRadius       = cms.double(0.5),
+    BosonPdgId                = cms.int32(25),
+    ApplyBosonIsolation       = cms.bool(True),
+    DoBosonDecayProdSelection = cms.bool(True),
+    BosonDecayProdPdgIds      = cms.vint32(5),
+    UseMassDrop               = cms.bool(False),
+    JetPtMin                  = cms.double(300.),
+    JetPtBins                 = cms.uint32(3),
+    JetPtBinWidth             = cms.double(200.),
+    JetAbsEtaMax              = cms.double(1.5),
+    JetMassMin                = cms.double(75.),
+    JetMassMax                = cms.double(135.),
+    NsubjCut                  = cms.double(0.45),
+    Bdiscriminator            = cms.string("combinedSecondaryVertexBJetTags"),
+    DoJetFlavor               = cms.bool(False),
+    JetFlavorPdgId            = cms.vint32(5),
+    FindGluonSplitting        = cms.bool(False),
+    FindMatrixElement         = cms.bool(False)
+)
 process.jetAnalyzerCAPrunedJets = cms.EDAnalyzer('RutgersJetAnalyzer',
     UseEventWeight            = cms.bool(False),
     GenParticleTag            = cms.InputTag('genParticles'),
@@ -1100,9 +1124,9 @@ if not options.runOnData:
 ## Define jet analyzer sequence
 process.jetAnalyzerSequence = cms.Sequence(
     process.jetAnalyzerDefaultJetMass
-    + process.jetAnalyzerTrimmedJetMass
-    + process.jetAnalyzerTrimmedJets
-    + process.jetAnalyzerFilteredJetMass
+    #+ process.jetAnalyzerTrimmedJetMass
+    #+ process.jetAnalyzerTrimmedJets
+    #+ process.jetAnalyzerFilteredJetMass
     + process.jetAnalyzerPrunedJetMass
     + process.jetAnalyzerPrunedJetMassKtAxes
     + process.jetAnalyzerPrunedJets
@@ -1111,12 +1135,12 @@ process.jetAnalyzerSequence = cms.Sequence(
 )
 
 process.jetAnalyzerSequenceExtra = cms.Sequence(
-    process.jetAnalyzerTrimmedJetMassFilteredSub
-    + process.jetAnalyzerTrimmedJetMassJTACone
-    + process.jetAnalyzerPrunedJetMassKtSub
+    process.jetAnalyzerPrunedJetMassKtSub
     + process.jetAnalyzerPrunedJetMassFilteredSub
+    + process.jetAnalyzerPrunedJetMassJTACone
     + process.jetAnalyzerCAPrunedJetMassKtSub
     + process.jetAnalyzerCAPrunedJetMassFilteredSub
+    + process.jetAnalyzerCAPrunedJetMassJTACone
 )
 
 ## If running H tagging

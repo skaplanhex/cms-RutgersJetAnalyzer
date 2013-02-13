@@ -455,21 +455,21 @@ if options.objectType=='H':
         #doJetID=False,
         #genJetCollection=cms.InputTag('akGenJetsNoNu')
     #)
-    addJetCollection(
-        process,
-        cms.InputTag('caPFJets'),
-        'CAJTA', 'PF',
-        doJTA=options.doJTA,
-        doBTagging=options.doBTagging,
-        btagInfo=bTagInfos,
-        btagdiscriminators=bTagDiscriminators,
-        jetCorrLabel=inputJetCorrLabelAK7,
-        doType1MET=False,
-        doL1Cleaning=False,
-        doL1Counters=False,
-        doJetID=False,
-        genJetCollection=cms.InputTag('caGenJetsNoNu')
-    )
+    #addJetCollection(
+        #process,
+        #cms.InputTag('caPFJets'),
+        #'CAJTA', 'PF',
+        #doJTA=options.doJTA,
+        #doBTagging=options.doBTagging,
+        #btagInfo=bTagInfos,
+        #btagdiscriminators=bTagDiscriminators,
+        #jetCorrLabel=inputJetCorrLabelAK7,
+        #doType1MET=False,
+        #doL1Cleaning=False,
+        #doL1Counters=False,
+        #doJetID=False,
+        #genJetCollection=cms.InputTag('caGenJetsNoNu')
+    #)
     #addJetCollection(
         #process,
         #cms.InputTag('akPFJetsRU','SubJets'),
@@ -1268,8 +1268,8 @@ process.jetAnalyzerSequenceExtra = cms.Sequence(
     #+ process.jetAnalyzerPrunedJetMassJTACone
     #+ process.jetAnalyzerCAPrunedJetMassKtSub
     #+ process.jetAnalyzerCAPrunedJetMassFilteredSub
-    process.jetAnalyzerCAPrunedJetMassJTACone
-    + process.jetAnalyzerCAPrunedJetMass_bQuarksGSP
+    #+ process.jetAnalyzerCAPrunedJetMassJTACone
+    process.jetAnalyzerCAPrunedJetMass_bQuarksGSP
     + process.jetAnalyzerCAPrunedJetMass_bQuarksME
     + process.jetAnalyzerCAPrunedJetMass_cQuarks
     + process.jetAnalyzerCAPrunedJetMass_udsQuarks_g

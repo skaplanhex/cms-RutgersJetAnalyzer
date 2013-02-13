@@ -410,6 +410,173 @@ void efficiency_curves_nsj_massdrop(const string& fFileS, const string& fFileB, 
 }
 
 
+void efficiency_curves_comp_xrange(const string& fFileS, const string& fFileB, const string& fPlot1, const string& fPlot2,
+                                   const double fXMin, const double fXMax, const string& fTitle, const string& fXAxisTitle, const string& fYAxisTitle,
+                                   const string& fLeg1, const string& fLeg2, const double fXmin, const double fXmax, const double fYmin, const double fYmax,
+                                   const string& fOutputFile)
+{
+  gROOT->SetBatch(kTRUE);
+  setEXOStyle();
+  gStyle->SetOptStat(kFALSE);
+  gStyle->SetPadTopMargin(0.07);
+  gStyle->SetPadBottomMargin(0.13);
+  gStyle->SetPadLeftMargin(0.14);
+  gStyle->SetPadRightMargin(0.06);
+  gROOT->ForceStyle();
+
+  // signal file
+  TFile *file_S  = new TFile(fFileS.c_str());
+
+  // background file
+  TFile *file_B = new TFile(fFileB.c_str());
+
+  // signal histograms
+  TH2D *h2_S_1 = (TH2D*)file_S->Get(fPlot1.c_str());
+  TH2D *h2_S_2 = (TH2D*)file_S->Get(fPlot2.c_str());
+
+  // background histograms
+  TH2D *h2_B_1 = (TH2D*)file_B->Get(fPlot1.c_str());
+  TH2D *h2_B_2 = (TH2D*)file_B->Get(fPlot2.c_str());
+
+  // signal denominator counts
+  double denom_S_1 = h2_S_1->Integral(h2_S_1->GetXaxis()->FindBin(fXMin),h2_S_1->GetXaxis()->FindBin(fXMax),0,101);
+  double denom_S_2 = h2_S_2->Integral(h2_S_2->GetXaxis()->FindBin(fXMin),h2_S_2->GetXaxis()->FindBin(fXMax),0,101);
+
+  // background denominator counts
+  double denom_B_1 = h2_B_1->Integral(h2_B_1->GetXaxis()->FindBin(fXMin),h2_B_1->GetXaxis()->FindBin(fXMax),0,101);
+  double denom_B_2 = h2_B_2->Integral(h2_B_2->GetXaxis()->FindBin(fXMin),h2_B_2->GetXaxis()->FindBin(fXMax),0,101);
+
+
+  TGraph *g_eff_1 = new TGraph(25);
+  g_eff_1->SetName("g_eff_1");
+  g_eff_1->SetLineColor(kGreen+2);
+  g_eff_1->SetLineWidth(2);
+  g_eff_1->SetLineStyle(1);
+  g_eff_1->SetMarkerStyle(20);
+
+  for(int i = 0; i<20; ++i)
+  {
+    double num_S = h2_S_1->Integral(h2_S_1->GetXaxis()->FindBin(fXMin),h2_S_1->GetXaxis()->FindBin(fXMax),101-(i*5),101);
+    double num_B = h2_B_1->Integral(h2_B_1->GetXaxis()->FindBin(fXMin),h2_B_1->GetXaxis()->FindBin(fXMax),101-(i*5),101);
+
+    g_eff_1->SetPoint(i,(num_S/denom_S_1),(num_B/denom_B_1));
+  }
+  for(int i = 1; i<6; ++i)
+  {
+    double num_S = h2_S_1->Integral(h2_S_1->GetXaxis()->FindBin(fXMin),h2_S_1->GetXaxis()->FindBin(fXMax),6-i,101);
+    double num_B = h2_B_1->Integral(h2_B_1->GetXaxis()->FindBin(fXMin),h2_B_1->GetXaxis()->FindBin(fXMax),6-i,101);
+
+    g_eff_1->SetPoint(i+19,(num_S/denom_S_1),(num_B/denom_B_1));
+  }
+
+  TGraph *g_eff_2 = new TGraph(25);
+  g_eff_2->SetName("g_eff_2");
+  g_eff_2->SetLineColor(kRed);
+  g_eff_2->SetLineWidth(2);
+  g_eff_2->SetLineStyle(2);
+  g_eff_2->SetMarkerStyle(20);
+
+  for(int i = 0; i<20; ++i)
+  {
+    double num_S = h2_S_2->Integral(h2_S_2->GetXaxis()->FindBin(fXMin),h2_S_2->GetXaxis()->FindBin(fXMax),101-(i*5),101);
+    double num_B = h2_B_2->Integral(h2_B_2->GetXaxis()->FindBin(fXMin),h2_B_2->GetXaxis()->FindBin(fXMax),101-(i*5),101);
+
+    g_eff_2->SetPoint(i,(num_S/denom_S_2),(num_B/denom_B_2));
+  }
+  for(int i = 1; i<6; ++i)
+  {
+    double num_S = h2_S_2->Integral(h2_S_2->GetXaxis()->FindBin(fXMin),h2_S_2->GetXaxis()->FindBin(fXMax),6-i,101);
+    double num_B = h2_B_2->Integral(h2_B_2->GetXaxis()->FindBin(fXMin),h2_B_2->GetXaxis()->FindBin(fXMax),6-i,101);
+
+    g_eff_2->SetPoint(i+19,(num_S/denom_S_2),(num_B/denom_B_2));
+  }
+
+  // CSV loose operating point
+  TGraph *g_eff_L = new TGraph(2);
+  g_eff_L->SetName("g_eff_L");
+  g_eff_L->SetMarkerStyle(31);
+  g_eff_L->SetMarkerSize(1.5);
+
+  g_eff_L->SetPoint(0,(h2_S_1->Integral(h2_S_1->GetXaxis()->FindBin(fXMin),h2_S_1->GetXaxis()->FindBin(fXMax),h2_S_1->GetYaxis()->FindBin(0.244),101)/denom_S_1),(h2_B_1->Integral(h2_B_1->GetXaxis()->FindBin(fXMin),h2_B_1->GetXaxis()->FindBin(fXMax),h2_B_1->GetYaxis()->FindBin(0.244),101)/denom_B_1));
+  g_eff_L->SetPoint(1,(h2_S_2->Integral(h2_S_2->GetXaxis()->FindBin(fXMin),h2_S_2->GetXaxis()->FindBin(fXMax),h2_S_2->GetYaxis()->FindBin(0.244),101)/denom_S_2),(h2_B_2->Integral(h2_B_2->GetXaxis()->FindBin(fXMin),h2_B_2->GetXaxis()->FindBin(fXMax),h2_B_2->GetYaxis()->FindBin(0.244),101)/denom_B_2));
+
+  // CSV medium operating point
+  TGraph *g_eff_M = new TGraph(2);
+  g_eff_M->SetName("g_eff_L");
+  g_eff_M->SetMarkerStyle(27);
+  g_eff_M->SetMarkerSize(1.5);
+
+  g_eff_M->SetPoint(0,(h2_S_1->Integral(h2_S_1->GetXaxis()->FindBin(fXMin),h2_S_1->GetXaxis()->FindBin(fXMax),h2_S_1->GetYaxis()->FindBin(0.679),101)/denom_S_1),(h2_B_1->Integral(h2_B_1->GetXaxis()->FindBin(fXMin),h2_B_1->GetXaxis()->FindBin(fXMax),h2_B_1->GetYaxis()->FindBin(0.679),101)/denom_B_1));
+  g_eff_M->SetPoint(1,(h2_S_2->Integral(h2_S_2->GetXaxis()->FindBin(fXMin),h2_S_2->GetXaxis()->FindBin(fXMax),h2_S_2->GetYaxis()->FindBin(0.679),101)/denom_S_2),(h2_B_2->Integral(h2_B_2->GetXaxis()->FindBin(fXMin),h2_B_2->GetXaxis()->FindBin(fXMax),h2_B_2->GetYaxis()->FindBin(0.679),101)/denom_B_2));
+
+  // CSV tight operating point
+  TGraph *g_eff_T = new TGraph(2);
+  g_eff_T->SetName("g_eff_L");
+  g_eff_T->SetMarkerStyle(30);
+  g_eff_T->SetMarkerSize(1.5);
+
+  g_eff_T->SetPoint(0,(h2_S_1->Integral(h2_S_1->GetXaxis()->FindBin(fXMin),h2_S_1->GetXaxis()->FindBin(fXMax),h2_S_1->GetYaxis()->FindBin(0.898),101)/denom_S_1),(h2_B_1->Integral(h2_B_1->GetXaxis()->FindBin(fXMin),h2_B_1->GetXaxis()->FindBin(fXMax),h2_B_1->GetYaxis()->FindBin(0.898),101)/denom_B_1));
+  g_eff_T->SetPoint(1,(h2_S_2->Integral(h2_S_2->GetXaxis()->FindBin(fXMin),h2_S_2->GetXaxis()->FindBin(fXMax),h2_S_2->GetYaxis()->FindBin(0.898),101)/denom_S_2),(h2_B_2->Integral(h2_B_2->GetXaxis()->FindBin(fXMin),h2_B_2->GetXaxis()->FindBin(fXMax),h2_B_2->GetYaxis()->FindBin(0.898),101)/denom_B_2));
+
+
+  TCanvas *c = new TCanvas("c", "",800,800);
+  c->cd();
+
+  TH2D *bkg = new TH2D("bkg","",100,fXmin,fXmax,100,fYmin,fYmax);
+  bkg->GetXaxis()->SetTitle(fXAxisTitle.c_str());
+  bkg->GetYaxis()->SetTitle(fYAxisTitle.c_str());
+  bkg->SetTitleOffset(1.05,"Y");
+  bkg->Draw();
+
+  g_eff_1->Draw("C");
+  g_eff_2->Draw("C");
+
+  g_eff_L->Draw("P");
+  g_eff_M->Draw("P");
+  g_eff_T->Draw("P");
+
+  TLegend *legend = new TLegend(.20,.67,.40,.87);
+  legend->SetBorderSize(0);
+  legend->SetFillColor(0);
+  legend->SetFillStyle(0);
+  legend->SetTextFont(42);
+  legend->SetTextSize(0.04);
+  legend->AddEntry(g_eff_1, fLeg1.c_str(),"l");
+  legend->AddEntry(g_eff_2, fLeg2.c_str(),"l");
+  legend->Draw();
+
+  TLegend *legend2 = new TLegend(.20,.45,.40,.65);
+  legend2->SetBorderSize(0);
+  legend2->SetFillColor(0);
+  legend2->SetFillStyle(0);
+  legend2->SetTextFont(42);
+  legend2->SetTextSize(0.03);
+  legend2->AddEntry(g_eff_L, "Loose","p");
+  legend2->AddEntry(g_eff_M, "Medium","p");
+  legend2->AddEntry(g_eff_T, "Tight","p");
+  legend2->Draw();
+
+  TLatex l1;
+  l1.SetTextAlign(12);
+  l1.SetTextFont(42);
+  l1.SetNDC();
+  l1.SetTextSize(0.035);
+  l1.DrawLatex(0.14,0.96, fTitle.c_str());
+
+  c->SetGridx();
+  c->SetGridy();
+  c->SaveAs(fOutputFile.c_str());
+
+  delete legend;
+  delete bkg;
+  delete c;
+  delete g_eff_2;
+  delete g_eff_1;
+  delete file_S;
+  delete file_B;
+}
+
+
 void efficiency_vs_cut(const string& fInputFile, const string& fFileDir, const string& fVariable, const string& fPtRange,
                        const int fPVLow, const int fPVHigh, const string& fTitle, const string& fXAxisTitle, const string& fYAxisTitle,
                        const double fXmin, const double fXmax, const Double_t fYmin, const Double_t fYmax, const string& fOutputFile,
@@ -964,4 +1131,37 @@ void makePlots()
 //                        "jetAnalyzerTrimmedJetMassJTACone/h1_JetPt_BosonMatched_JetMass", "jetAnalyzerTrimmedJetMassJTACone/h1_JetPt_BosonMatched",
 //                        "QCD, AK R=0.8, 75<m<135 GeV (trimmed)",
 //                        "Jet p_{T} [GeV]", "Higgs mistag rate", 40, 0, 1000, 0, 0.05, "Higgs_mistag_rate_total_JTACone_QCDPythia6.eps", 1., 1.15, 0.14, 0.07, 0.8);
+
+  // b-tagging efficiency vs mistage rate (CA8 pruned jets)
+  efficiency_curves_comp_xrange("output_files_v2/BprimeBprimeToBHBHinc_M-1000_HiggsTagging_dRsubjetBhadron.root", "output_files_v2/QCDPythia6_HiggsTagging_dRsubjetBhadron.root",
+                         "jetAnalyzerCAPrunedJetMass/h2_JetPt_JetCSVL_BosonMatched_JetMass", "jetAnalyzerCAPrunedJetMass/h2_JetPt_SubJetMinCSVL_BosonMatched_JetMass",
+                         300, 500, "CA R=0.8, 300<p_{T}<500 GeV, 75<m<135 GeV (pruned)", "Tagging efficiency (H#rightarrowb#bar{b})", "Mistag rate (QCD)","Fat jet CSV", "Subjet CSV",
+                         0, 1, 0, 1, "b_tag_eff_vs_mistag_CA8_BoostedH_Pt300to500_JetMass.eps");
+
+  efficiency_curves_comp_xrange("output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRsubjetBhadron.root", "output_files_v2/QCDPythia6_HiggsTagging_dRsubjetBhadron.root",
+                         "jetAnalyzerCAPrunedJetMass/h2_JetPt_JetCSVL_BosonMatched_JetMass", "jetAnalyzerCAPrunedJetMass/h2_JetPt_SubJetMinCSVL_BosonMatched_JetMass",
+                         500, 700, "CA R=0.8, 500<p_{T}<700 GeV, 75<m<135 GeV (pruned)", "Tagging efficiency (H#rightarrowb#bar{b})", "Mistag rate (QCD)","Fat jet CSV", "Subjet CSV",
+                         0, 1, 0, 1, "b_tag_eff_vs_mistag_CA8_BoostedH_Pt500to700_JetMass.eps");
+
+  efficiency_curves_comp_xrange("output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRsubjetBhadron.root", "output_files_v2/QCDPythia6_HiggsTagging_dRsubjetBhadron.root",
+                         "jetAnalyzerCAPrunedJetMass/h2_JetPt_JetCSVL_BosonMatched_JetMass", "jetAnalyzerCAPrunedJetMass/h2_JetPt_SubJetMinCSVL_BosonMatched_JetMass",
+                         700, 1100, "CA R=0.8, p_{T}>700 GeV, 75<m<135 GeV (pruned)", "Tagging efficiency (H#rightarrowb#bar{b})", "Mistag rate (QCD)","Fat jet CSV", "Subjet CSV",
+                         0, 1, 0, 1, "b_tag_eff_vs_mistag_CA8_BoostedH_Pt700toInf_JetMass.eps");
+
+  // b-tagging efficiency vs mistage rate (CA8 pruned jets with enlarged JTA cone)
+  efficiency_curves_comp_xrange("output_files_v2/BprimeBprimeToBHBHinc_M-1000_HiggsTagging_dRsubjetBhadron.root", "output_files_v2/QCDPythia6_HiggsTagging_dRsubjetBhadron.root",
+                         "jetAnalyzerCAPrunedJetMassJTACone/h2_JetPt_JetCSVL_BosonMatched_JetMass", "jetAnalyzerCAPrunedJetMassJTACone/h2_JetPt_SubJetMinCSVL_BosonMatched_JetMass",
+                         300, 500, "CA R=0.8, 300<p_{T}<500 GeV, 75<m<135 GeV (pruned)", "Tagging efficiency (H#rightarrowb#bar{b})", "Mistag rate (QCD)","Fat jet CSV (enlarged JTA cone)", "Subjet CSV",
+                         0, 1, 0, 1, "b_tag_eff_vs_mistag_CA8_JTA_BoostedH_Pt300to500_JetMass.eps");
+
+  efficiency_curves_comp_xrange("output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRsubjetBhadron.root", "output_files_v2/QCDPythia6_HiggsTagging_dRsubjetBhadron.root",
+                         "jetAnalyzerCAPrunedJetMassJTACone/h2_JetPt_JetCSVL_BosonMatched_JetMass", "jetAnalyzerCAPrunedJetMassJTACone/h2_JetPt_SubJetMinCSVL_BosonMatched_JetMass",
+                         500, 700, "CA R=0.8, 500<p_{T}<700 GeV, 75<m<135 GeV (pruned)", "Tagging efficiency (H#rightarrowb#bar{b})", "Mistag rate (QCD)","Fat jet CSV (enlarged JTA cone)", "Subjet CSV",
+                         0, 1, 0, 1, "b_tag_eff_vs_mistag_CA8_JTA_BoostedH_Pt500to700_JetMass.eps");
+
+  efficiency_curves_comp_xrange("output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRsubjetBhadron.root", "output_files_v2/QCDPythia6_HiggsTagging_dRsubjetBhadron.root",
+                         "jetAnalyzerCAPrunedJetMassJTACone/h2_JetPt_JetCSVL_BosonMatched_JetMass", "jetAnalyzerCAPrunedJetMassJTACone/h2_JetPt_SubJetMinCSVL_BosonMatched_JetMass",
+                         700, 1100, "CA R=0.8, p_{T}>700 GeV, 75<m<135 GeV (pruned)", "Tagging efficiency (H#rightarrowb#bar{b})", "Mistag rate (QCD)","Fat jet CSV (enlarged JTA cone)", "Subjet CSV",
+                         0, 1, 0, 1, "b_tag_eff_vs_mistag_CA8_JTA_BoostedH_Pt700toInf_JetMass.eps");
+
 }

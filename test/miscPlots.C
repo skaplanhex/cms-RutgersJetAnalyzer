@@ -189,13 +189,13 @@ void overlay1D(const string& fInputFileS, const string& fInputFileB, const strin
 }
 
 
-void overlay1D_dR(const string& fInputFile1, const string& fInputFile2, const string& fPlot1, const string& fPlot2,
-                  const Int_t fPtMin1, const Int_t fPtMax1, const Int_t fPtMin2, const Int_t fPtMax2,
-                  const Int_t fRebinX, const Double_t fXmin, const Double_t fXmax, const Double_t fYmin, const Double_t fYmax,
-                  const string& fTitle, const string& fXAxisTitle, const string& fYAxisTitle,
-                  const string& fLeg1, const string& fLeg2, const string& fOutputFile,
-                  const Double_t fTitleOffsetX=1.0, const Double_t fTitleOffsetY=1.0,
-                  const Double_t fLeftMargin=0.12, const Double_t fTopMargin=0.07, const Double_t fPlotWidth=0.8)
+void overlay1D_Xrange_Yprojection(const string& fInputFile1, const string& fInputFile2, const string& fPlot1, const string& fPlot2,
+                                  const Int_t fXMin1, const Int_t fXMax1, const Int_t fXMin2, const Int_t fXMax2,
+                                  const Int_t fRebinX, const Double_t fXmin, const Double_t fXmax, const Double_t fYmin, const Double_t fYmax,
+                                  const string& fTitle, const string& fXAxisTitle, const string& fYAxisTitle,
+                                  const string& fLeg1, const string& fLeg2, const string& fOutputFile, const Int_t fLogy=0,
+                                  const Double_t fTitleOffsetX=1.0, const Double_t fTitleOffsetY=1.0,
+                                  const Double_t fLeftMargin=0.12, const Double_t fTopMargin=0.07, const Double_t fPlotWidth=0.8)
 {
   gROOT->SetBatch(kTRUE);
   setEXOStyle();
@@ -211,9 +211,9 @@ void overlay1D_dR(const string& fInputFile1, const string& fInputFile2, const st
   TFile *file2 = new TFile(fInputFile2.c_str());
 
   TH2D *h2_1 = (TH2D*)file1->Get(fPlot1.c_str());
-  TH1D *h1_1 = h2_1->ProjectionY("_py1",h2_1->GetXaxis()->FindBin(fPtMin1),h2_1->GetXaxis()->FindBin(fPtMax1));
+  TH1D *h1_1 = h2_1->ProjectionY("_py1",h2_1->GetXaxis()->FindBin(fXMin1),h2_1->GetXaxis()->FindBin(fXMax1));
   TH2D *h2_2 = (TH2D*)file2->Get(fPlot2.c_str());
-  TH1D *h1_2 = h2_2->ProjectionY("_py2",h2_2->GetXaxis()->FindBin(fPtMin2),h2_2->GetXaxis()->FindBin(fPtMax2));
+  TH1D *h1_2 = h2_2->ProjectionY("_py2",h2_2->GetXaxis()->FindBin(fXMin2),h2_2->GetXaxis()->FindBin(fXMax2));
 
   TCanvas *c = new TCanvas("c", "",1000,800);
   c->cd();
@@ -257,6 +257,7 @@ void overlay1D_dR(const string& fInputFile1, const string& fInputFile2, const st
   l1.SetTextSize(0.04);
   l1.DrawLatex(fLeftMargin-0.05,0.96, fTitle.c_str());
 
+  if(fLogy) c->SetLogy();
   c->SaveAs(fOutputFile.c_str());
 
   delete legend;
@@ -316,6 +317,13 @@ void makePlots()
 // 
 //   plot2D("output_files_v2/BprimeBprimeToBHBHinc_M-800_HiggsTagging.root", "jetAnalyzerTrimmedJetMass/h2_BosonPt_dRdecay", "H#rightarrowb#bar{b}, #DeltaR(H,other b' decay products)>0.8",
 //          "Higgs true p_{T} [GeV]", "#DeltaR(b,#bar{b})", 10, 0, 1000, 1, 0, 5, "Pt_HiggsToBBbar_Isolated_dRdecay_BprimeBprimeToBHBHinc_M-800.eps", 1., 0.9, 0.11, 0.07, 0.77);
+
+  plot2D("output_files_v2/BprimeBprimeToBHBHinc_M-1000_HiggsTagging_dRsubjetBhadron.root", "jetAnalyzerCAPrunedJetMass/h2_BosonPt_dRdecay", "H#rightarrowb#bar{b}, #DeltaR(H,other b' decay products)>0.8",
+         "Higgs true p_{T} [GeV]", "#DeltaR(b,#bar{b})", 2, 0, 1000, 1, 0, 5, "Pt_HiggsToBBbar_Isolated_dRdecay_BprimeBprimeToBHBHinc_M-1000.eps", 1., 0.9, 0.11, 0.07, 0.77);
+
+  plot2D("output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRsubjetBhadron.root", "jetAnalyzerCAPrunedJetMass/h2_BosonPt_dRdecay", "H#rightarrowb#bar{b}, #DeltaR(H,other b' decay products)>0.8",
+         "Higgs true p_{T} [GeV]", "#DeltaR(b,#bar{b})", 2, 0, 1000, 1, 0, 5, "Pt_HiggsToBBbar_Isolated_dRdecay_BprimeBprimeToBHBHinc_M-1500.eps", 1., 0.9, 0.11, 0.07, 0.77);
+
 // 
 //   plot2D("output_files_v2/BprimeBprimeToBHBHinc_M-800_HiggsTagging_NonIsolatedBosons_TrimmedJetMass.root", "jetAnalyzerTrimmedJetMass/h2_JetPt_JetPtOverBosonPt", "H#rightarrowb#bar{b} (non-isolated), AK R=0.8, #DeltaR(H,jet)<0.5",
 //          "p_{T}^{jet} [GeV]", "p_{T}^{jet}/p_{T}^{boson}", 10, 300, 1000, 2, 0, 2, "JetPt_JetPtOverBosonPt_HiggsToBBbar_NonIsolated_BprimeBprimeToBHBHinc_M-800.eps", 1., 0.9, 0.12, 0.07, 0.76);
@@ -334,7 +342,19 @@ void makePlots()
 // 
 //   plot2D("output_files_v2/BprimeBprimeToBHBHinc_M-800_HiggsTagging.root", "jetAnalyzerTrimmedJetMass/h2_JetPt_JetMass_BosonMatched", "H#rightarrowb#bar{b} (isolated), AK R=0.8, #DeltaR(H,jet)<0.5",
 //          "p_{T}^{jet} [GeV]", "m_{jet} (trimmed) [GeV]", 5, 300, 1000, 2, 0, 400, "JetPt_JetMass_HiggsToBBbar_Isolated_BprimeBprimeToBHBHinc_M-800.eps", 1., 0.9, 0.12, 0.07, 0.76);
-// 
+
+  plot2D("output_files_v2/BprimeBprimeToBHBHinc_M-1000_HiggsTagging_dRsubjetBhadron.root", "jetAnalyzerCAPrunedJetMass/h2_JetPt_dRsubjets_BosonMatched", "CA R=0.8, #DeltaR(H,jet)<0.5",
+         "Jet p_{T} [GeV]", "#DeltaR(subjets)", 2, 0, 1000, 1, 0, 5, "JetPt_dRsubjets_CA8pruned_BoostedH_BprimeBprimeToBHBHinc_M-1000.eps", 1., 0.9, 0.11, 0.07, 0.77);
+
+  plot2D("output_files_v2/BprimeBprimeToBHBHinc_M-1000_HiggsTagging_dRsubjetBhadron.root", "jetAnalyzerCAPrunedJetMass/h2_JetPt_dRsubjets_BosonMatched_JetMass", "CA R=0.8, #DeltaR(H,jet)<0.5, 75<m<135 GeV (pruned)",
+         "Jet p_{T} [GeV]", "#DeltaR(subjets)", 2, 0, 1000, 1, 0, 5, "JetPt_dRsubjets_CA8pruned_BoostedH_JetMass_BprimeBprimeToBHBHinc_M-1000.eps", 1., 0.9, 0.11, 0.07, 0.77);
+
+  plot2D("output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRsubjetBhadron.root", "jetAnalyzerCAPrunedJetMass/h2_JetPt_dRsubjets_BosonMatched", "CA R=0.8, #DeltaR(H,jet)<0.5",
+         "Jet p_{T} [GeV]", "#DeltaR(subjets)", 2, 0, 1000, 1, 0, 5, "JetPt_dRsubjets_CA8pruned_BoostedH_BprimeBprimeToBHBHinc_M-1500.eps", 1., 0.9, 0.11, 0.07, 0.77);
+
+  plot2D("output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRsubjetBhadron.root", "jetAnalyzerCAPrunedJetMass/h2_JetPt_dRsubjets_BosonMatched_JetMass", "CA R=0.8, #DeltaR(H,jet)<0.5, 75<m<135 GeV (pruned)",
+         "Jet p_{T} [GeV]", "#DeltaR(subjets)", 2, 0, 1000, 1, 0, 5, "JetPt_dRsubjets_CA8pruned_BoostedH_JetMass_BprimeBprimeToBHBHinc_M-1500.eps", 1., 0.9, 0.11, 0.07, 0.77);
+  
 // 
 //   overlay1D("output_files_v2/BprimeBprimeToBHBHinc_M-800_HiggsTagging.root", "output_files_v2/QCDPythia6_HiggsTagging.root",
 //             "jetAnalyzerCAPrunedJets/h2_nPV_MassDrop_Pt300toInf", 0, 52, 2,
@@ -346,126 +366,145 @@ void makePlots()
 //             "AK R=0.8, p_{T}>300 GeV, 75<m<135 GeV (trimmed)", "#tau_{2}/#tau_{1}", "Entries", "Boosted H", "QCD",
 //             "tau2tau1_BoostedH_QCD_Pt300toInf.eps", 0.9);
 
-  // dR(subjet,Bhadron)
-  // Pruned subjets
+  // min dR(subjet,Bhadron)
+  // CA pruned subjets
   // 300<pT<500 GeV
-//   overlay1D_dR("output_files_v2/BprimeBprimeToBHBHinc_M-1000_HiggsTagging_dRsubjetBhadron.root", "output_files_v2/BprimeBprimeToBHBHinc_M-1000_HiggsTagging_dRsubjetBhadron.root",
-//                "jetAnalyzerPrunedJetMass/h2_JetPt_mindRSubjet1Bhadron", "jetAnalyzerPrunedJetMass/h2_JetPt_mindRSubjet1Bhadron_JetMass",
-//                300, 500, 300, 500, 1, 0, 1, 0, 0.8,
-//                "AK R=0.8, 300<p_{T}<500 GeV, #DeltaR(H,jet)<0.5, pruned subjets", "min #DeltaR(subjet_{1},B hadron)", "Relative fraction", "No m cut", "75<m<135 GeV (pruned)",
-//                "mindRSubjet1Bhadron_AK8pruned_BoostedH_Pt300to500_JetMassCut.eps", 0.95);
-// 
-//   overlay1D_dR("output_files_v2/BprimeBprimeToBHBHinc_M-1000_HiggsTagging_dRsubjetBhadron.root", "output_files_v2/BprimeBprimeToBHBHinc_M-1000_HiggsTagging_dRsubjetBhadron.root",
-//                "jetAnalyzerPrunedJetMass/h2_JetPt_mindRSubjet2Bhadron", "jetAnalyzerPrunedJetMass/h2_JetPt_mindRSubjet2Bhadron_JetMass",
-//                300, 500, 300, 500, 1, 0, 1, 0, 0.8,
-//                "AK R=0.8, 300<p_{T}<500 GeV, #DeltaR(H,jet)<0.5, pruned subjets", "min #DeltaR(subjet_{2},B hadron)", "Relative fraction", "No m cut", "75<m<135 GeV (pruned)",
-//                "mindRSubjet2Bhadron_AK8pruned_BoostedH_Pt300to500_JetMassCut.eps", 0.95);
-// 
-//   // 500<pT<700 GeV
-//   overlay1D_dR("output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRsubjetBhadron.root", "output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRsubjetBhadron.root",
-//                "jetAnalyzerPrunedJetMass/h2_JetPt_mindRSubjet1Bhadron", "jetAnalyzerPrunedJetMass/h2_JetPt_mindRSubjet1Bhadron_JetMass",
-//                500, 700, 500, 700, 1, 0, 1, 0, 0.8,
-//                "AK R=0.8, 500<p_{T}<700 GeV, #DeltaR(H,jet)<0.5, pruned subjets", "min #DeltaR(subjet_{1},B hadron)", "Relative fraction", "No m cut", "75<m<135 GeV (pruned)",
-//                "mindRSubjet1Bhadron_AK8pruned_BoostedH_Pt500to700_JetMassCut.eps", 0.95);
-// 
-//   overlay1D_dR("output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRsubjetBhadron.root", "output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRsubjetBhadron.root",
-//                "jetAnalyzerPrunedJetMass/h2_JetPt_mindRSubjet2Bhadron", "jetAnalyzerPrunedJetMass/h2_JetPt_mindRSubjet2Bhadron_JetMass",
-//                500, 700, 500, 700, 1, 0, 1, 0, 0.8,
-//                "AK R=0.8, 500<p_{T}<700 GeV, #DeltaR(H,jet)<0.5, pruned subjets", "min #DeltaR(subjet_{2},B hadron)", "Relative fraction", "No m cut", "75<m<135 GeV (pruned)",
-//                "mindRSubjet2Bhadron_AK8pruned_BoostedH_Pt500to700_JetMassCut.eps", 0.95);
-// 
-//   // pT>700 GeV
-//   overlay1D_dR("output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRsubjetBhadron.root", "output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRsubjetBhadron.root",
-//                "jetAnalyzerPrunedJetMass/h2_JetPt_mindRSubjet1Bhadron", "jetAnalyzerPrunedJetMass/h2_JetPt_mindRSubjet1Bhadron_JetMass",
-//                700, 1100, 700, 1100, 1, 0, 1, 0, 0.8,
-//                "AK R=0.8, p_{T}>700 GeV, #DeltaR(H,jet)<0.5, pruned subjets", "min #DeltaR(subjet_{1},B hadron)", "Relative fraction", "No m cut", "75<m<135 GeV (pruned)",
-//                "mindRSubjet1Bhadron_AK8pruned_BoostedH_Pt700toInf_JetMassCut.eps", 0.95);
-// 
-//   overlay1D_dR("output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRsubjetBhadron.root", "output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRsubjetBhadron.root",
-//                "jetAnalyzerPrunedJetMass/h2_JetPt_mindRSubjet2Bhadron", "jetAnalyzerPrunedJetMass/h2_JetPt_mindRSubjet2Bhadron_JetMass",
-//                700, 1100, 700, 1100, 1, 0, 1, 0, 0.8,
-//                "AK R=0.8, p_{T}>700 GeV, #DeltaR(H,jet)<0.5, pruned subjets", "min #DeltaR(subjet_{2},B hadron)", "Relative fraction", "No m cut", "75<m<135 GeV (pruned)",
-//                "mindRSubjet2Bhadron_AK8pruned_BoostedH_Pt700toInf_JetMassCut.eps", 0.95);
-
-  // Pruned vs kT subjets
-  // 300<pT<500 GeV
-//   overlay1D_dR("output_files_v2/BprimeBprimeToBHBHinc_M-1000_HiggsTagging_dRsubjetBhadron.root", "output_files_v2/BprimeBprimeToBHBHinc_M-1000_HiggsTagging_dRsubjetBhadron.root",
-//                "jetAnalyzerPrunedJetMass/h2_JetPt_mindRSubjet1Bhadron_JetMass", "jetAnalyzerPrunedJetMassKtSub/h2_JetPt_mindRSubjet1Bhadron_JetMass",
-//                300, 500, 300, 500, 1, 0, 1, 0, 0.8,
-//                "AK R=0.8, 300<p_{T}<500 GeV, #DeltaR(H,jet)<0.5, 75<m<135 GeV (pruned)", "min #DeltaR(subjet_{1},B hadron)", "Relative fraction", "Pruned subjets", "k_{T} subjets",
-//                "mindRSubjet1Bhadron_AK8_BoostedH_Pt300to500_JetMass_pruned_vs_kT.eps", 0.95);
-// 
-//   overlay1D_dR("output_files_v2/BprimeBprimeToBHBHinc_M-1000_HiggsTagging_dRsubjetBhadron.root", "output_files_v2/BprimeBprimeToBHBHinc_M-1000_HiggsTagging_dRsubjetBhadron.root",
-//                "jetAnalyzerPrunedJetMass/h2_JetPt_mindRSubjet2Bhadron_JetMass", "jetAnalyzerPrunedJetMassKtSub/h2_JetPt_mindRSubjet2Bhadron_JetMass",
-//                300, 500, 300, 500, 1, 0, 1, 0, 0.8,
-//                "AK R=0.8, 300<p_{T}<500 GeV, #DeltaR(H,jet)<0.5, 75<m<135 GeV (pruned)", "min #DeltaR(subjet_{2},B hadron)", "Relative fraction", "Pruned subjets", "k_{T} subjets",
-//                "mindRSubjet2Bhadron_AK8_BoostedH_Pt300to500_JetMass_pruned_vs_kT.eps", 0.95);
-// 
-//   // pT>700 GeV
-//   overlay1D_dR("output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRsubjetBhadron.root", "output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRsubjetBhadron.root",
-//                "jetAnalyzerPrunedJetMass/h2_JetPt_mindRSubjet1Bhadron_JetMass", "jetAnalyzerPrunedJetMassKtSub/h2_JetPt_mindRSubjet1Bhadron_JetMass",
-//                700, 1100, 700, 1100, 1, 0, 1, 0, 0.8,
-//                "AK R=0.8, p_{T}>700 GeV, #DeltaR(H,jet)<0.5, 75<m<135 GeV (pruned)", "min #DeltaR(subjet_{1},B hadron)", "Relative fraction", "Pruned subjets", "k_{T} subjets",
-//                "mindRSubjet1Bhadron_AK8_BoostedH_Pt700toInf_JetMass_pruned_vs_kT.eps", 0.95);
-// 
-//   overlay1D_dR("output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRsubjetBhadron.root", "output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRsubjetBhadron.root",
-//                "jetAnalyzerPrunedJetMass/h2_JetPt_mindRSubjet2Bhadron_JetMass", "jetAnalyzerPrunedJetMassKtSub/h2_JetPt_mindRSubjet2Bhadron_JetMass",
-//                700, 1100, 700, 1100, 1, 0, 1, 0, 0.8,
-//                "AK R=0.8, p_{T}>700 GeV, #DeltaR(H,jet)<0.5, 75<m<135 GeV (pruned)", "min #DeltaR(subjet_{2},B hadron)", "Relative fraction", "Pruned subjets", "k_{T} subjets",
-//                "mindRSubjet2Bhadron_AK8_BoostedH_Pt700toInf_JetMass_pruned_vs_kT.eps", 0.95);
-
-  // Pruned vs filtered subjets
-  // 300<pT<500 GeV
-  overlay1D_dR("output_files_v2/BprimeBprimeToBHBHinc_M-1000_HiggsTagging_dRsubjetBhadron.root", "output_files_v2/BprimeBprimeToBHBHinc_M-1000_HiggsTagging_dRsubjetBhadron.root",
-               "jetAnalyzerPrunedJetMass/h2_JetPt_mindRSubjet1Bhadron_JetMass", "jetAnalyzerPrunedJetMassFilteredSub/h2_JetPt_mindRSubjet1Bhadron_JetMass",
+  overlay1D_Xrange_Yprojection("output_files_v2/BprimeBprimeToBHBHinc_M-1000_HiggsTagging_dRsubjetBhadron.root", "output_files_v2/BprimeBprimeToBHBHinc_M-1000_HiggsTagging_dRsubjetBhadron.root",
+               "jetAnalyzerCAPrunedJetMass/h2_JetPt_mindRSubjet1Bhadron_BosonMatched", "jetAnalyzerCAPrunedJetMass/h2_JetPt_mindRSubjet1Bhadron_BosonMatched_JetMass",
                300, 500, 300, 500, 1, 0, 1, 0, 0.8,
-               "AK R=0.8, 300<p_{T}<500 GeV, #DeltaR(H,jet)<0.5, 75<m<135 GeV (pruned)", "min #DeltaR(subjet_{1},B hadron)", "Relative fraction", "Pruned subjets", "Filtered subjets",
-               "mindRSubjet1Bhadron_AK8_BoostedH_Pt300to500_JetMass_pruned_vs_filtered.eps", 0.95);
+               "CA R=0.8, 300<p_{T}<500 GeV, #DeltaR(H,jet)<0.5, pruned subjets", "min #DeltaR(subjet_{1},B hadron)", "Relative fraction", "No m cut", "75<m<135 GeV (pruned)",
+               "mindRSubjet1Bhadron_CA8pruned_BoostedH_Pt300to500_JetMassCut.eps", 0,  0.95);
 
-  overlay1D_dR("output_files_v2/BprimeBprimeToBHBHinc_M-1000_HiggsTagging_dRsubjetBhadron.root", "output_files_v2/BprimeBprimeToBHBHinc_M-1000_HiggsTagging_dRsubjetBhadron.root",
-               "jetAnalyzerPrunedJetMass/h2_JetPt_mindRSubjet2Bhadron_JetMass", "jetAnalyzerPrunedJetMassFilteredSub/h2_JetPt_mindRSubjet2Bhadron_JetMass",
+  overlay1D_Xrange_Yprojection("output_files_v2/BprimeBprimeToBHBHinc_M-1000_HiggsTagging_dRsubjetBhadron.root", "output_files_v2/BprimeBprimeToBHBHinc_M-1000_HiggsTagging_dRsubjetBhadron.root",
+               "jetAnalyzerCAPrunedJetMass/h2_JetPt_mindRSubjet2Bhadron_BosonMatched", "jetAnalyzerCAPrunedJetMass/h2_JetPt_mindRSubjet2Bhadron_BosonMatched_JetMass",
                300, 500, 300, 500, 1, 0, 1, 0, 0.8,
-               "AK R=0.8, 300<p_{T}<500 GeV, #DeltaR(H,jet)<0.5, 75<m<135 GeV (pruned)", "min #DeltaR(subjet_{2},B hadron)", "Relative fraction", "Pruned subjets", "Filtered subjets",
-               "mindRSubjet2Bhadron_AK8_BoostedH_Pt300to500_JetMass_pruned_vs_filtered.eps", 0.95);
+               "CA R=0.8, 300<p_{T}<500 GeV, #DeltaR(H,jet)<0.5, pruned subjets", "min #DeltaR(subjet_{2},B hadron)", "Relative fraction", "No m cut", "75<m<135 GeV (pruned)",
+               "mindRSubjet2Bhadron_CA8pruned_BoostedH_Pt300to500_JetMassCut.eps", 0,  0.95);
 
   // pT>700 GeV
-  overlay1D_dR("output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRsubjetBhadron.root", "output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRsubjetBhadron.root",
-               "jetAnalyzerPrunedJetMass/h2_JetPt_mindRSubjet1Bhadron_JetMass", "jetAnalyzerPrunedJetMassFilteredSub/h2_JetPt_mindRSubjet1Bhadron_JetMass",
+  overlay1D_Xrange_Yprojection("output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRsubjetBhadron.root", "output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRsubjetBhadron.root",
+               "jetAnalyzerCAPrunedJetMass/h2_JetPt_mindRSubjet1Bhadron_BosonMatched", "jetAnalyzerCAPrunedJetMass/h2_JetPt_mindRSubjet1Bhadron_BosonMatched_JetMass",
                700, 1100, 700, 1100, 1, 0, 1, 0, 0.8,
-               "AK R=0.8, p_{T}>700 GeV, #DeltaR(H,jet)<0.5, 75<m<135 GeV (pruned)", "min #DeltaR(subjet_{1},B hadron)", "Relative fraction", "Pruned subjets", "Filtered subjets",
-               "mindRSubjet1Bhadron_AK8_BoostedH_Pt700toInf_JetMass_pruned_vs_filtered.eps", 0.95);
+               "CA R=0.8, p_{T}>700 GeV, #DeltaR(H,jet)<0.5, pruned subjets", "min #DeltaR(subjet_{1},B hadron)", "Relative fraction", "No m cut", "75<m<135 GeV (pruned)",
+               "mindRSubjet1Bhadron_CA8pruned_BoostedH_Pt700toInf_JetMassCut.eps", 0,  0.95);
 
-  overlay1D_dR("output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRsubjetBhadron.root", "output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRsubjetBhadron.root",
-               "jetAnalyzerPrunedJetMass/h2_JetPt_mindRSubjet2Bhadron_JetMass", "jetAnalyzerPrunedJetMassFilteredSub/h2_JetPt_mindRSubjet2Bhadron_JetMass",
+  overlay1D_Xrange_Yprojection("output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRsubjetBhadron.root", "output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRsubjetBhadron.root",
+               "jetAnalyzerCAPrunedJetMass/h2_JetPt_mindRSubjet2Bhadron_BosonMatched", "jetAnalyzerCAPrunedJetMass/h2_JetPt_mindRSubjet2Bhadron_BosonMatched_JetMass",
                700, 1100, 700, 1100, 1, 0, 1, 0, 0.8,
-               "AK R=0.8, p_{T}>700 GeV, #DeltaR(H,jet)<0.5, 75<m<135 GeV (pruned)", "min #DeltaR(subjet_{2},B hadron)", "Relative fraction", "Pruned subjets", "Filtered subjets",
-               "mindRSubjet2Bhadron_AK8_BoostedH_Pt700toInf_JetMass_pruned_vs_filtered.eps", 0.95);
+               "CA R=0.8, p_{T}>700 GeV, #DeltaR(H,jet)<0.5, pruned subjets", "min #DeltaR(subjet_{2},B hadron)", "Relative fraction", "No m cut", "75<m<135 GeV (pruned)",
+               "mindRSubjet2Bhadron_CA8pruned_BoostedH_Pt700toInf_JetMassCut.eps", 0,  0.95);
 
-  // Pruned subjets AK vs CA
+  // CA pruned vs kT subjets
   // 300<pT<500 GeV
-//   overlay1D_dR("output_files_v2/BprimeBprimeToBHBHinc_M-1000_HiggsTagging_dRsubjetBhadron.root", "output_files_v2/BprimeBprimeToBHBHinc_M-1000_HiggsTagging_dRsubjetBhadron.root",
-//                "jetAnalyzerPrunedJetMass/h2_JetPt_mindRSubjet1Bhadron_JetMass", "jetAnalyzerCAPrunedJetMass/h2_JetPt_mindRSubjet1Bhadron_JetMass",
-//                300, 500, 300, 500, 1, 0, 1, 0, 0.8,
-//                "R=0.8, 300<p_{T}<500 GeV, #DeltaR(H,jet)<0.5, 75<m<135 GeV (pruned)", "min #DeltaR(subjet_{1},B hadron)", "Relative fraction", "AK pruned subjets", "CA pruned subjets",
-//                "mindRSubjet1Bhadron_BoostedH_Pt300to500_JetMass_pruned_AK8_vs_CA8.eps", 0.95);
-// 
-//   overlay1D_dR("output_files_v2/BprimeBprimeToBHBHinc_M-1000_HiggsTagging_dRsubjetBhadron.root", "output_files_v2/BprimeBprimeToBHBHinc_M-1000_HiggsTagging_dRsubjetBhadron.root",
-//                "jetAnalyzerPrunedJetMass/h2_JetPt_mindRSubjet2Bhadron_JetMass", "jetAnalyzerCAPrunedJetMass/h2_JetPt_mindRSubjet2Bhadron_JetMass",
-//                300, 500, 300, 500, 1, 0, 1, 0, 0.8,
-//                "AK R=0.8, 300<p_{T}<500 GeV, #DeltaR(H,jet)<0.5, 75<m<135 GeV (pruned)", "min #DeltaR(subjet_{2},B hadron)", "Relative fraction", "AK pruned subjets", "CA pruned subjets",
-//                "mindRSubjet2Bhadron_BoostedH_Pt300to500_JetMass_pruned_AK8_vs_CA8.eps", 0.95);
-// 
-//   // pT>700 GeV
-//   overlay1D_dR("output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRsubjetBhadron.root", "output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRsubjetBhadron.root",
-//                "jetAnalyzerPrunedJetMass/h2_JetPt_mindRSubjet1Bhadron_JetMass", "jetAnalyzerCAPrunedJetMass/h2_JetPt_mindRSubjet1Bhadron_JetMass",
-//                700, 1100, 700, 1100, 1, 0, 1, 0, 0.8,
-//                "AK R=0.8, p_{T}>700 GeV, #DeltaR(H,jet)<0.5, 75<m<135 GeV (pruned)", "min #DeltaR(subjet_{1},B hadron)", "Relative fraction", "AK pruned subjets", "CA pruned subjets",
-//                "mindRSubjet1Bhadron_BoostedH_Pt700toInf_JetMass_pruned_AK8_vs_CA8.eps", 0.95);
-// 
-//   overlay1D_dR("output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRsubjetBhadron.root", "output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRsubjetBhadron.root",
-//                "jetAnalyzerPrunedJetMass/h2_JetPt_mindRSubjet2Bhadron_JetMass", "jetAnalyzerCAPrunedJetMass/h2_JetPt_mindRSubjet2Bhadron_JetMass",
-//                700, 1100, 700, 1100, 1, 0, 1, 0, 0.8,
-//                "AK R=0.8, p_{T}>700 GeV, #DeltaR(H,jet)<0.5, 75<m<135 GeV (pruned)", "min #DeltaR(subjet_{2},B hadron)", "Relative fraction", "AK pruned subjets", "CA pruned subjets",
-//                "mindRSubjet2Bhadron_BoostedH_Pt700toInf_JetMass_pruned_AK8_vs_CA8.eps", 0.95);
-  
+  overlay1D_Xrange_Yprojection("output_files_v2/BprimeBprimeToBHBHinc_M-1000_HiggsTagging_dRsubjetBhadron.root", "output_files_v2/BprimeBprimeToBHBHinc_M-1000_HiggsTagging_dRsubjetBhadron.root",
+               "jetAnalyzerCAPrunedJetMass/h2_JetPt_mindRSubjet1Bhadron_BosonMatched_JetMass", "jetAnalyzerCAPrunedJetMassKtSub/h2_JetPt_mindRSubjet1Bhadron_BosonMatched_JetMass",
+               300, 500, 300, 500, 1, 0, 1, 0, 0.8,
+               "CA R=0.8, 300<p_{T}<500 GeV, #DeltaR(H,jet)<0.5, 75<m<135 GeV (pruned)", "min #DeltaR(subjet_{1},B hadron)", "Relative fraction", "Pruned subjets", "k_{T} subjets",
+               "mindRSubjet1Bhadron_CA8_BoostedH_Pt300to500_JetMass_pruned_vs_kT.eps", 0, 0.95);
+
+  overlay1D_Xrange_Yprojection("output_files_v2/BprimeBprimeToBHBHinc_M-1000_HiggsTagging_dRsubjetBhadron.root", "output_files_v2/BprimeBprimeToBHBHinc_M-1000_HiggsTagging_dRsubjetBhadron.root",
+               "jetAnalyzerCAPrunedJetMass/h2_JetPt_mindRSubjet2Bhadron_BosonMatched_JetMass", "jetAnalyzerCAPrunedJetMassKtSub/h2_JetPt_mindRSubjet2Bhadron_BosonMatched_JetMass",
+               300, 500, 300, 500, 1, 0, 1, 0, 0.8,
+               "CA R=0.8, 300<p_{T}<500 GeV, #DeltaR(H,jet)<0.5, 75<m<135 GeV (pruned)", "min #DeltaR(subjet_{2},B hadron)", "Relative fraction", "Pruned subjets", "k_{T} subjets",
+               "mindRSubjet2Bhadron_CA8_BoostedH_Pt300to500_JetMass_pruned_vs_kT.eps", 0,  0.95);
+
+  // pT>700 GeV
+  overlay1D_Xrange_Yprojection("output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRsubjetBhadron.root", "output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRsubjetBhadron.root",
+               "jetAnalyzerCAPrunedJetMass/h2_JetPt_mindRSubjet1Bhadron_BosonMatched_JetMass", "jetAnalyzerCAPrunedJetMassKtSub/h2_JetPt_mindRSubjet1Bhadron_BosonMatched_JetMass",
+               700, 1100, 700, 1100, 1, 0, 1, 0, 0.8,
+               "CA R=0.8, p_{T}>700 GeV, #DeltaR(H,jet)<0.5, 75<m<135 GeV (pruned)", "min #DeltaR(subjet_{1},B hadron)", "Relative fraction", "Pruned subjets", "k_{T} subjets",
+               "mindRSubjet1Bhadron_CA8_BoostedH_Pt700toInf_JetMass_pruned_vs_kT.eps", 0,  0.95);
+
+  overlay1D_Xrange_Yprojection("output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRsubjetBhadron.root", "output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRsubjetBhadron.root",
+               "jetAnalyzerCAPrunedJetMass/h2_JetPt_mindRSubjet2Bhadron_BosonMatched_JetMass", "jetAnalyzerCAPrunedJetMassKtSub/h2_JetPt_mindRSubjet2Bhadron_BosonMatched_JetMass",
+               700, 1100, 700, 1100, 1, 0, 1, 0, 0.8,
+               "CA R=0.8, p_{T}>700 GeV, #DeltaR(H,jet)<0.5, 75<m<135 GeV (pruned)", "min #DeltaR(subjet_{2},B hadron)", "Relative fraction", "Pruned subjets", "k_{T} subjets",
+               "mindRSubjet2Bhadron_CA8_BoostedH_Pt700toInf_JetMass_pruned_vs_kT.eps", 0,  0.95);
+
+  // CA pruned vs filtered subjets
+  // 300<pT<500 GeV
+  overlay1D_Xrange_Yprojection("output_files_v2/BprimeBprimeToBHBHinc_M-1000_HiggsTagging_dRsubjetBhadron.root", "output_files_v2/BprimeBprimeToBHBHinc_M-1000_HiggsTagging_dRsubjetBhadron.root",
+               "jetAnalyzerCAPrunedJetMass/h2_JetPt_mindRSubjet1Bhadron_BosonMatched_JetMass", "jetAnalyzerCAPrunedJetMassFilteredSub/h2_JetPt_mindRSubjet1Bhadron_BosonMatched_JetMass",
+               300, 500, 300, 500, 1, 0, 1, 0, 0.8,
+               "CA R=0.8, 300<p_{T}<500 GeV, #DeltaR(H,jet)<0.5, 75<m<135 GeV (pruned)", "min #DeltaR(subjet_{1},B hadron)", "Relative fraction", "Pruned subjets", "Filtered subjets",
+               "mindRSubjet1Bhadron_CA8_BoostedH_Pt300to500_JetMass_pruned_vs_filtered.eps", 0,  0.95);
+
+  overlay1D_Xrange_Yprojection("output_files_v2/BprimeBprimeToBHBHinc_M-1000_HiggsTagging_dRsubjetBhadron.root", "output_files_v2/BprimeBprimeToBHBHinc_M-1000_HiggsTagging_dRsubjetBhadron.root",
+               "jetAnalyzerCAPrunedJetMass/h2_JetPt_mindRSubjet2Bhadron_BosonMatched_JetMass", "jetAnalyzerCAPrunedJetMassFilteredSub/h2_JetPt_mindRSubjet2Bhadron_BosonMatched_JetMass",
+               300, 500, 300, 500, 1, 0, 1, 0, 0.8,
+               "CA R=0.8, 300<p_{T}<500 GeV, #DeltaR(H,jet)<0.5, 75<m<135 GeV (pruned)", "min #DeltaR(subjet_{2},B hadron)", "Relative fraction", "Pruned subjets", "Filtered subjets",
+               "mindRSubjet2Bhadron_CA8_BoostedH_Pt300to500_JetMass_pruned_vs_filtered.eps", 0,  0.95);
+
+  // pT>700 GeV
+  overlay1D_Xrange_Yprojection("output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRsubjetBhadron.root", "output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRsubjetBhadron.root",
+               "jetAnalyzerCAPrunedJetMass/h2_JetPt_mindRSubjet1Bhadron_BosonMatched_JetMass", "jetAnalyzerCAPrunedJetMassFilteredSub/h2_JetPt_mindRSubjet1Bhadron_BosonMatched_JetMass",
+               700, 1100, 700, 1100, 1, 0, 1, 0, 0.8,
+               "CA R=0.8, p_{T}>700 GeV, #DeltaR(H,jet)<0.5, 75<m<135 GeV (pruned)", "min #DeltaR(subjet_{1},B hadron)", "Relative fraction", "Pruned subjets", "Filtered subjets",
+               "mindRSubjet1Bhadron_CA8_BoostedH_Pt700toInf_JetMass_pruned_vs_filtered.eps", 0,  0.95);
+
+  overlay1D_Xrange_Yprojection("output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRsubjetBhadron.root", "output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRsubjetBhadron.root",
+               "jetAnalyzerCAPrunedJetMass/h2_JetPt_mindRSubjet2Bhadron_BosonMatched_JetMass", "jetAnalyzerCAPrunedJetMassFilteredSub/h2_JetPt_mindRSubjet2Bhadron_BosonMatched_JetMass",
+               700, 1100, 700, 1100, 1, 0, 1, 0, 0.8,
+               "CA R=0.8, p_{T}>700 GeV, #DeltaR(H,jet)<0.5, 75<m<135 GeV (pruned)", "min #DeltaR(subjet_{2},B hadron)", "Relative fraction", "Pruned subjets", "Filtered subjets",
+               "mindRSubjet2Bhadron_CA8_BoostedH_Pt700toInf_JetMass_pruned_vs_filtered.eps", 0,  0.95);
+
+  // Pruned subjets CA vs AK
+  // 300<pT<500 GeV
+  overlay1D_Xrange_Yprojection("output_files_v2/BprimeBprimeToBHBHinc_M-1000_HiggsTagging_dRsubjetBhadron.root", "output_files_v2/BprimeBprimeToBHBHinc_M-1000_HiggsTagging_dRsubjetBhadron.root",
+               "jetAnalyzerCAPrunedJetMass/h2_JetPt_mindRSubjet1Bhadron_BosonMatched_JetMass", "jetAnalyzerPrunedJetMass/h2_JetPt_mindRSubjet1Bhadron_BosonMatched_JetMass",
+               300, 500, 300, 500, 1, 0, 1, 0, 0.8,
+               "R=0.8, 300<p_{T}<500 GeV, #DeltaR(H,jet)<0.5, 75<m<135 GeV (pruned)", "min #DeltaR(subjet_{1},B hadron)", "Relative fraction", "CA pruned subjets", "AK pruned subjets",
+               "mindRSubjet1Bhadron_BoostedH_Pt300to500_JetMass_pruned_CA8_vs_AK8.eps", 0,  0.95);
+
+  overlay1D_Xrange_Yprojection("output_files_v2/BprimeBprimeToBHBHinc_M-1000_HiggsTagging_dRsubjetBhadron.root", "output_files_v2/BprimeBprimeToBHBHinc_M-1000_HiggsTagging_dRsubjetBhadron.root",
+               "jetAnalyzerCAPrunedJetMass/h2_JetPt_mindRSubjet2Bhadron_BosonMatched_JetMass", "jetAnalyzerPrunedJetMass/h2_JetPt_mindRSubjet2Bhadron_BosonMatched_JetMass",
+               300, 500, 300, 500, 1, 0, 1, 0, 0.8,
+               "R=0.8, 300<p_{T}<500 GeV, #DeltaR(H,jet)<0.5, 75<m<135 GeV (pruned)", "min #DeltaR(subjet_{2},B hadron)", "Relative fraction", "CA pruned subjets", "AK pruned subjets",
+               "mindRSubjet2Bhadron_BoostedH_Pt300to500_JetMass_pruned_CA8_vs_AK8.eps", 0,  0.95);
+
+  // pT>700 GeV
+  overlay1D_Xrange_Yprojection("output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRsubjetBhadron.root", "output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRsubjetBhadron.root",
+               "jetAnalyzerCAPrunedJetMass/h2_JetPt_mindRSubjet1Bhadron_BosonMatched_JetMass", "jetAnalyzerPrunedJetMass/h2_JetPt_mindRSubjet1Bhadron_BosonMatched_JetMass",
+               700, 1100, 700, 1100, 1, 0, 1, 0, 0.8,
+               "R=0.8, p_{T}>700 GeV, #DeltaR(H,jet)<0.5, 75<m<135 GeV (pruned)", "min #DeltaR(subjet_{1},B hadron)", "Relative fraction", "CA pruned subjets", "AK pruned subjets",
+               "mindRSubjet1Bhadron_BoostedH_Pt700toInf_JetMass_pruned_CA8_vs_AK8.eps", 0,  0.95);
+
+  overlay1D_Xrange_Yprojection("output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRsubjetBhadron.root", "output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRsubjetBhadron.root",
+               "jetAnalyzerCAPrunedJetMass/h2_JetPt_mindRSubjet2Bhadron_BosonMatched_JetMass", "jetAnalyzerPrunedJetMass/h2_JetPt_mindRSubjet2Bhadron_BosonMatched_JetMass",
+               700, 1100, 700, 1100, 1, 0, 1, 0, 0.8,
+               "R=0.8, p_{T}>700 GeV, #DeltaR(H,jet)<0.5, 75<m<135 GeV (pruned)", "min #DeltaR(subjet_{2},B hadron)", "Relative fraction", "CA pruned subjets", "AK pruned subjets",
+               "mindRSubjet2Bhadron_BoostedH_Pt700toInf_JetMass_pruned_CA8_vs_AK8.eps", 0,  0.95);
+
+
+  // min dR(subjet,Bhadron) to the same B hadron
+  // CA pruned subjets
+  // 300<pT<500 GeV
+  overlay1D_Xrange_Yprojection("output_files_v2/BprimeBprimeToBHBHinc_M-1000_HiggsTagging_dRsubjetBhadron.root", "output_files_v2/BprimeBprimeToBHBHinc_M-1000_HiggsTagging_dRsubjetBhadron.root",
+               "jetAnalyzerCAPrunedJetMass/h2_JetPt_SameMatchedBhadron_BosonMatched", "jetAnalyzerCAPrunedJetMass/h2_JetPt_SameMatchedBhadron_BosonMatched_JetMass",
+               300, 500, 300, 500, 1, -0.5, 1.5, 1E-2, 1E2,
+               "CA R=0.8, 300<p_{T}<500 GeV, #DeltaR(H,jet)<0.5, pruned subjets", "Subjets matched to the same B hadron?", "Relative fraction", "No m cut", "75<m<135 GeV (pruned)",
+               "mindRSubjetSameBhadron_CA8pruned_BoostedH_Pt300to500_JetMassCut.eps", 1,  0.95);
+
+  // pT>700 GeV
+  overlay1D_Xrange_Yprojection("output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRsubjetBhadron.root", "output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRsubjetBhadron.root",
+               "jetAnalyzerCAPrunedJetMass/h2_JetPt_SameMatchedBhadron_BosonMatched", "jetAnalyzerCAPrunedJetMass/h2_JetPt_SameMatchedBhadron_BosonMatched_JetMass",
+               700, 1100, 700, 1100, 1, -0.5, 1.5, 1E-2, 1E2,
+               "CA R=0.8, p_{T}>700 GeV, #DeltaR(H,jet)<0.5, pruned subjets", "Subjets matched to the same B hadron?", "Relative fraction", "No m cut", "75<m<135 GeV (pruned)",
+               "mindRSubjetSameBhadron_CA8pruned_BoostedH_Pt700toInf_JetMassCut.eps", 1,  0.95);
+
+  // CA pruned vs filtered subjets
+  // 300<pT<500 GeV
+  overlay1D_Xrange_Yprojection("output_files_v2/BprimeBprimeToBHBHinc_M-1000_HiggsTagging_dRsubjetBhadron.root", "output_files_v2/BprimeBprimeToBHBHinc_M-1000_HiggsTagging_dRsubjetBhadron.root",
+               "jetAnalyzerCAPrunedJetMass/h2_JetPt_SameMatchedBhadron_BosonMatched_JetMass", "jetAnalyzerCAPrunedJetMassFilteredSub/h2_JetPt_SameMatchedBhadron_BosonMatched_JetMass",
+               300, 500, 300, 500, 1, -0.5, 1.5, 1E-2, 1E2,
+               "CA R=0.8, 300<p_{T}<500 GeV, #DeltaR(H,jet)<0.5, 75<m<135 GeV (pruned)", "Subjets matched to the same B hadron?", "Relative fraction", "Pruned subjets", "Filtered subjets",
+               "mindRSubjetSameBhadron_CA8_BoostedH_Pt300to500_JetMass_pruned_vs_filtered.eps", 1,  0.95);
+
+  // pT>700 GeV
+  overlay1D_Xrange_Yprojection("output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRsubjetBhadron.root", "output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRsubjetBhadron.root",
+               "jetAnalyzerCAPrunedJetMass/h2_JetPt_SameMatchedBhadron_BosonMatched_JetMass", "jetAnalyzerCAPrunedJetMassFilteredSub/h2_JetPt_SameMatchedBhadron_BosonMatched_JetMass",
+               700, 1100, 700, 1100, 1, -0.5, 1.5, 1E-2, 1E2,
+               "CA R=0.8, p_{T}>700 GeV, #DeltaR(H,jet)<0.5, 75<m<135 GeV (pruned)", "Subjets matched to the same B hadron?", "Relative fraction", "Pruned subjets", "Filtered subjets",
+               "mindRSubjetSameBhadron_CA8_BoostedH_Pt700toInf_JetMass_pruned_vs_filtered.eps", 1,  0.95);
+
 }

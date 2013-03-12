@@ -13,7 +13,7 @@
 //
 // Original Author:  Dinko Ferencek
 //         Created:  Fri Jul 20 12:32:38 CDT 2012
-// $Id: RutgersJetAnalyzer.cc,v 1.11 2013/02/08 22:06:01 ferencek Exp $
+// $Id: RutgersJetAnalyzer.cc,v 1.12 2013/02/12 00:03:31 ferencek Exp $
 //
 //
 
@@ -98,7 +98,6 @@ private:
     const edm::InputTag groomedJetsTag;
     const bool          useSubJets;
     const edm::InputTag groomedBasicJetsTag;
-    const edm::InputTag subJetsTag;
     const std::string   subJetMode;
     const edm::InputTag pvTag;
     const double        jetRadius;          // radius for jet clustering
@@ -211,7 +210,6 @@ RutgersJetAnalyzer::RutgersJetAnalyzer(const edm::ParameterSet& iConfig) :
   groomedJetsTag(iConfig.getParameter<edm::InputTag>("GroomedJetsTag")),
   useSubJets(iConfig.getParameter<bool>("UseSubJets")),
   groomedBasicJetsTag(iConfig.getParameter<edm::InputTag>("GroomedBasicJetsTag")),
-  subJetsTag(iConfig.getParameter<edm::InputTag>("SubJetsTag")),
   subJetMode(iConfig.getParameter<std::string>("SubJetMode")),
   pvTag(iConfig.getParameter<edm::InputTag>("PvTag")),
   jetRadius(iConfig.getParameter<double>("JetRadius")),
@@ -380,12 +378,10 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
     edm::Handle<PatJetCollection> groomedJets;
     if( useGroomedJets ) iEvent.getByLabel(groomedJetsTag,groomedJets);
 
-    edm::Handle<reco::BasicJetCollection> groomedBasicJets;
-    edm::Handle<PatJetCollection> subJets;
+    edm::Handle<PatJetCollection> groomedBasicJets;
     if( useSubJets )
     {
       iEvent.getByLabel(groomedBasicJetsTag,groomedBasicJets);
-      iEvent.getByLabel(subJetsTag,subJets);
     }
 
     edm::Handle<reco::VertexCollection> PVs;
@@ -663,8 +659,8 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
       if( useSubJets )
       {
         double dR = jetRadius;
-        reco::BasicJetCollection::const_iterator groomedBasicJetMatch;
-        for(reco::BasicJetCollection::const_iterator gbjIt = groomedBasicJets->begin(); gbjIt != groomedBasicJets->end(); ++gbjIt)
+        PatJetCollection::const_iterator groomedBasicJetMatch;
+        for(PatJetCollection::const_iterator gbjIt = groomedBasicJets->begin(); gbjIt != groomedBasicJets->end(); ++gbjIt)
         {
           double dR_temp = reco::deltaR( it->p4(), gbjIt->p4() );
           if( dR_temp < dR )
@@ -680,29 +676,11 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
         for(unsigned d=0; d<groomedBasicJetMatch->numberOfDaughters(); ++d)
         {
           //std::cout << "subjet " << d << ": pt=" << groomedBasicJetMatch->daughter(d)->p4().pt()  << " eta=" << groomedBasicJetMatch->daughter(d)->p4().eta()  << " phi=" << groomedBasicJetMatch->daughter(d)->p4().phi() << std::endl;
-          for(PatJetCollection::const_iterator sjIt = subJets->begin(); sjIt != subJets->end(); ++sjIt)
-          {
-            double dRsj = reco::deltaR( groomedBasicJetMatch->daughter(d)->p4(), sjIt->p4() );
-            //std::cout << "          dRsj=" << dRsj << " pt=" << sjIt->correctedJet("Uncorrected").p4().pt()  << " eta=" << sjIt->p4().eta()  << " phi=" << sjIt->p4().phi() << std::endl;
-            if( dRsj < 1e-4 )
-            {
-              subjets.push_back(&(*sjIt));
-              break;
-            }
-          }
+          const reco::Candidate *subjet =  groomedBasicJetMatch->daughter(d);
+          const pat::Jet *patsubjet = dynamic_cast<const pat::Jet*>(subjet);
+          subjets.push_back(patsubjet);
         }
 
-        //------------------------------------------------------------------------------
-        // old method of finding subjets based on dR(jet,subjet)
-        //------------------------------------------------------------------------------
-        //for(PatJetCollection::const_iterator sjIt = subJets->begin(); sjIt != subJets->end(); ++sjIt)
-        //{
-          //if( reco::deltaR( it->p4(), sjIt->p4() ) < jetRadius )
-          //{
-            //subjets.push_back(&(*sjIt));
-          //}
-        //}
-        //------------------------------------------------------------------------------
 
         if( subjets.size()<2 )
           edm::LogError("TooFewSubjets") << "Less than two subjets found.";

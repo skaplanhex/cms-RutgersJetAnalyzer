@@ -13,7 +13,7 @@
 //
 // Original Author:  Dinko Ferencek
 //         Created:  Fri Jul 20 12:32:38 CDT 2012
-// $Id: RutgersJetAnalyzer.cc,v 1.12 2013/02/12 00:03:31 ferencek Exp $
+// $Id: RutgersJetAnalyzer.cc,v 1.13 2013/03/12 20:55:44 ferencek Exp $
 //
 //
 
@@ -184,6 +184,8 @@ private:
     TH2D *h2_JetPt_SubJetMinCSVL_BosonMatched_JetMass;
 
     std::map<std::string, TH2D*> h2_nPV_JetMass_Pt;
+    std::map<std::string, TH2D*> h2_nPV_nTracks_Pt;
+    std::map<std::string, TH2D*> h2_nPV_nSelectedTracks_Pt;
     std::map<std::string, TH2D*> h2_nPV_tau1_Pt;
     std::map<std::string, TH2D*> h2_nPV_tau2_Pt;
     std::map<std::string, TH2D*> h2_nPV_tau2tau1_Pt;
@@ -241,6 +243,8 @@ RutgersJetAnalyzer::RutgersJetAnalyzer(const edm::ParameterSet& iConfig) :
     //now do what ever initialization is needed
     int pvBins=51;
     double pvMin=-0.5, pvMax=50.5;
+    int trackBins=201;
+    double trackMin=-0.5, trackMax=200.5;
     int ptBins=250;
     double ptMin=0., ptMax=1000.;
     int dRBins=100;
@@ -320,33 +324,39 @@ RutgersJetAnalyzer::RutgersJetAnalyzer(const edm::ParameterSet& iConfig) :
         suffix = Form("%.0ftoInf",(jetPtMin + jetPtBinWidth*i));
         title = Form("p_{T}>%.0f GeV",(jetPtMin + jetPtBinWidth*i));
 
-        h2_nPV_JetMass_Pt[suffix]  = fs->make<TH2D>(("h2_nPV_JetMass_Pt" + suffix).c_str(),(title + ";nPV;m_{jet} [GeV]").c_str(),pvBins,pvMin,pvMax,massBins,massMin,massMax);
-        h2_nPV_tau1_Pt[suffix]     = fs->make<TH2D>(("h2_nPV_tau1_Pt" + suffix).c_str(),(title + ";nPV;#tau_{1}").c_str(),pvBins,pvMin,pvMax,tauBins,tauMin,tauMax);
-        h2_nPV_tau2_Pt[suffix]     = fs->make<TH2D>(("h2_nPV_tau2_Pt" + suffix).c_str(),(title + ";nPV;#tau_{2}").c_str(),pvBins,pvMin,pvMax,tauBins,tauMin,tauMax);
-        h2_nPV_tau2tau1_Pt[suffix] = fs->make<TH2D>(("h2_nPV_tau2tau1_Pt" + suffix).c_str(),(title + ";nPV;#tau_{2}/#tau_{1}").c_str(),pvBins,pvMin,pvMax,tauBins,tauMin,tauMax);
-        h2_nPV_MassDrop_Pt[suffix] = fs->make<TH2D>(("h2_nPV_MassDrop_Pt" + suffix).c_str(),(title + ";nPV;m_{subjet1}/m_{jet}").c_str(),pvBins,pvMin,pvMax,massDropBins,massDropMin,massDropMax);
+        h2_nPV_JetMass_Pt[suffix]         = fs->make<TH2D>(("h2_nPV_JetMass_Pt" + suffix).c_str(),(title + ";nPV;m_{jet} [GeV]").c_str(),pvBins,pvMin,pvMax,massBins,massMin,massMax);
+        h2_nPV_nTracks_Pt[suffix]         = fs->make<TH2D>(("h2_nPV_nTracks_Pt" + suffix).c_str(),(title + ";nPV;nTracks").c_str(),pvBins,pvMin,pvMax,trackBins,trackMin,trackMax);
+        h2_nPV_nSelectedTracks_Pt[suffix] = fs->make<TH2D>(("h2_nPV_nSelectedTracks_Pt" + suffix).c_str(),(title + ";nPV;nSelectedTracks").c_str(),pvBins,pvMin,pvMax,trackBins,trackMin,trackMax);
+        h2_nPV_tau1_Pt[suffix]            = fs->make<TH2D>(("h2_nPV_tau1_Pt" + suffix).c_str(),(title + ";nPV;#tau_{1}").c_str(),pvBins,pvMin,pvMax,tauBins,tauMin,tauMax);
+        h2_nPV_tau2_Pt[suffix]            = fs->make<TH2D>(("h2_nPV_tau2_Pt" + suffix).c_str(),(title + ";nPV;#tau_{2}").c_str(),pvBins,pvMin,pvMax,tauBins,tauMin,tauMax);
+        h2_nPV_tau2tau1_Pt[suffix]        = fs->make<TH2D>(("h2_nPV_tau2tau1_Pt" + suffix).c_str(),(title + ";nPV;#tau_{2}/#tau_{1}").c_str(),pvBins,pvMin,pvMax,tauBins,tauMin,tauMax);
+        h2_nPV_MassDrop_Pt[suffix]        = fs->make<TH2D>(("h2_nPV_MassDrop_Pt" + suffix).c_str(),(title + ";nPV;m_{subjet1}/m_{jet}").c_str(),pvBins,pvMin,pvMax,massDropBins,massDropMin,massDropMax);
       }
       else if(i==(jetPtBins+1))
       {
         suffix = Form("%.0ftoInf",(jetPtMin + jetPtBinWidth*(i-1)));
         title = Form("p_{T}>%.0f GeV",(jetPtMin + jetPtBinWidth*(i-1)));
 
-        h2_nPV_JetMass_Pt[suffix]  = fs->make<TH2D>(("h2_nPV_JetMass_Pt" + suffix).c_str(),(title + ";nPV;m_{jet} [GeV]").c_str(),pvBins,pvMin,pvMax,massBins,massMin,massMax);
-        h2_nPV_tau1_Pt[suffix]     = fs->make<TH2D>(("h2_nPV_tau1_Pt" + suffix).c_str(),(title + ";nPV;#tau_{1}").c_str(),pvBins,pvMin,pvMax,tauBins,tauMin,tauMax);
-        h2_nPV_tau2_Pt[suffix]     = fs->make<TH2D>(("h2_nPV_tau2_Pt" + suffix).c_str(),(title + ";nPV;#tau_{2}").c_str(),pvBins,pvMin,pvMax,tauBins,tauMin,tauMax);
-        h2_nPV_tau2tau1_Pt[suffix] = fs->make<TH2D>(("h2_nPV_tau2tau1_Pt" + suffix).c_str(),(title + ";nPV;#tau_{2}/#tau_{1}").c_str(),pvBins,pvMin,pvMax,tauBins,tauMin,tauMax);
-        h2_nPV_MassDrop_Pt[suffix] = fs->make<TH2D>(("h2_nPV_MassDrop_Pt" + suffix).c_str(),(title + ";nPV;m_{subjet1}/m_{jet}").c_str(),pvBins,pvMin,pvMax,massDropBins,massDropMin,massDropMax);
+        h2_nPV_JetMass_Pt[suffix]         = fs->make<TH2D>(("h2_nPV_JetMass_Pt" + suffix).c_str(),(title + ";nPV;m_{jet} [GeV]").c_str(),pvBins,pvMin,pvMax,massBins,massMin,massMax);
+        h2_nPV_nTracks_Pt[suffix]         = fs->make<TH2D>(("h2_nPV_nTracks_Pt" + suffix).c_str(),(title + ";nPV;nTracks").c_str(),pvBins,pvMin,pvMax,trackBins,trackMin,trackMax);
+        h2_nPV_nSelectedTracks_Pt[suffix] = fs->make<TH2D>(("h2_nPV_nSelectedTracks_Pt" + suffix).c_str(),(title + ";nPV;nSelectedTracks").c_str(),pvBins,pvMin,pvMax,trackBins,trackMin,trackMax);
+        h2_nPV_tau1_Pt[suffix]            = fs->make<TH2D>(("h2_nPV_tau1_Pt" + suffix).c_str(),(title + ";nPV;#tau_{1}").c_str(),pvBins,pvMin,pvMax,tauBins,tauMin,tauMax);
+        h2_nPV_tau2_Pt[suffix]            = fs->make<TH2D>(("h2_nPV_tau2_Pt" + suffix).c_str(),(title + ";nPV;#tau_{2}").c_str(),pvBins,pvMin,pvMax,tauBins,tauMin,tauMax);
+        h2_nPV_tau2tau1_Pt[suffix]        = fs->make<TH2D>(("h2_nPV_tau2tau1_Pt" + suffix).c_str(),(title + ";nPV;#tau_{2}/#tau_{1}").c_str(),pvBins,pvMin,pvMax,tauBins,tauMin,tauMax);
+        h2_nPV_MassDrop_Pt[suffix]        = fs->make<TH2D>(("h2_nPV_MassDrop_Pt" + suffix).c_str(),(title + ";nPV;m_{subjet1}/m_{jet}").c_str(),pvBins,pvMin,pvMax,massDropBins,massDropMin,massDropMax);
       }
       else
       {
         suffix = Form("%.0fto%.0f",(jetPtMin + jetPtBinWidth*(i-1)),(jetPtMin + jetPtBinWidth*i));
         title = Form("%.0f<p_{T}<%.0f GeV",(jetPtMin + jetPtBinWidth*(i-1)),(jetPtMin + jetPtBinWidth*i));
 
-        h2_nPV_JetMass_Pt[suffix]  = fs->make<TH2D>(("h2_nPV_JetMass_Pt" + suffix).c_str(),(title + ";nPV;m_{jet} [GeV]").c_str(),pvBins,pvMin,pvMax,massBins,massMin,massMax);
-        h2_nPV_tau1_Pt[suffix]     = fs->make<TH2D>(("h2_nPV_tau1_Pt" + suffix).c_str(),(title + ";nPV;#tau_{1}").c_str(),pvBins,pvMin,pvMax,tauBins,tauMin,tauMax);
-        h2_nPV_tau2_Pt[suffix]     = fs->make<TH2D>(("h2_nPV_tau2_Pt" + suffix).c_str(),(title + ";nPV;#tau_{2}").c_str(),pvBins,pvMin,pvMax,tauBins,tauMin,tauMax);
-        h2_nPV_tau2tau1_Pt[suffix] = fs->make<TH2D>(("h2_nPV_tau2tau1_Pt" + suffix).c_str(),(title + ";nPV;#tau_{2}/#tau_{1}").c_str(),pvBins,pvMin,pvMax,tauBins,tauMin,tauMax);
-        h2_nPV_MassDrop_Pt[suffix] = fs->make<TH2D>(("h2_nPV_MassDrop_Pt" + suffix).c_str(),(title + ";nPV;m_{subjet1}/m_{jet}").c_str(),pvBins,pvMin,pvMax,massDropBins,massDropMin,massDropMax);
+        h2_nPV_JetMass_Pt[suffix]         = fs->make<TH2D>(("h2_nPV_JetMass_Pt" + suffix).c_str(),(title + ";nPV;m_{jet} [GeV]").c_str(),pvBins,pvMin,pvMax,massBins,massMin,massMax);
+        h2_nPV_nTracks_Pt[suffix]         = fs->make<TH2D>(("h2_nPV_nTracks_Pt" + suffix).c_str(),(title + ";nPV;nTracks").c_str(),pvBins,pvMin,pvMax,trackBins,trackMin,trackMax);
+        h2_nPV_nSelectedTracks_Pt[suffix] = fs->make<TH2D>(("h2_nPV_nSelectedTracks_Pt" + suffix).c_str(),(title + ";nPV;nSelectedTracks").c_str(),pvBins,pvMin,pvMax,trackBins,trackMin,trackMax);
+        h2_nPV_tau1_Pt[suffix]            = fs->make<TH2D>(("h2_nPV_tau1_Pt" + suffix).c_str(),(title + ";nPV;#tau_{1}").c_str(),pvBins,pvMin,pvMax,tauBins,tauMin,tauMax);
+        h2_nPV_tau2_Pt[suffix]            = fs->make<TH2D>(("h2_nPV_tau2_Pt" + suffix).c_str(),(title + ";nPV;#tau_{2}").c_str(),pvBins,pvMin,pvMax,tauBins,tauMin,tauMax);
+        h2_nPV_tau2tau1_Pt[suffix]        = fs->make<TH2D>(("h2_nPV_tau2tau1_Pt" + suffix).c_str(),(title + ";nPV;#tau_{2}/#tau_{1}").c_str(),pvBins,pvMin,pvMax,tauBins,tauMin,tauMax);
+        h2_nPV_MassDrop_Pt[suffix]        = fs->make<TH2D>(("h2_nPV_MassDrop_Pt" + suffix).c_str(),(title + ";nPV;m_{subjet1}/m_{jet}").c_str(),pvBins,pvMin,pvMax,massDropBins,massDropMin,massDropMax);
       }
     }
 }
@@ -769,6 +779,25 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
           h2_JetPt_SameMatchedBhadron_BosonMatched_JetMass->Fill(jetPt, ( bHadronMatchSubjet1 == bHadronMatchSubjet2 ? 1. : 0. ), eventWeight);
       }
 
+      // fill nPV_nTracks histograms
+      suffix = Form("%.0ftoInf",jetPtMin);
+      h2_nPV_nTracks_Pt[suffix]->Fill(nPV, it->associatedTracks().size(), eventWeight);
+      h2_nPV_nSelectedTracks_Pt[suffix]->Fill(nPV, ( it->hasTagInfo("impactParameter") ? it->tagInfoTrackIP("impactParameter")->selectedTracks().size() : -99.), eventWeight);
+      for(unsigned i=0; i<jetPtBins; ++i)
+      {
+        if( jetPt>(jetPtMin + jetPtBinWidth*i) && jetPt<=(jetPtMin + jetPtBinWidth*(i+1)) )
+        {
+          suffix = Form("%.0fto%.0f",(jetPtMin + jetPtBinWidth*i),(jetPtMin + jetPtBinWidth*(i+1)));
+          h2_nPV_nTracks_Pt[suffix]->Fill(nPV, it->associatedTracks().size(), eventWeight);
+          h2_nPV_nSelectedTracks_Pt[suffix]->Fill(nPV, ( it->hasTagInfo("impactParameter") ? it->tagInfoTrackIP("impactParameter")->selectedTracks().size() : -99. ), eventWeight);
+        }
+      }
+      if( jetPt>(jetPtMin+jetPtBinWidth*jetPtBins))
+      {
+        suffix = Form("%.0ftoInf",(jetPtMin+jetPtBinWidth*jetPtBins));
+        h2_nPV_nTracks_Pt[suffix]->Fill(nPV, it->associatedTracks().size(), eventWeight);
+        h2_nPV_nSelectedTracks_Pt[suffix]->Fill(nPV, ( it->hasTagInfo("impactParameter") ? it->tagInfoTrackIP("impactParameter")->selectedTracks().size() : -99. ), eventWeight);
+      }
 
       // get b-tag discriminators
       double jet_CSV_discr = it->bDiscriminator((bdiscriminator).c_str());

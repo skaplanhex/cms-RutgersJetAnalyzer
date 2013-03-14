@@ -13,7 +13,7 @@
 //
 // Original Author:  Dinko Ferencek
 //         Created:  Fri Jul 20 12:32:38 CDT 2012
-// $Id: RutgersJetAnalyzer.cc,v 1.13 2013/03/12 20:55:44 ferencek Exp $
+// $Id: RutgersJetAnalyzer.cc,v 1.14 2013/03/13 03:21:06 ferencek Exp $
 //
 //
 
@@ -184,12 +184,22 @@ private:
     TH2D *h2_JetPt_SubJetMinCSVL_BosonMatched_JetMass;
 
     std::map<std::string, TH2D*> h2_nPV_JetMass_Pt;
-    std::map<std::string, TH2D*> h2_nPV_nTracks_Pt;
-    std::map<std::string, TH2D*> h2_nPV_nSelectedTracks_Pt;
     std::map<std::string, TH2D*> h2_nPV_tau1_Pt;
     std::map<std::string, TH2D*> h2_nPV_tau2_Pt;
     std::map<std::string, TH2D*> h2_nPV_tau2tau1_Pt;
     std::map<std::string, TH2D*> h2_nPV_MassDrop_Pt;
+
+    std::map<std::string, TH2D*> h2_JetMass_nTracks_Pt;
+    std::map<std::string, TH2D*> h2_JetMass_nSelectedTracks_Pt;
+    std::map<std::string, TH2D*> h2_JetMass_tau2tau1_Pt;
+    std::map<std::string, TH2D*> h2_JetMass_SubJetMinCSVL_Pt;
+
+    std::map<std::string, TH2D*> h2_nTracks_tau2tau1_Pt;
+    std::map<std::string, TH2D*> h2_nSelectedTracks_tau2tau1_Pt;
+
+    std::map<std::string, TH2D*> h2_nTracks_SubJetMinCSVL_Pt;
+    std::map<std::string, TH2D*> h2_nSelectedTracks_SubJetMinCSVL_Pt;
+    std::map<std::string, TH2D*> h2_tau2tau1_SubJetMinCSVL_Pt;
 };
 
 //
@@ -325,12 +335,22 @@ RutgersJetAnalyzer::RutgersJetAnalyzer(const edm::ParameterSet& iConfig) :
         title = Form("p_{T}>%.0f GeV",(jetPtMin + jetPtBinWidth*i));
 
         h2_nPV_JetMass_Pt[suffix]         = fs->make<TH2D>(("h2_nPV_JetMass_Pt" + suffix).c_str(),(title + ";nPV;m_{jet} [GeV]").c_str(),pvBins,pvMin,pvMax,massBins,massMin,massMax);
-        h2_nPV_nTracks_Pt[suffix]         = fs->make<TH2D>(("h2_nPV_nTracks_Pt" + suffix).c_str(),(title + ";nPV;nTracks").c_str(),pvBins,pvMin,pvMax,trackBins,trackMin,trackMax);
-        h2_nPV_nSelectedTracks_Pt[suffix] = fs->make<TH2D>(("h2_nPV_nSelectedTracks_Pt" + suffix).c_str(),(title + ";nPV;nSelectedTracks").c_str(),pvBins,pvMin,pvMax,trackBins,trackMin,trackMax);
         h2_nPV_tau1_Pt[suffix]            = fs->make<TH2D>(("h2_nPV_tau1_Pt" + suffix).c_str(),(title + ";nPV;#tau_{1}").c_str(),pvBins,pvMin,pvMax,tauBins,tauMin,tauMax);
         h2_nPV_tau2_Pt[suffix]            = fs->make<TH2D>(("h2_nPV_tau2_Pt" + suffix).c_str(),(title + ";nPV;#tau_{2}").c_str(),pvBins,pvMin,pvMax,tauBins,tauMin,tauMax);
         h2_nPV_tau2tau1_Pt[suffix]        = fs->make<TH2D>(("h2_nPV_tau2tau1_Pt" + suffix).c_str(),(title + ";nPV;#tau_{2}/#tau_{1}").c_str(),pvBins,pvMin,pvMax,tauBins,tauMin,tauMax);
         h2_nPV_MassDrop_Pt[suffix]        = fs->make<TH2D>(("h2_nPV_MassDrop_Pt" + suffix).c_str(),(title + ";nPV;m_{subjet1}/m_{jet}").c_str(),pvBins,pvMin,pvMax,massDropBins,massDropMin,massDropMax);
+
+        h2_JetMass_nTracks_Pt[suffix]         = fs->make<TH2D>(("h2_JetMass_nTracks_Pt" + suffix).c_str(),(title + ";m_{jet} [GeV];nTracks").c_str(),massBins,massMin,massMax,trackBins,trackMin,trackMax);
+        h2_JetMass_nSelectedTracks_Pt[suffix] = fs->make<TH2D>(("h2_JetMass_nSelectedTracks_Pt" + suffix).c_str(),(title + ";m_{jet} [GeV];nSelectedTracks").c_str(),massBins,massMin,massMax,trackBins,trackMin,trackMax);
+        h2_JetMass_tau2tau1_Pt[suffix]        = fs->make<TH2D>(("h2_JetMass_tau2tau1_Pt" + suffix).c_str(),(title + ";m_{jet} [GeV];#tau_{2}/#tau_{1}").c_str(),massBins,massMin,massMax,tauBins,tauMin,tauMax);
+        h2_JetMass_SubJetMinCSVL_Pt[suffix]   = fs->make<TH2D>(("h2_JetMass_SubJetMinCSVL_Pt" + suffix).c_str(),(title + ";m_{jet} [GeV];SubJet min CSV Discr").c_str(),massBins,massMin,massMax,100,0.,1.);
+
+        h2_nTracks_tau2tau1_Pt[suffix]         = fs->make<TH2D>(("h2_nTracks_tau2tau1_Pt" + suffix).c_str(),(title + ";nTracks;#tau_{2}/#tau_{1}").c_str(),trackBins,trackMin,trackMax,tauBins,tauMin,tauMax);
+        h2_nSelectedTracks_tau2tau1_Pt[suffix] = fs->make<TH2D>(("h2_nSelectedTracks_tau2tau1_Pt" + suffix).c_str(),(title + ";nSelectedTracks;#tau_{2}/#tau_{1}").c_str(),trackBins,trackMin,trackMax,tauBins,tauMin,tauMax);
+
+        h2_nTracks_SubJetMinCSVL_Pt[suffix]         = fs->make<TH2D>(("h2_nTracks_SubJetMinCSVL_Pt" + suffix).c_str(),(title + ";nTracks;SubJet min CSV Discr").c_str(),trackBins,trackMin,trackMax,100,0.,1.);
+        h2_nSelectedTracks_SubJetMinCSVL_Pt[suffix] = fs->make<TH2D>(("h2_nSelectedTracks_SubJetMinCSVL_Pt" + suffix).c_str(),(title + ";nSelectedTracks;SubJet min CSV Discr").c_str(),trackBins,trackMin,trackMax,100,0.,1.);
+        h2_tau2tau1_SubJetMinCSVL_Pt[suffix]        = fs->make<TH2D>(("h2_tau2tau1_SubJetMinCSVL_Pt" + suffix).c_str(),(title + ";#tau_{2}/#tau_{1};SubJet min CSV Discr").c_str(),tauBins,tauMin,tauMax,100,0.,1.);
       }
       else if(i==(jetPtBins+1))
       {
@@ -338,12 +358,22 @@ RutgersJetAnalyzer::RutgersJetAnalyzer(const edm::ParameterSet& iConfig) :
         title = Form("p_{T}>%.0f GeV",(jetPtMin + jetPtBinWidth*(i-1)));
 
         h2_nPV_JetMass_Pt[suffix]         = fs->make<TH2D>(("h2_nPV_JetMass_Pt" + suffix).c_str(),(title + ";nPV;m_{jet} [GeV]").c_str(),pvBins,pvMin,pvMax,massBins,massMin,massMax);
-        h2_nPV_nTracks_Pt[suffix]         = fs->make<TH2D>(("h2_nPV_nTracks_Pt" + suffix).c_str(),(title + ";nPV;nTracks").c_str(),pvBins,pvMin,pvMax,trackBins,trackMin,trackMax);
-        h2_nPV_nSelectedTracks_Pt[suffix] = fs->make<TH2D>(("h2_nPV_nSelectedTracks_Pt" + suffix).c_str(),(title + ";nPV;nSelectedTracks").c_str(),pvBins,pvMin,pvMax,trackBins,trackMin,trackMax);
         h2_nPV_tau1_Pt[suffix]            = fs->make<TH2D>(("h2_nPV_tau1_Pt" + suffix).c_str(),(title + ";nPV;#tau_{1}").c_str(),pvBins,pvMin,pvMax,tauBins,tauMin,tauMax);
         h2_nPV_tau2_Pt[suffix]            = fs->make<TH2D>(("h2_nPV_tau2_Pt" + suffix).c_str(),(title + ";nPV;#tau_{2}").c_str(),pvBins,pvMin,pvMax,tauBins,tauMin,tauMax);
         h2_nPV_tau2tau1_Pt[suffix]        = fs->make<TH2D>(("h2_nPV_tau2tau1_Pt" + suffix).c_str(),(title + ";nPV;#tau_{2}/#tau_{1}").c_str(),pvBins,pvMin,pvMax,tauBins,tauMin,tauMax);
         h2_nPV_MassDrop_Pt[suffix]        = fs->make<TH2D>(("h2_nPV_MassDrop_Pt" + suffix).c_str(),(title + ";nPV;m_{subjet1}/m_{jet}").c_str(),pvBins,pvMin,pvMax,massDropBins,massDropMin,massDropMax);
+
+        h2_JetMass_nTracks_Pt[suffix]         = fs->make<TH2D>(("h2_JetMass_nTracks_Pt" + suffix).c_str(),(title + ";m_{jet} [GeV];nTracks").c_str(),massBins,massMin,massMax,trackBins,trackMin,trackMax);
+        h2_JetMass_nSelectedTracks_Pt[suffix] = fs->make<TH2D>(("h2_JetMass_nSelectedTracks_Pt" + suffix).c_str(),(title + ";m_{jet} [GeV];nSelectedTracks").c_str(),massBins,massMin,massMax,trackBins,trackMin,trackMax);
+        h2_JetMass_tau2tau1_Pt[suffix]        = fs->make<TH2D>(("h2_JetMass_tau2tau1_Pt" + suffix).c_str(),(title + ";m_{jet} [GeV];#tau_{2}/#tau_{1}").c_str(),massBins,massMin,massMax,tauBins,tauMin,tauMax);
+        h2_JetMass_SubJetMinCSVL_Pt[suffix]   = fs->make<TH2D>(("h2_JetMass_SubJetMinCSVL_Pt" + suffix).c_str(),(title + ";m_{jet} [GeV];SubJet min CSV Discr").c_str(),massBins,massMin,massMax,100,0.,1.);
+
+        h2_nTracks_tau2tau1_Pt[suffix]         = fs->make<TH2D>(("h2_nTracks_tau2tau1_Pt" + suffix).c_str(),(title + ";nTracks;#tau_{2}/#tau_{1}").c_str(),trackBins,trackMin,trackMax,tauBins,tauMin,tauMax);
+        h2_nSelectedTracks_tau2tau1_Pt[suffix] = fs->make<TH2D>(("h2_nSelectedTracks_tau2tau1_Pt" + suffix).c_str(),(title + ";nSelectedTracks;#tau_{2}/#tau_{1}").c_str(),trackBins,trackMin,trackMax,tauBins,tauMin,tauMax);
+
+        h2_nTracks_SubJetMinCSVL_Pt[suffix]         = fs->make<TH2D>(("h2_nTracks_SubJetMinCSVL_Pt" + suffix).c_str(),(title + ";nTracks;SubJet min CSV Discr").c_str(),trackBins,trackMin,trackMax,100,0.,1.);
+        h2_nSelectedTracks_SubJetMinCSVL_Pt[suffix] = fs->make<TH2D>(("h2_nSelectedTracks_SubJetMinCSVL_Pt" + suffix).c_str(),(title + ";nSelectedTracks;SubJet min CSV Discr").c_str(),trackBins,trackMin,trackMax,100,0.,1.);
+        h2_tau2tau1_SubJetMinCSVL_Pt[suffix]        = fs->make<TH2D>(("h2_tau2tau1_SubJetMinCSVL_Pt" + suffix).c_str(),(title + ";#tau_{2}/#tau_{1};SubJet min CSV Discr").c_str(),tauBins,tauMin,tauMax,100,0.,1.);
       }
       else
       {
@@ -351,12 +381,22 @@ RutgersJetAnalyzer::RutgersJetAnalyzer(const edm::ParameterSet& iConfig) :
         title = Form("%.0f<p_{T}<%.0f GeV",(jetPtMin + jetPtBinWidth*(i-1)),(jetPtMin + jetPtBinWidth*i));
 
         h2_nPV_JetMass_Pt[suffix]         = fs->make<TH2D>(("h2_nPV_JetMass_Pt" + suffix).c_str(),(title + ";nPV;m_{jet} [GeV]").c_str(),pvBins,pvMin,pvMax,massBins,massMin,massMax);
-        h2_nPV_nTracks_Pt[suffix]         = fs->make<TH2D>(("h2_nPV_nTracks_Pt" + suffix).c_str(),(title + ";nPV;nTracks").c_str(),pvBins,pvMin,pvMax,trackBins,trackMin,trackMax);
-        h2_nPV_nSelectedTracks_Pt[suffix] = fs->make<TH2D>(("h2_nPV_nSelectedTracks_Pt" + suffix).c_str(),(title + ";nPV;nSelectedTracks").c_str(),pvBins,pvMin,pvMax,trackBins,trackMin,trackMax);
         h2_nPV_tau1_Pt[suffix]            = fs->make<TH2D>(("h2_nPV_tau1_Pt" + suffix).c_str(),(title + ";nPV;#tau_{1}").c_str(),pvBins,pvMin,pvMax,tauBins,tauMin,tauMax);
         h2_nPV_tau2_Pt[suffix]            = fs->make<TH2D>(("h2_nPV_tau2_Pt" + suffix).c_str(),(title + ";nPV;#tau_{2}").c_str(),pvBins,pvMin,pvMax,tauBins,tauMin,tauMax);
         h2_nPV_tau2tau1_Pt[suffix]        = fs->make<TH2D>(("h2_nPV_tau2tau1_Pt" + suffix).c_str(),(title + ";nPV;#tau_{2}/#tau_{1}").c_str(),pvBins,pvMin,pvMax,tauBins,tauMin,tauMax);
         h2_nPV_MassDrop_Pt[suffix]        = fs->make<TH2D>(("h2_nPV_MassDrop_Pt" + suffix).c_str(),(title + ";nPV;m_{subjet1}/m_{jet}").c_str(),pvBins,pvMin,pvMax,massDropBins,massDropMin,massDropMax);
+
+        h2_JetMass_nTracks_Pt[suffix]         = fs->make<TH2D>(("h2_JetMass_nTracks_Pt" + suffix).c_str(),(title + ";m_{jet} [GeV];nTracks").c_str(),massBins,massMin,massMax,trackBins,trackMin,trackMax);
+        h2_JetMass_nSelectedTracks_Pt[suffix] = fs->make<TH2D>(("h2_JetMass_nSelectedTracks_Pt" + suffix).c_str(),(title + ";m_{jet} [GeV];nSelectedTracks").c_str(),massBins,massMin,massMax,trackBins,trackMin,trackMax);
+        h2_JetMass_tau2tau1_Pt[suffix]        = fs->make<TH2D>(("h2_JetMass_tau2tau1_Pt" + suffix).c_str(),(title + ";m_{jet} [GeV];#tau_{2}/#tau_{1}").c_str(),massBins,massMin,massMax,tauBins,tauMin,tauMax);
+        h2_JetMass_SubJetMinCSVL_Pt[suffix]   = fs->make<TH2D>(("h2_JetMass_SubJetMinCSVL_Pt" + suffix).c_str(),(title + ";m_{jet} [GeV];SubJet min CSV Discr").c_str(),massBins,massMin,massMax,100,0.,1.);
+
+        h2_nTracks_tau2tau1_Pt[suffix]         = fs->make<TH2D>(("h2_nTracks_tau2tau1_Pt" + suffix).c_str(),(title + ";nTracks;#tau_{2}/#tau_{1}").c_str(),trackBins,trackMin,trackMax,tauBins,tauMin,tauMax);
+        h2_nSelectedTracks_tau2tau1_Pt[suffix] = fs->make<TH2D>(("h2_nSelectedTracks_tau2tau1_Pt" + suffix).c_str(),(title + ";nSelectedTracks;#tau_{2}/#tau_{1}").c_str(),trackBins,trackMin,trackMax,tauBins,tauMin,tauMax);
+
+        h2_nTracks_SubJetMinCSVL_Pt[suffix]         = fs->make<TH2D>(("h2_nTracks_SubJetMinCSVL_Pt" + suffix).c_str(),(title + ";nTracks;SubJet min CSV Discr").c_str(),trackBins,trackMin,trackMax,100,0.,1.);
+        h2_nSelectedTracks_SubJetMinCSVL_Pt[suffix] = fs->make<TH2D>(("h2_nSelectedTracks_SubJetMinCSVL_Pt" + suffix).c_str(),(title + ";nSelectedTracks;SubJet min CSV Discr").c_str(),trackBins,trackMin,trackMax,100,0.,1.);
+        h2_tau2tau1_SubJetMinCSVL_Pt[suffix]        = fs->make<TH2D>(("h2_tau2tau1_SubJetMinCSVL_Pt" + suffix).c_str(),(title + ";#tau_{2}/#tau_{1};SubJet min CSV Discr").c_str(),tauBins,tauMin,tauMax,100,0.,1.);
       }
     }
 }
@@ -779,25 +819,6 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
           h2_JetPt_SameMatchedBhadron_BosonMatched_JetMass->Fill(jetPt, ( bHadronMatchSubjet1 == bHadronMatchSubjet2 ? 1. : 0. ), eventWeight);
       }
 
-      // fill nPV_nTracks histograms
-      suffix = Form("%.0ftoInf",jetPtMin);
-      h2_nPV_nTracks_Pt[suffix]->Fill(nPV, it->associatedTracks().size(), eventWeight);
-      h2_nPV_nSelectedTracks_Pt[suffix]->Fill(nPV, ( it->hasTagInfo("impactParameter") ? it->tagInfoTrackIP("impactParameter")->selectedTracks().size() : -99.), eventWeight);
-      for(unsigned i=0; i<jetPtBins; ++i)
-      {
-        if( jetPt>(jetPtMin + jetPtBinWidth*i) && jetPt<=(jetPtMin + jetPtBinWidth*(i+1)) )
-        {
-          suffix = Form("%.0fto%.0f",(jetPtMin + jetPtBinWidth*i),(jetPtMin + jetPtBinWidth*(i+1)));
-          h2_nPV_nTracks_Pt[suffix]->Fill(nPV, it->associatedTracks().size(), eventWeight);
-          h2_nPV_nSelectedTracks_Pt[suffix]->Fill(nPV, ( it->hasTagInfo("impactParameter") ? it->tagInfoTrackIP("impactParameter")->selectedTracks().size() : -99. ), eventWeight);
-        }
-      }
-      if( jetPt>(jetPtMin+jetPtBinWidth*jetPtBins))
-      {
-        suffix = Form("%.0ftoInf",(jetPtMin+jetPtBinWidth*jetPtBins));
-        h2_nPV_nTracks_Pt[suffix]->Fill(nPV, it->associatedTracks().size(), eventWeight);
-        h2_nPV_nSelectedTracks_Pt[suffix]->Fill(nPV, ( it->hasTagInfo("impactParameter") ? it->tagInfoTrackIP("impactParameter")->selectedTracks().size() : -99. ), eventWeight);
-      }
 
       // get b-tag discriminators
       double jet_CSV_discr = it->bDiscriminator((bdiscriminator).c_str());
@@ -807,14 +828,15 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
         subJet1_CSV_discr = subjets.at(0)->bDiscriminator((bdiscriminator).c_str());
         subJet2_CSV_discr = subjets.at(1)->bDiscriminator((bdiscriminator).c_str());
       }
+      double minSubJet_CSV_discr = std::min(subJet1_CSV_discr, subJet2_CSV_discr);
       double jet_DoubleB_discr = it->bDiscriminator("doubleSecondaryVertexHighEffBJetTags");
 
       h1_JetCSVDiscr_BosonMatched_JetMass->Fill( jet_CSV_discr, eventWeight);
-      h1_SubJetMinCSVDiscr_BosonMatched_JetMass->Fill( std::min( subJet1_CSV_discr, subJet2_CSV_discr ), eventWeight);
+      h1_SubJetMinCSVDiscr_BosonMatched_JetMass->Fill( minSubJet_CSV_discr, eventWeight);
       h1_JetDoubleBDiscr_BosonMatched_JetMass->Fill( jet_DoubleB_discr, eventWeight);
 
       h2_JetPt_JetCSVL_BosonMatched_JetMass->Fill(jetPt, jet_CSV_discr, eventWeight);;
-      h2_JetPt_SubJetMinCSVL_BosonMatched_JetMass->Fill(jetPt, std::min( subJet1_CSV_discr, subJet2_CSV_discr ), eventWeight);;
+      h2_JetPt_SubJetMinCSVL_BosonMatched_JetMass->Fill(jetPt, minSubJet_CSV_discr, eventWeight);;
 
       if( jet_CSV_discr>0.244 ) h1_JetPt_BosonMatched_JetMass_CSVL->Fill(jetPt, eventWeight);
       if( jet_CSV_discr>0.679 ) h1_JetPt_BosonMatched_JetMass_CSVM->Fill(jetPt, eventWeight);
@@ -846,11 +868,26 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
         double tau2 = nsubjettinessCalculator.getTau(2,fjConstituents);
         double tau2overtau1 = (tau1>0 ? tau2/tau1 : -10.);
 
-        // fill nPV_tau histograms
+        double nTracks = it->associatedTracks().size();
+        double nSelectedTracks = (it->hasTagInfo("impactParameter") ? it->tagInfoTrackIP("impactParameter")->selectedTracks().size() : -99.);
+
+        // fill various 2D histograms
         suffix = Form("%.0ftoInf",jetPtMin);
         h2_nPV_tau1_Pt[suffix]->Fill(nPV, tau1, eventWeight);
         h2_nPV_tau2_Pt[suffix]->Fill(nPV, tau2, eventWeight);
         h2_nPV_tau2tau1_Pt[suffix]->Fill(nPV, tau2overtau1, eventWeight);
+
+        h2_JetMass_nTracks_Pt[suffix]->Fill(jetMass, nTracks, eventWeight);
+        h2_JetMass_nSelectedTracks_Pt[suffix]->Fill(jetMass, nSelectedTracks, eventWeight);
+        h2_JetMass_tau2tau1_Pt[suffix]->Fill(jetMass, tau2overtau1, eventWeight);
+        h2_JetMass_SubJetMinCSVL_Pt[suffix]->Fill(jetMass, minSubJet_CSV_discr, eventWeight);
+
+        h2_nTracks_tau2tau1_Pt[suffix]->Fill(nTracks, tau2overtau1, eventWeight);
+        h2_nSelectedTracks_tau2tau1_Pt[suffix]->Fill(nSelectedTracks, tau2overtau1, eventWeight);
+
+        h2_nTracks_SubJetMinCSVL_Pt[suffix]->Fill(nTracks, minSubJet_CSV_discr, eventWeight);
+        h2_nSelectedTracks_SubJetMinCSVL_Pt[suffix]->Fill(nSelectedTracks, minSubJet_CSV_discr, eventWeight);
+        h2_tau2tau1_SubJetMinCSVL_Pt[suffix]->Fill(tau2overtau1, minSubJet_CSV_discr, eventWeight);
         for(unsigned i=0; i<jetPtBins; ++i)
         {
           if( jetPt>(jetPtMin + jetPtBinWidth*i) && jetPt<=(jetPtMin + jetPtBinWidth*(i+1)) )
@@ -859,6 +896,18 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
             h2_nPV_tau1_Pt[suffix]->Fill(nPV, tau1, eventWeight);
             h2_nPV_tau2_Pt[suffix]->Fill(nPV, tau2, eventWeight);
             h2_nPV_tau2tau1_Pt[suffix]->Fill(nPV, tau2overtau1, eventWeight);
+
+            h2_JetMass_nTracks_Pt[suffix]->Fill(jetMass, nTracks, eventWeight);
+            h2_JetMass_nSelectedTracks_Pt[suffix]->Fill(jetMass, nSelectedTracks, eventWeight);
+            h2_JetMass_tau2tau1_Pt[suffix]->Fill(jetMass, tau2overtau1, eventWeight);
+            h2_JetMass_SubJetMinCSVL_Pt[suffix]->Fill(jetMass, minSubJet_CSV_discr, eventWeight);
+
+            h2_nTracks_tau2tau1_Pt[suffix]->Fill(nTracks, tau2overtau1, eventWeight);
+            h2_nSelectedTracks_tau2tau1_Pt[suffix]->Fill(nSelectedTracks, tau2overtau1, eventWeight);
+
+            h2_nTracks_SubJetMinCSVL_Pt[suffix]->Fill(nTracks, minSubJet_CSV_discr, eventWeight);
+            h2_nSelectedTracks_SubJetMinCSVL_Pt[suffix]->Fill(nSelectedTracks, minSubJet_CSV_discr, eventWeight);
+            h2_tau2tau1_SubJetMinCSVL_Pt[suffix]->Fill(tau2overtau1, minSubJet_CSV_discr, eventWeight);
           }
         }
         if( jetPt>(jetPtMin+jetPtBinWidth*jetPtBins))
@@ -867,6 +916,18 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
           h2_nPV_tau1_Pt[suffix]->Fill(nPV, tau1, eventWeight);
           h2_nPV_tau2_Pt[suffix]->Fill(nPV, tau2, eventWeight);
           h2_nPV_tau2tau1_Pt[suffix]->Fill(nPV, tau2overtau1, eventWeight);
+
+          h2_JetMass_nTracks_Pt[suffix]->Fill(jetMass, nTracks, eventWeight);
+          h2_JetMass_nSelectedTracks_Pt[suffix]->Fill(jetMass, nSelectedTracks, eventWeight);
+          h2_JetMass_tau2tau1_Pt[suffix]->Fill(jetMass, tau2overtau1, eventWeight);
+          h2_JetMass_SubJetMinCSVL_Pt[suffix]->Fill(jetMass, minSubJet_CSV_discr, eventWeight);
+
+          h2_nTracks_tau2tau1_Pt[suffix]->Fill(nTracks, tau2overtau1, eventWeight);
+          h2_nSelectedTracks_tau2tau1_Pt[suffix]->Fill(nSelectedTracks, tau2overtau1, eventWeight);
+
+          h2_nTracks_SubJetMinCSVL_Pt[suffix]->Fill(nTracks, minSubJet_CSV_discr, eventWeight);
+          h2_nSelectedTracks_SubJetMinCSVL_Pt[suffix]->Fill(nSelectedTracks, minSubJet_CSV_discr, eventWeight);
+          h2_tau2tau1_SubJetMinCSVL_Pt[suffix]->Fill(tau2overtau1, minSubJet_CSV_discr, eventWeight);
         }
 
         if( tau2/tau1<nsubjCut )

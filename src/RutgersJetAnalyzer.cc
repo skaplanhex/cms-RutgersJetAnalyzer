@@ -13,7 +13,7 @@
 //
 // Original Author:  Dinko Ferencek
 //         Created:  Fri Jul 20 12:32:38 CDT 2012
-// $Id: RutgersJetAnalyzer.cc,v 1.14 2013/03/13 03:21:06 ferencek Exp $
+// $Id: RutgersJetAnalyzer.cc,v 1.15 2013/03/14 00:23:59 ferencek Exp $
 //
 //
 
@@ -251,10 +251,10 @@ RutgersJetAnalyzer::RutgersJetAnalyzer(const edm::ParameterSet& iConfig) :
 
 {
     //now do what ever initialization is needed
-    int pvBins=51;
-    double pvMin=-0.5, pvMax=50.5;
-    int trackBins=201;
-    double trackMin=-0.5, trackMax=200.5;
+    int pvBins=50;
+    double pvMin=-0.5, pvMax=49.5;
+    int trackBins=200;
+    double trackMin=-0.5, trackMax=199.5;
     int ptBins=250;
     double ptMin=0., ptMax=1000.;
     int dRBins=100;

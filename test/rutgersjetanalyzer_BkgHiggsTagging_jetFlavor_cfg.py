@@ -792,9 +792,7 @@ process.jetAnalyzerDefaultJetMass = cms.EDAnalyzer('RutgersJetAnalyzer',
     NsubjCut                  = cms.double(0.45),
     Bdiscriminator            = cms.string("combinedSecondaryVertexBJetTags"),
     DoJetFlavor               = cms.bool(False),
-    JetFlavorPdgId            = cms.vint32(5),
-    FindGluonSplitting        = cms.bool(False),
-    FindMatrixElement         = cms.bool(False)
+    JetFlavorPdgIds           = cms.vint32(5)
 )
 process.jetAnalyzerTrimmedJetMass = cms.EDAnalyzer('RutgersJetAnalyzer',
     UseEventWeight            = cms.bool(False),
@@ -823,9 +821,7 @@ process.jetAnalyzerTrimmedJetMass = cms.EDAnalyzer('RutgersJetAnalyzer',
     NsubjCut                  = cms.double(0.45),
     Bdiscriminator            = cms.string("combinedSecondaryVertexBJetTags"),
     DoJetFlavor               = cms.bool(False),
-    JetFlavorPdgId            = cms.vint32(5),
-    FindGluonSplitting        = cms.bool(False),
-    FindMatrixElement         = cms.bool(False)
+    JetFlavorPdgIds           = cms.vint32(5)
 )
 process.jetAnalyzerTrimmedJets = cms.EDAnalyzer('RutgersJetAnalyzer',
     UseEventWeight            = cms.bool(False),
@@ -855,9 +851,7 @@ process.jetAnalyzerTrimmedJets = cms.EDAnalyzer('RutgersJetAnalyzer',
     NsubjCut                  = cms.double(0.45),
     Bdiscriminator            = cms.string("combinedSecondaryVertexBJetTags"),
     DoJetFlavor               = cms.bool(False),
-    JetFlavorPdgId            = cms.vint32(5),
-    FindGluonSplitting        = cms.bool(False),
-    FindMatrixElement         = cms.bool(False)
+    JetFlavorPdgIds           = cms.vint32(5)
 )
 process.jetAnalyzerFilteredJetMass = cms.EDAnalyzer('RutgersJetAnalyzer',
     UseEventWeight            = cms.bool(False),
@@ -886,9 +880,7 @@ process.jetAnalyzerFilteredJetMass = cms.EDAnalyzer('RutgersJetAnalyzer',
     NsubjCut                  = cms.double(0.45),
     Bdiscriminator            = cms.string("combinedSecondaryVertexBJetTags"),
     DoJetFlavor               = cms.bool(False),
-    JetFlavorPdgId            = cms.vint32(5),
-    FindGluonSplitting        = cms.bool(False),
-    FindMatrixElement         = cms.bool(False)
+    JetFlavorPdgIds           = cms.vint32(5)
 )
 process.jetAnalyzerPrunedJetMass = cms.EDAnalyzer('RutgersJetAnalyzer',
     UseEventWeight            = cms.bool(False),
@@ -917,9 +909,7 @@ process.jetAnalyzerPrunedJetMass = cms.EDAnalyzer('RutgersJetAnalyzer',
     NsubjCut                  = cms.double(0.45),
     Bdiscriminator            = cms.string("combinedSecondaryVertexBJetTags"),
     DoJetFlavor               = cms.bool(False),
-    JetFlavorPdgId            = cms.vint32(5),
-    FindGluonSplitting        = cms.bool(False),
-    FindMatrixElement         = cms.bool(False)
+    JetFlavorPdgIds           = cms.vint32(5)
 )
 process.jetAnalyzerPrunedJetMassKtSub = cms.EDAnalyzer('RutgersJetAnalyzer',
     UseEventWeight            = cms.bool(False),
@@ -948,9 +938,7 @@ process.jetAnalyzerPrunedJetMassKtSub = cms.EDAnalyzer('RutgersJetAnalyzer',
     NsubjCut                  = cms.double(0.45),
     Bdiscriminator            = cms.string("combinedSecondaryVertexBJetTags"),
     DoJetFlavor               = cms.bool(False),
-    JetFlavorPdgId            = cms.vint32(5),
-    FindGluonSplitting        = cms.bool(False),
-    FindMatrixElement         = cms.bool(False)
+    JetFlavorPdgIds           = cms.vint32(5)
 )
 process.jetAnalyzerPrunedJetMassFilteredSub = cms.EDAnalyzer('RutgersJetAnalyzer',
     UseEventWeight            = cms.bool(False),
@@ -979,9 +967,7 @@ process.jetAnalyzerPrunedJetMassFilteredSub = cms.EDAnalyzer('RutgersJetAnalyzer
     NsubjCut                  = cms.double(0.45),
     Bdiscriminator            = cms.string("combinedSecondaryVertexBJetTags"),
     DoJetFlavor               = cms.bool(False),
-    JetFlavorPdgId            = cms.vint32(5),
-    FindGluonSplitting        = cms.bool(False),
-    FindMatrixElement         = cms.bool(False)
+    JetFlavorPdgIds           = cms.vint32(5)
 )
 process.jetAnalyzerPrunedJetMassJTACone = cms.EDAnalyzer('RutgersJetAnalyzer',
     UseEventWeight            = cms.bool(False),
@@ -1010,9 +996,7 @@ process.jetAnalyzerPrunedJetMassJTACone = cms.EDAnalyzer('RutgersJetAnalyzer',
     NsubjCut                  = cms.double(0.45),
     Bdiscriminator            = cms.string("combinedSecondaryVertexBJetTags"),
     DoJetFlavor               = cms.bool(False),
-    JetFlavorPdgId            = cms.vint32(5),
-    FindGluonSplitting        = cms.bool(False),
-    FindMatrixElement         = cms.bool(False)
+    JetFlavorPdgIds           = cms.vint32(5)
 )
 process.jetAnalyzerPrunedJetMassKtAxes = cms.EDAnalyzer('RutgersJetAnalyzer',
     UseEventWeight            = cms.bool(False),
@@ -1042,9 +1026,7 @@ process.jetAnalyzerPrunedJetMassKtAxes = cms.EDAnalyzer('RutgersJetAnalyzer',
     NsubjCut                  = cms.double(0.45),
     Bdiscriminator            = cms.string("combinedSecondaryVertexBJetTags"),
     DoJetFlavor               = cms.bool(False),
-    JetFlavorPdgId            = cms.vint32(5),
-    FindGluonSplitting        = cms.bool(False),
-    FindMatrixElement         = cms.bool(False)
+    JetFlavorPdgIds           = cms.vint32(5)
 )
 process.jetAnalyzerPrunedJets = cms.EDAnalyzer('RutgersJetAnalyzer',
     UseEventWeight            = cms.bool(False),
@@ -1074,9 +1056,7 @@ process.jetAnalyzerPrunedJets = cms.EDAnalyzer('RutgersJetAnalyzer',
     NsubjCut                  = cms.double(0.45),
     Bdiscriminator            = cms.string("combinedSecondaryVertexBJetTags"),
     DoJetFlavor               = cms.bool(False),
-    JetFlavorPdgId            = cms.vint32(5),
-    FindGluonSplitting        = cms.bool(False),
-    FindMatrixElement         = cms.bool(False)
+    JetFlavorPdgIds           = cms.vint32(5)
 )
 process.jetAnalyzerCAPrunedJetMass = cms.EDAnalyzer('RutgersJetAnalyzer',
     UseEventWeight            = cms.bool(False),
@@ -1105,9 +1085,7 @@ process.jetAnalyzerCAPrunedJetMass = cms.EDAnalyzer('RutgersJetAnalyzer',
     NsubjCut                  = cms.double(0.45),
     Bdiscriminator            = cms.string("combinedSecondaryVertexBJetTags"),
     DoJetFlavor               = cms.bool(False),
-    JetFlavorPdgId            = cms.vint32(5),
-    FindGluonSplitting        = cms.bool(False),
-    FindMatrixElement         = cms.bool(False)
+    JetFlavorPdgIds           = cms.vint32(5)
 )
 process.jetAnalyzerCAPrunedJetMassKtSub = cms.EDAnalyzer('RutgersJetAnalyzer',
     UseEventWeight            = cms.bool(False),
@@ -1136,9 +1114,7 @@ process.jetAnalyzerCAPrunedJetMassKtSub = cms.EDAnalyzer('RutgersJetAnalyzer',
     NsubjCut                  = cms.double(0.45),
     Bdiscriminator            = cms.string("combinedSecondaryVertexBJetTags"),
     DoJetFlavor               = cms.bool(False),
-    JetFlavorPdgId            = cms.vint32(5),
-    FindGluonSplitting        = cms.bool(False),
-    FindMatrixElement         = cms.bool(False)
+    JetFlavorPdgIds           = cms.vint32(5)
 )
 process.jetAnalyzerCAPrunedJetMassFilteredSub = cms.EDAnalyzer('RutgersJetAnalyzer',
     UseEventWeight            = cms.bool(False),
@@ -1167,9 +1143,7 @@ process.jetAnalyzerCAPrunedJetMassFilteredSub = cms.EDAnalyzer('RutgersJetAnalyz
     NsubjCut                  = cms.double(0.45),
     Bdiscriminator            = cms.string("combinedSecondaryVertexBJetTags"),
     DoJetFlavor               = cms.bool(False),
-    JetFlavorPdgId            = cms.vint32(5),
-    FindGluonSplitting        = cms.bool(False),
-    FindMatrixElement         = cms.bool(False)
+    JetFlavorPdgIds           = cms.vint32(5)
 )
 process.jetAnalyzerCAPrunedJetMassJTACone = cms.EDAnalyzer('RutgersJetAnalyzer',
     UseEventWeight            = cms.bool(False),
@@ -1198,9 +1172,7 @@ process.jetAnalyzerCAPrunedJetMassJTACone = cms.EDAnalyzer('RutgersJetAnalyzer',
     NsubjCut                  = cms.double(0.45),
     Bdiscriminator            = cms.string("combinedSecondaryVertexBJetTags"),
     DoJetFlavor               = cms.bool(False),
-    JetFlavorPdgId            = cms.vint32(5),
-    FindGluonSplitting        = cms.bool(False),
-    FindMatrixElement         = cms.bool(False)
+    JetFlavorPdgIds           = cms.vint32(5)
 )
 process.jetAnalyzerCAPrunedJetMass_bQuarksGSP = cms.EDAnalyzer('RutgersJetAnalyzer',
     UseEventWeight            = cms.bool(False),
@@ -1229,9 +1201,8 @@ process.jetAnalyzerCAPrunedJetMass_bQuarksGSP = cms.EDAnalyzer('RutgersJetAnalyz
     NsubjCut                  = cms.double(0.45),
     Bdiscriminator            = cms.string("combinedSecondaryVertexBJetTags"),
     DoJetFlavor               = cms.bool(True),
-    JetFlavorPdgId            = cms.vint32(5),
-    FindGluonSplitting        = cms.bool(True),
-    FindMatrixElement         = cms.bool(False)
+    JetFlavorPdgIds           = cms.vint32(85),
+    UseAltGSPbDef             = cms.bool(True)
 )
 process.jetAnalyzerCAPrunedJetMass_bQuarksME = cms.EDAnalyzer('RutgersJetAnalyzer',
     UseEventWeight            = cms.bool(False),
@@ -1260,9 +1231,8 @@ process.jetAnalyzerCAPrunedJetMass_bQuarksME = cms.EDAnalyzer('RutgersJetAnalyze
     NsubjCut                  = cms.double(0.45),
     Bdiscriminator            = cms.string("combinedSecondaryVertexBJetTags"),
     DoJetFlavor               = cms.bool(True),
-    JetFlavorPdgId            = cms.vint32(5),
-    FindGluonSplitting        = cms.bool(False),
-    FindMatrixElement         = cms.bool(True)
+    JetFlavorPdgIds           = cms.vint32(5),
+    UseAltGSPbDef             = cms.bool(True)
 )
 process.jetAnalyzerCAPrunedJetMass_cQuarks = cms.EDAnalyzer('RutgersJetAnalyzer',
     UseEventWeight            = cms.bool(False),
@@ -1291,9 +1261,8 @@ process.jetAnalyzerCAPrunedJetMass_cQuarks = cms.EDAnalyzer('RutgersJetAnalyzer'
     NsubjCut                  = cms.double(0.45),
     Bdiscriminator            = cms.string("combinedSecondaryVertexBJetTags"),
     DoJetFlavor               = cms.bool(True),
-    JetFlavorPdgId            = cms.vint32(4),
-    FindGluonSplitting        = cms.bool(False),
-    FindMatrixElement         = cms.bool(False)
+    JetFlavorPdgIds           = cms.vint32(4),
+    UseAltGSPbDef             = cms.bool(True)
 )
 process.jetAnalyzerCAPrunedJetMass_udsQuarks = cms.EDAnalyzer('RutgersJetAnalyzer',
     UseEventWeight            = cms.bool(False),
@@ -1322,9 +1291,8 @@ process.jetAnalyzerCAPrunedJetMass_udsQuarks = cms.EDAnalyzer('RutgersJetAnalyze
     NsubjCut                  = cms.double(0.45),
     Bdiscriminator            = cms.string("combinedSecondaryVertexBJetTags"),
     DoJetFlavor               = cms.bool(True),
-    JetFlavorPdgId            = cms.vint32(1,2,3),
-    FindGluonSplitting        = cms.bool(False),
-    FindMatrixElement         = cms.bool(False)
+    JetFlavorPdgIds           = cms.vint32(1,2,3),
+    UseAltGSPbDef             = cms.bool(True)
 )
 process.jetAnalyzerCAPrunedJetMass_gluons = cms.EDAnalyzer('RutgersJetAnalyzer',
     UseEventWeight            = cms.bool(False),
@@ -1353,9 +1321,8 @@ process.jetAnalyzerCAPrunedJetMass_gluons = cms.EDAnalyzer('RutgersJetAnalyzer',
     NsubjCut                  = cms.double(0.45),
     Bdiscriminator            = cms.string("combinedSecondaryVertexBJetTags"),
     DoJetFlavor               = cms.bool(True),
-    JetFlavorPdgId            = cms.vint32(21),
-    FindGluonSplitting        = cms.bool(False),
-    FindMatrixElement         = cms.bool(False)
+    JetFlavorPdgIds           = cms.vint32(21),
+    UseAltGSPbDef             = cms.bool(True)
 )
 process.jetAnalyzerCAPrunedJets = cms.EDAnalyzer('RutgersJetAnalyzer',
     UseEventWeight            = cms.bool(False),
@@ -1385,9 +1352,7 @@ process.jetAnalyzerCAPrunedJets = cms.EDAnalyzer('RutgersJetAnalyzer',
     NsubjCut                  = cms.double(0.45),
     Bdiscriminator            = cms.string("combinedSecondaryVertexBJetTags"),
     DoJetFlavor               = cms.bool(False),
-    JetFlavorPdgId            = cms.vint32(5),
-    FindGluonSplitting        = cms.bool(False),
-    FindMatrixElement         = cms.bool(False)
+    JetFlavorPdgIds           = cms.vint32(5)
 )
 
 ## If running H tagging

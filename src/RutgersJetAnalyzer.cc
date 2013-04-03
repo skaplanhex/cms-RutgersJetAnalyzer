@@ -91,38 +91,39 @@ private:
     virtual void endLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&);
 
     // ----------member data ---------------------------
-    const bool          useEventWeight;
-    const edm::InputTag genParticleTag;
-    const edm::InputTag jetsTag;
-    const bool          useGroomedJets;
-    const edm::InputTag groomedJetsTag;
-    const bool          useSubJets;
-    const edm::InputTag groomedBasicJetsTag;
-    const std::string   subJetMode;
-    const edm::InputTag pvTag;
-    const double        jetRadius;          // radius for jet clustering
-    const bool          doBosonMatching;    // parameter for deciding if matching is on or off
-    const double        bosonMatchingRadius;
-    const int           bosonPdgId;
-    const bool          applyBosonIsolation;
-    const bool          doBosonDecayProdSelection;
+    const bool             useEventWeight;
+    const edm::InputTag    genParticleTag;
+    const edm::InputTag    jetsTag;
+    const bool             useGroomedJets;
+    const edm::InputTag    groomedJetsTag;
+    const bool             useSubJets;
+    const edm::InputTag    groomedBasicJetsTag;
+    const std::string      subJetMode;
+    const edm::InputTag    pvTag;
+    const double           jetRadius;          // radius for jet clustering
+    const bool             doBosonMatching;    // parameter for deciding if matching is on or off
+    const double           bosonMatchingRadius;
+    const int              bosonPdgId;
+    const bool             applyBosonIsolation;
+    const bool             doBosonDecayProdSelection;
     const std::vector<int> bosonDecayProdPdgIds;
-    const bool          useMassDrop;
-    const double        jetPtMin;
-    const unsigned      jetPtBins;
-    const double        jetPtBinWidth;
-    const double        jetAbsEtaMax;
-    const double        jetMassMin;
-    const double        jetMassMax;
-    const double        nsubjCut;
-    const bool          useOnePassKtAxes;
-    const bool          useGroomedJetSubstr;
-    const bool          useUncorrMassForMassDrop;
-    const std::string   bdiscriminator;
-    const bool          doJetFlavor;
-    const std::vector<int> jetFlavorPdgId;
-    const bool          findGluonSplitting;
-    const bool          findMatrixElement;
+    const bool             useMassDrop;
+    const double           jetPtMin;
+    const unsigned         jetPtBins;
+    const double           jetPtBinWidth;
+    const double           jetAbsEtaMax;
+    const double           jetMassMin;
+    const double           jetMassMax;
+    const double           nsubjCut;
+    const bool             useOnePassKtAxes;
+    const bool             useGroomedJetSubstr;
+    const bool             useUncorrMassForMassDrop;
+    const std::string      bdiscriminator;
+    const bool             doJetFlavor;
+    const std::vector<int> jetFlavorPdgIds;
+    const bool             useAltGSPbDef;
+    const bool             findGluonSplitting;
+    const bool             findMatrixElement;
 
     Njettiness nsubjettinessCalculator;
 
@@ -244,9 +245,10 @@ RutgersJetAnalyzer::RutgersJetAnalyzer(const edm::ParameterSet& iConfig) :
   useUncorrMassForMassDrop( iConfig.exists("UseUncorrMassForMassDrop") ? iConfig.getParameter<bool>("UseUncorrMassForMassDrop") : true ),
   bdiscriminator(iConfig.getParameter<std::string>("Bdiscriminator")),
   doJetFlavor(iConfig.getParameter<bool>("DoJetFlavor")),
-  jetFlavorPdgId(iConfig.getParameter<std::vector<int> >("JetFlavorPdgId")),
-  findGluonSplitting(iConfig.getParameter<bool>("FindGluonSplitting")),
-  findMatrixElement(iConfig.getParameter<bool>("FindMatrixElement")),
+  jetFlavorPdgIds(iConfig.getParameter<std::vector<int> >("JetFlavorPdgIds")),
+  useAltGSPbDef( iConfig.exists("UseAltGSPbDef") ? iConfig.getParameter<bool>("UseAltGSPbDef") : false ),
+  findGluonSplitting( iConfig.exists("FindGluonSplitting") ? iConfig.getParameter<bool>("FindGluonSplitting") : false ),
+  findMatrixElement( iConfig.exists("FindMatrixElement") ? iConfig.getParameter<bool>("FindMatrixElement") : false ),
   nsubjettinessCalculator(( useOnePassKtAxes ? Njettiness::onepass_kt_axes : Njettiness::kt_axes ), NsubParameters(1.0, jetRadius, jetRadius))
 
 {
@@ -593,13 +595,35 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
     // loop over jets
     for(PatJetCollection::const_iterator it = jets->begin(); it != jets->end(); ++it)
     {
+      double jetPt = it->pt();
+      // skip the jet if it does not pass pT and eta cuts
+      if( !(jetPt > jetPtMin && fabs(it->eta()) < jetAbsEtaMax) ) continue;
+
+
       bool isRightFlavor = false;
       // check jet flavor
       if( doJetFlavor )
       {
-        for(std::vector<int>::const_iterator pdgIdIt = jetFlavorPdgId.begin(); pdgIdIt != jetFlavorPdgId.end(); ++pdgIdIt)
+        int jetFlavor = it->partonFlavour();
+
+        if( useAltGSPbDef ) // use alternative gluon splitting b-jet definition based on the number of B hadrons inside the jet cone
         {
-          if( abs(it->partonFlavour()) == abs(*pdgIdIt))
+          int nMatchedBHadrons = 0;
+          for(reco::GenParticleCollection::const_iterator gpIt = genParticles->begin(); gpIt != genParticles->end(); ++gpIt)
+          {
+            int id = abs(gpIt->pdgId());
+            // skip GenParticle if not B hadron
+            if ( !((id/100)%10 == 5 || (id/1000)%10 == 5) ) continue;
+
+            if( reco::deltaR( it->p4(), gpIt->p4() ) < jetRadius ) ++nMatchedBHadrons;
+          }
+          //std::cout << "nMatchedBHadrons: " << nMatchedBHadrons << std::endl;
+          if( nMatchedBHadrons>=2 ) jetFlavor = 85; // custom jet flavor code for gluon splitting b jets
+        }
+
+        for(std::vector<int>::const_iterator pdgIdIt = jetFlavorPdgIds.begin(); pdgIdIt != jetFlavorPdgIds.end(); ++pdgIdIt)
+        {
+          if( abs(jetFlavor) == abs(*pdgIdIt))
           {
             isRightFlavor = true;
             break;
@@ -611,11 +635,6 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
 
       // skip the jet if it does not have the right flavor
       if( !isRightFlavor ) continue;
-
-
-      double jetPt = it->pt();
-      // skip the jet if it does not pass pT and eta cuts
-      if( !(jetPt > jetPtMin && fabs(it->eta()) < jetAbsEtaMax) ) continue;
 
 
       h1_JetPt->Fill(jetPt, eventWeight);

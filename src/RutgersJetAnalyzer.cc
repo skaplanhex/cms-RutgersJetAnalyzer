@@ -13,7 +13,7 @@
 //
 // Original Author:  Dinko Ferencek
 //         Created:  Fri Jul 20 12:32:38 CDT 2012
-// $Id: RutgersJetAnalyzer.cc,v 1.15 2013/03/14 00:23:59 ferencek Exp $
+// $Id: RutgersJetAnalyzer.cc,v 1.16 2013/03/15 04:19:41 ferencek Exp $
 //
 //
 
@@ -241,7 +241,7 @@ RutgersJetAnalyzer::RutgersJetAnalyzer(const edm::ParameterSet& iConfig) :
   nsubjCut(iConfig.getParameter<double>("NsubjCut")),
   useOnePassKtAxes( iConfig.exists("UseOnePassKtAxes") ? iConfig.getParameter<bool>("UseOnePassKtAxes") : true ),
   useGroomedJetSubstr( iConfig.exists("UseGroomedJetSubstructure") ? iConfig.getParameter<bool>("UseGroomedJetSubstructure") : false ),
-  useUncorrMassForMassDrop( iConfig.exists("UseUncorrMassForMassDrop") ? iConfig.getParameter<bool>("UseUncorrMassForMassDrop") : false ),
+  useUncorrMassForMassDrop( iConfig.exists("UseUncorrMassForMassDrop") ? iConfig.getParameter<bool>("UseUncorrMassForMassDrop") : true ),
   bdiscriminator(iConfig.getParameter<std::string>("Bdiscriminator")),
   doJetFlavor(iConfig.getParameter<bool>("DoJetFlavor")),
   jetFlavorPdgId(iConfig.getParameter<std::vector<int> >("JetFlavorPdgId")),
@@ -825,8 +825,8 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
       double subJet1_CSV_discr = -999., subJet2_CSV_discr = -999.;
       if( subjets.size()>1 )
       {
-        subJet1_CSV_discr = subjets.at(0)->bDiscriminator((bdiscriminator).c_str());
-        subJet2_CSV_discr = subjets.at(1)->bDiscriminator((bdiscriminator).c_str());
+        subJet1_CSV_discr = subjets.at(0)->bDiscriminator(bdiscriminator.c_str());
+        subJet2_CSV_discr = subjets.at(1)->bDiscriminator(bdiscriminator.c_str());
       }
       double minSubJet_CSV_discr = std::min(subJet1_CSV_discr, subJet2_CSV_discr);
       double jet_DoubleB_discr = it->bDiscriminator("doubleSecondaryVertexHighEffBJetTags");
@@ -847,72 +847,50 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
       PatJetCollection::const_iterator substructJet = it;
       if( useGroomedJetSubstr && groomedJetMatchFound ) substructJet = groomedJetMatch;
       // N-subjettiness
-      if( !useMassDrop )
+      std::vector<fastjet::PseudoJet> fjConstituents;
+      std::vector<edm::Ptr<reco::PFCandidate> > constituents = substructJet->getPFConstituents();
+      std::vector<edm::Ptr<reco::PFCandidate> >::const_iterator m;
+      for ( m = constituents.begin(); m != constituents.end(); ++m )
       {
-        std::vector<fastjet::PseudoJet> fjConstituents;
-        std::vector<edm::Ptr<reco::PFCandidate> > constituents = substructJet->getPFConstituents();
-        std::vector<edm::Ptr<reco::PFCandidate> >::const_iterator m;
-        for ( m = constituents.begin(); m != constituents.end(); ++m )
+        reco::PFCandidatePtr constit = *m;
+        if (constit->pt() == 0)
         {
-          reco::PFCandidatePtr constit = *m;
-          if (constit->pt() == 0)
-          {
-            edm::LogWarning("NullTransverseMomentum") << "dropping input candidate with pt=0";
-            continue;
-          }
-          fjConstituents.push_back(fastjet::PseudoJet(constit->px(),constit->py(),constit->pz(),constit->energy()));
-          fjConstituents.back().set_user_index(m - constituents.begin());
+          edm::LogWarning("NullTransverseMomentum") << "dropping input candidate with pt=0";
+          continue;
         }
+        fjConstituents.push_back(fastjet::PseudoJet(constit->px(),constit->py(),constit->pz(),constit->energy()));
+        fjConstituents.back().set_user_index(m - constituents.begin());
+      }
 
-        double tau1 = nsubjettinessCalculator.getTau(1,fjConstituents);
-        double tau2 = nsubjettinessCalculator.getTau(2,fjConstituents);
-        double tau2overtau1 = (tau1>0 ? tau2/tau1 : -10.);
+      double tau1 = nsubjettinessCalculator.getTau(1,fjConstituents);
+      double tau2 = nsubjettinessCalculator.getTau(2,fjConstituents);
+      double tau2overtau1 = (tau1>0 ? tau2/tau1 : -10.);
 
-        double nTracks = it->associatedTracks().size();
-        double nSelectedTracks = (it->hasTagInfo("impactParameter") ? it->tagInfoTrackIP("impactParameter")->selectedTracks().size() : -99.);
+      double nTracks = it->associatedTracks().size();
+      double nSelectedTracks = (it->hasTagInfo("impactParameter") ? it->tagInfoTrackIP("impactParameter")->selectedTracks().size() : -99.);
 
-        // fill various 2D histograms
-        suffix = Form("%.0ftoInf",jetPtMin);
-        h2_nPV_tau1_Pt[suffix]->Fill(nPV, tau1, eventWeight);
-        h2_nPV_tau2_Pt[suffix]->Fill(nPV, tau2, eventWeight);
-        h2_nPV_tau2tau1_Pt[suffix]->Fill(nPV, tau2overtau1, eventWeight);
+      // fill various 2D histograms
+      suffix = Form("%.0ftoInf",jetPtMin);
+      h2_nPV_tau1_Pt[suffix]->Fill(nPV, tau1, eventWeight);
+      h2_nPV_tau2_Pt[suffix]->Fill(nPV, tau2, eventWeight);
+      h2_nPV_tau2tau1_Pt[suffix]->Fill(nPV, tau2overtau1, eventWeight);
 
-        h2_JetMass_nTracks_Pt[suffix]->Fill(jetMass, nTracks, eventWeight);
-        h2_JetMass_nSelectedTracks_Pt[suffix]->Fill(jetMass, nSelectedTracks, eventWeight);
-        h2_JetMass_tau2tau1_Pt[suffix]->Fill(jetMass, tau2overtau1, eventWeight);
-        h2_JetMass_SubJetMinCSVL_Pt[suffix]->Fill(jetMass, minSubJet_CSV_discr, eventWeight);
+      h2_JetMass_nTracks_Pt[suffix]->Fill(jetMass, nTracks, eventWeight);
+      h2_JetMass_nSelectedTracks_Pt[suffix]->Fill(jetMass, nSelectedTracks, eventWeight);
+      h2_JetMass_tau2tau1_Pt[suffix]->Fill(jetMass, tau2overtau1, eventWeight);
+      h2_JetMass_SubJetMinCSVL_Pt[suffix]->Fill(jetMass, minSubJet_CSV_discr, eventWeight);
 
-        h2_nTracks_tau2tau1_Pt[suffix]->Fill(nTracks, tau2overtau1, eventWeight);
-        h2_nSelectedTracks_tau2tau1_Pt[suffix]->Fill(nSelectedTracks, tau2overtau1, eventWeight);
+      h2_nTracks_tau2tau1_Pt[suffix]->Fill(nTracks, tau2overtau1, eventWeight);
+      h2_nSelectedTracks_tau2tau1_Pt[suffix]->Fill(nSelectedTracks, tau2overtau1, eventWeight);
 
-        h2_nTracks_SubJetMinCSVL_Pt[suffix]->Fill(nTracks, minSubJet_CSV_discr, eventWeight);
-        h2_nSelectedTracks_SubJetMinCSVL_Pt[suffix]->Fill(nSelectedTracks, minSubJet_CSV_discr, eventWeight);
-        h2_tau2tau1_SubJetMinCSVL_Pt[suffix]->Fill(tau2overtau1, minSubJet_CSV_discr, eventWeight);
-        for(unsigned i=0; i<jetPtBins; ++i)
+      h2_nTracks_SubJetMinCSVL_Pt[suffix]->Fill(nTracks, minSubJet_CSV_discr, eventWeight);
+      h2_nSelectedTracks_SubJetMinCSVL_Pt[suffix]->Fill(nSelectedTracks, minSubJet_CSV_discr, eventWeight);
+      h2_tau2tau1_SubJetMinCSVL_Pt[suffix]->Fill(tau2overtau1, minSubJet_CSV_discr, eventWeight);
+      for(unsigned i=0; i<jetPtBins; ++i)
+      {
+        if( jetPt>(jetPtMin + jetPtBinWidth*i) && jetPt<=(jetPtMin + jetPtBinWidth*(i+1)) )
         {
-          if( jetPt>(jetPtMin + jetPtBinWidth*i) && jetPt<=(jetPtMin + jetPtBinWidth*(i+1)) )
-          {
-            suffix = Form("%.0fto%.0f",(jetPtMin + jetPtBinWidth*i),(jetPtMin + jetPtBinWidth*(i+1)));
-            h2_nPV_tau1_Pt[suffix]->Fill(nPV, tau1, eventWeight);
-            h2_nPV_tau2_Pt[suffix]->Fill(nPV, tau2, eventWeight);
-            h2_nPV_tau2tau1_Pt[suffix]->Fill(nPV, tau2overtau1, eventWeight);
-
-            h2_JetMass_nTracks_Pt[suffix]->Fill(jetMass, nTracks, eventWeight);
-            h2_JetMass_nSelectedTracks_Pt[suffix]->Fill(jetMass, nSelectedTracks, eventWeight);
-            h2_JetMass_tau2tau1_Pt[suffix]->Fill(jetMass, tau2overtau1, eventWeight);
-            h2_JetMass_SubJetMinCSVL_Pt[suffix]->Fill(jetMass, minSubJet_CSV_discr, eventWeight);
-
-            h2_nTracks_tau2tau1_Pt[suffix]->Fill(nTracks, tau2overtau1, eventWeight);
-            h2_nSelectedTracks_tau2tau1_Pt[suffix]->Fill(nSelectedTracks, tau2overtau1, eventWeight);
-
-            h2_nTracks_SubJetMinCSVL_Pt[suffix]->Fill(nTracks, minSubJet_CSV_discr, eventWeight);
-            h2_nSelectedTracks_SubJetMinCSVL_Pt[suffix]->Fill(nSelectedTracks, minSubJet_CSV_discr, eventWeight);
-            h2_tau2tau1_SubJetMinCSVL_Pt[suffix]->Fill(tau2overtau1, minSubJet_CSV_discr, eventWeight);
-          }
-        }
-        if( jetPt>(jetPtMin+jetPtBinWidth*jetPtBins))
-        {
-          suffix = Form("%.0ftoInf",(jetPtMin+jetPtBinWidth*jetPtBins));
+          suffix = Form("%.0fto%.0f",(jetPtMin + jetPtBinWidth*i),(jetPtMin + jetPtBinWidth*(i+1)));
           h2_nPV_tau1_Pt[suffix]->Fill(nPV, tau1, eventWeight);
           h2_nPV_tau2_Pt[suffix]->Fill(nPV, tau2, eventWeight);
           h2_nPV_tau2tau1_Pt[suffix]->Fill(nPV, tau2overtau1, eventWeight);
@@ -929,22 +907,47 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
           h2_nSelectedTracks_SubJetMinCSVL_Pt[suffix]->Fill(nSelectedTracks, minSubJet_CSV_discr, eventWeight);
           h2_tau2tau1_SubJetMinCSVL_Pt[suffix]->Fill(tau2overtau1, minSubJet_CSV_discr, eventWeight);
         }
-
-        if( tau2/tau1<nsubjCut )
-        {
-          if( jet_CSV_discr>0.244 ) h1_JetPt_BosonMatched_JetMass_Nsubj_CSVL->Fill(jetPt, eventWeight);
-          if( jet_CSV_discr>0.679 ) h1_JetPt_BosonMatched_JetMass_Nsubj_CSVM->Fill(jetPt, eventWeight);
-          if( subJet1_CSV_discr>0.244 && subJet2_CSV_discr>0.244 ) h1_JetPt_BosonMatched_JetMass_Nsubj_SubJetCSVL->Fill(jetPt, eventWeight);
-          if( subJet1_CSV_discr>0.679 && subJet2_CSV_discr>0.679 ) h1_JetPt_BosonMatched_JetMass_Nsubj_SubJetCSVM->Fill(jetPt, eventWeight);
-          if( jet_DoubleB_discr>0. ) h1_JetPt_BosonMatched_JetMass_Nsubj_DoubleB->Fill(jetPt, eventWeight);
-        }
       }
+      if( jetPt>(jetPtMin+jetPtBinWidth*jetPtBins))
+      {
+        suffix = Form("%.0ftoInf",(jetPtMin+jetPtBinWidth*jetPtBins));
+        h2_nPV_tau1_Pt[suffix]->Fill(nPV, tau1, eventWeight);
+        h2_nPV_tau2_Pt[suffix]->Fill(nPV, tau2, eventWeight);
+        h2_nPV_tau2tau1_Pt[suffix]->Fill(nPV, tau2overtau1, eventWeight);
+
+        h2_JetMass_nTracks_Pt[suffix]->Fill(jetMass, nTracks, eventWeight);
+        h2_JetMass_nSelectedTracks_Pt[suffix]->Fill(jetMass, nSelectedTracks, eventWeight);
+        h2_JetMass_tau2tau1_Pt[suffix]->Fill(jetMass, tau2overtau1, eventWeight);
+        h2_JetMass_SubJetMinCSVL_Pt[suffix]->Fill(jetMass, minSubJet_CSV_discr, eventWeight);
+
+        h2_nTracks_tau2tau1_Pt[suffix]->Fill(nTracks, tau2overtau1, eventWeight);
+        h2_nSelectedTracks_tau2tau1_Pt[suffix]->Fill(nSelectedTracks, tau2overtau1, eventWeight);
+
+        h2_nTracks_SubJetMinCSVL_Pt[suffix]->Fill(nTracks, minSubJet_CSV_discr, eventWeight);
+        h2_nSelectedTracks_SubJetMinCSVL_Pt[suffix]->Fill(nSelectedTracks, minSubJet_CSV_discr, eventWeight);
+        h2_tau2tau1_SubJetMinCSVL_Pt[suffix]->Fill(tau2overtau1, minSubJet_CSV_discr, eventWeight);
+      }
+
+      if( tau2/tau1<nsubjCut )
+      {
+        if( jet_CSV_discr>0.244 ) h1_JetPt_BosonMatched_JetMass_Nsubj_CSVL->Fill(jetPt, eventWeight);
+        if( jet_CSV_discr>0.679 ) h1_JetPt_BosonMatched_JetMass_Nsubj_CSVM->Fill(jetPt, eventWeight);
+        if( subJet1_CSV_discr>0.244 && subJet2_CSV_discr>0.244 ) h1_JetPt_BosonMatched_JetMass_Nsubj_SubJetCSVL->Fill(jetPt, eventWeight);
+        if( subJet1_CSV_discr>0.679 && subJet2_CSV_discr>0.679 ) h1_JetPt_BosonMatched_JetMass_Nsubj_SubJetCSVM->Fill(jetPt, eventWeight);
+        if( jet_DoubleB_discr>0. ) h1_JetPt_BosonMatched_JetMass_Nsubj_DoubleB->Fill(jetPt, eventWeight);
+      }
+
       // mass drop
-      else
+      if( useMassDrop )
       {
         double fatJetMass = jetMass;
-        if( useUncorrMassForMassDrop ) fatJetMass = substructJet->correctedJet("Uncorrected").mass();
-        double massDrop = ( (jetMass>0. && substructJet->numberOfDaughters()>1) ? std::max( substructJet->daughter(0)->mass(), substructJet->daughter(1)->mass() ) / fatJetMass : -10.);
+        double subjetMass = ( subjets.size()>1 ? std::max( subjets.at(0)->mass(), subjets.at(1)->mass() ) : 0. );
+        if( useUncorrMassForMassDrop && groomedJetMatchFound && subjets.size()>1 )
+        {
+          fatJetMass = groomedJetMatch->correctedJet("Uncorrected").mass();
+          subjetMass = std::max( subjets.at(0)->correctedJet("Uncorrected").mass(), subjets.at(1)->correctedJet("Uncorrected").mass() );
+        }
+        double massDrop = ( jetMass>0. ? subjetMass/fatJetMass : -10.);
         // fill nPV_MassDrop histograms
         suffix = Form("%.0ftoInf",jetPtMin);
         h2_nPV_MassDrop_Pt[suffix]->Fill(nPV, massDrop, eventWeight);

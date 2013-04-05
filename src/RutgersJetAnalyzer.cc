@@ -13,7 +13,7 @@
 //
 // Original Author:  Dinko Ferencek
 //         Created:  Fri Jul 20 12:32:38 CDT 2012
-// $Id: RutgersJetAnalyzer.cc,v 1.16 2013/03/15 04:19:41 ferencek Exp $
+// $Id: RutgersJetAnalyzer.cc,v 1.18 2013/04/03 22:37:15 ferencek Exp $
 //
 //
 
@@ -615,10 +615,19 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
             // skip GenParticle if not B hadron
             if ( !((id/100)%10 == 5 || (id/1000)%10 == 5) ) continue;
 
+            // check if any of daughters is also B hadron
+            bool hasBHadronDaughter = false;
+            for(unsigned i=0; i<gpIt->numberOfDaughters(); ++i)
+            {
+              int dId = abs(gpIt->daughter(i)->pdgId());
+              if ( (dId/100)%10 == 5 || (dId/1000)%10 == 5 ) { hasBHadronDaughter = true; break; }
+            }
+            if( hasBHadronDaughter ) continue; // skip excited B hadrons that have other B hadrons as daughters
+
             if( reco::deltaR( it->p4(), gpIt->p4() ) < jetRadius ) ++nMatchedBHadrons;
           }
           //std::cout << "nMatchedBHadrons: " << nMatchedBHadrons << std::endl;
-          if( nMatchedBHadrons>=2 ) jetFlavor = 85; // custom jet flavor code for gluon splitting b jets
+          if( nMatchedBHadrons==2 ) jetFlavor = 85; // custom jet flavor code for gluon splitting b jets
         }
 
         for(std::vector<int>::const_iterator pdgIdIt = jetFlavorPdgIds.begin(); pdgIdIt != jetFlavorPdgIds.end(); ++pdgIdIt)

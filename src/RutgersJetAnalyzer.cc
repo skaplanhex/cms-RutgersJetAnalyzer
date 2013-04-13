@@ -13,7 +13,7 @@
 //
 // Original Author:  Dinko Ferencek
 //         Created:  Fri Jul 20 12:32:38 CDT 2012
-// $Id: RutgersJetAnalyzer.cc,v 1.18 2013/04/03 22:37:15 ferencek Exp $
+// $Id: RutgersJetAnalyzer.cc,v 1.20 2013/04/05 20:13:46 ferencek Exp $
 //
 //
 
@@ -107,14 +107,13 @@ private:
     const bool             applyBosonIsolation;
     const bool             doBosonDecayProdSelection;
     const std::vector<int> bosonDecayProdPdgIds;
-    const bool             useMassDrop;
+    const bool             calculateMassDrop;
     const double           jetPtMin;
     const unsigned         jetPtBins;
     const double           jetPtBinWidth;
     const double           jetAbsEtaMax;
     const double           jetMassMin;
     const double           jetMassMax;
-    const double           nsubjCut;
     const bool             useOnePassKtAxes;
     const bool             useGroomedJetSubstr;
     const bool             useUncorrMassForMassDrop;
@@ -142,19 +141,18 @@ private:
 
     TH2D *h2_BosonPt_dRdecay;
 
+    TH2D *h2_JetPt_dRmatchedBhadrons_GSPbJets;
+
     TH1D *h1_JetPt;
     TH1D *h1_JetPt_BosonMatched;
     TH1D *h1_JetPt_BosonMatched_JetMass;
     TH1D *h1_JetPt_BosonMatched_JetMass_CSVL;
     TH1D *h1_JetPt_BosonMatched_JetMass_CSVM;
-    TH1D *h1_JetPt_BosonMatched_JetMass_SubJetCSVL;
-    TH1D *h1_JetPt_BosonMatched_JetMass_SubJetCSVM;
+    TH1D *h1_JetPt_BosonMatched_JetMass_SubJetMinCSVL;
+    TH1D *h1_JetPt_BosonMatched_JetMass_SubJetMaxCSVL;
+    TH1D *h1_JetPt_BosonMatched_JetMass_SubJetMinCSVM;
+    TH1D *h1_JetPt_BosonMatched_JetMass_SubJetMaxCSVM;
     TH1D *h1_JetPt_BosonMatched_JetMass_DoubleB;
-    TH1D *h1_JetPt_BosonMatched_JetMass_Nsubj_CSVL;
-    TH1D *h1_JetPt_BosonMatched_JetMass_Nsubj_CSVM;
-    TH1D *h1_JetPt_BosonMatched_JetMass_Nsubj_SubJetCSVL;
-    TH1D *h1_JetPt_BosonMatched_JetMass_Nsubj_SubJetCSVM;
-    TH1D *h1_JetPt_BosonMatched_JetMass_Nsubj_DoubleB;
     TH1D *h1_JetPt_BosonDecayProdMatched;
     TH1D *h1_JetPt_BosonDecayProdMatched_JetMass;
     TH1D *h1_JetEta;
@@ -179,10 +177,12 @@ private:
 
     TH1D *h1_JetCSVDiscr_BosonMatched_JetMass;
     TH1D *h1_SubJetMinCSVDiscr_BosonMatched_JetMass;
+    TH1D *h1_SubJetMaxCSVDiscr_BosonMatched_JetMass;
     TH1D *h1_JetDoubleBDiscr_BosonMatched_JetMass;
 
     TH2D *h2_JetPt_JetCSVL_BosonMatched_JetMass;
     TH2D *h2_JetPt_SubJetMinCSVL_BosonMatched_JetMass;
+    TH2D *h2_JetPt_SubJetMaxCSVL_BosonMatched_JetMass;
 
     std::map<std::string, TH2D*> h2_nPV_JetMass_Pt;
     std::map<std::string, TH2D*> h2_nPV_tau1_Pt;
@@ -193,7 +193,9 @@ private:
     std::map<std::string, TH2D*> h2_JetMass_nTracks_Pt;
     std::map<std::string, TH2D*> h2_JetMass_nSelectedTracks_Pt;
     std::map<std::string, TH2D*> h2_JetMass_tau2tau1_Pt;
+    std::map<std::string, TH2D*> h2_JetMass_MassDrop_Pt;
     std::map<std::string, TH2D*> h2_JetMass_SubJetMinCSVL_Pt;
+    std::map<std::string, TH2D*> h2_JetMass_SubJetMaxCSVL_Pt;
     std::map<std::string, TH2D*> h2_JetMass_TrackJetWidth_Pt;
     std::map<std::string, TH2D*> h2_JetMass_SelectedTrackJetWidth_Pt;
     std::map<std::string, TH2D*> h2_JetMass_maxdRTracks_Pt;
@@ -236,14 +238,13 @@ RutgersJetAnalyzer::RutgersJetAnalyzer(const edm::ParameterSet& iConfig) :
   applyBosonIsolation(iConfig.getParameter<bool>("ApplyBosonIsolation")),
   doBosonDecayProdSelection(iConfig.getParameter<bool>("DoBosonDecayProdSelection")),
   bosonDecayProdPdgIds(iConfig.getParameter<std::vector<int> >("BosonDecayProdPdgIds")),
-  useMassDrop(iConfig.getParameter<bool>("UseMassDrop")),
+  calculateMassDrop(iConfig.getParameter<bool>("CalculateMassDrop")),
   jetPtMin(iConfig.getParameter<double>("JetPtMin")),
   jetPtBins(iConfig.getParameter<unsigned>("JetPtBins")),
   jetPtBinWidth(iConfig.getParameter<double>("JetPtBinWidth")),
   jetAbsEtaMax(iConfig.getParameter<double>("JetAbsEtaMax")),
   jetMassMin(iConfig.getParameter<double>("JetMassMin")),
   jetMassMax(iConfig.getParameter<double>("JetMassMax")),
-  nsubjCut(iConfig.getParameter<double>("NsubjCut")),
   useOnePassKtAxes( iConfig.exists("UseOnePassKtAxes") ? iConfig.getParameter<bool>("UseOnePassKtAxes") : true ),
   useGroomedJetSubstr( iConfig.exists("UseGroomedJetSubstructure") ? iConfig.getParameter<bool>("UseGroomedJetSubstructure") : false ),
   useUncorrMassForMassDrop( iConfig.exists("UseUncorrMassForMassDrop") ? iConfig.getParameter<bool>("UseUncorrMassForMassDrop") : true ),
@@ -294,20 +295,18 @@ RutgersJetAnalyzer::RutgersJetAnalyzer(const edm::ParameterSet& iConfig) :
     h1_JetPt_BosonMatched_JetMass = fs->make<TH1D>("h1_JetPt_BosonMatched_JetMass",";p_{T} [GeV];",ptBins,ptMin,ptMax);
     h1_JetPt_BosonMatched_JetMass_CSVL = fs->make<TH1D>("h1_JetPt_BosonMatched_JetMass_CSVL",";p_{T} [GeV];",ptBins,ptMin,ptMax);
     h1_JetPt_BosonMatched_JetMass_CSVM = fs->make<TH1D>("h1_JetPt_BosonMatched_JetMass_CSVM",";p_{T} [GeV];",ptBins,ptMin,ptMax);
-    h1_JetPt_BosonMatched_JetMass_SubJetCSVL = fs->make<TH1D>("h1_JetPt_BosonMatched_JetMass_SubJetCSVL",";p_{T} [GeV];",ptBins,ptMin,ptMax);
-    h1_JetPt_BosonMatched_JetMass_SubJetCSVM = fs->make<TH1D>("h1_JetPt_BosonMatched_JetMass_SubJetCSVM",";p_{T} [GeV];",ptBins,ptMin,ptMax);
+    h1_JetPt_BosonMatched_JetMass_SubJetMinCSVL = fs->make<TH1D>("h1_JetPt_BosonMatched_JetMass_SubJetMinCSVL",";p_{T} [GeV];",ptBins,ptMin,ptMax);
+    h1_JetPt_BosonMatched_JetMass_SubJetMaxCSVL = fs->make<TH1D>("h1_JetPt_BosonMatched_JetMass_SubJetMaxCSVL",";p_{T} [GeV];",ptBins,ptMin,ptMax);
+    h1_JetPt_BosonMatched_JetMass_SubJetMinCSVM = fs->make<TH1D>("h1_JetPt_BosonMatched_JetMass_SubJetMinCSVM",";p_{T} [GeV];",ptBins,ptMin,ptMax);
+    h1_JetPt_BosonMatched_JetMass_SubJetMaxCSVM = fs->make<TH1D>("h1_JetPt_BosonMatched_JetMass_SubJetMaxCSVM",";p_{T} [GeV];",ptBins,ptMin,ptMax);
     h1_JetPt_BosonMatched_JetMass_DoubleB = fs->make<TH1D>("h1_JetPt_BosonMatched_JetMass_DoubleB",";p_{T} [GeV];",ptBins,ptMin,ptMax);
-    h1_JetPt_BosonMatched_JetMass_Nsubj_CSVL = fs->make<TH1D>("h1_JetPt_BosonMatched_JetMass_Nsubj_CSVL",";p_{T} [GeV];",ptBins,ptMin,ptMax);
-    h1_JetPt_BosonMatched_JetMass_Nsubj_CSVM = fs->make<TH1D>("h1_JetPt_BosonMatched_JetMass_Nsubj_CSVM",";p_{T} [GeV];",ptBins,ptMin,ptMax);
-    h1_JetPt_BosonMatched_JetMass_Nsubj_SubJetCSVL = fs->make<TH1D>("h1_JetPt_BosonMatched_JetMass_Nsubj_SubJetCSVL",";p_{T} [GeV];",ptBins,ptMin,ptMax);
-    h1_JetPt_BosonMatched_JetMass_Nsubj_SubJetCSVM = fs->make<TH1D>("h1_JetPt_BosonMatched_JetMass_Nsubj_SubJetCSVM",";p_{T} [GeV];",ptBins,ptMin,ptMax);
-    h1_JetPt_BosonMatched_JetMass_Nsubj_DoubleB = fs->make<TH1D>("h1_JetPt_BosonMatched_JetMass_Nsubj_DoubleB",";p_{T} [GeV];",ptBins,ptMin,ptMax);
     h1_JetPt_BosonDecayProdMatched = fs->make<TH1D>("h1_JetPt_BosonDecayProdMatched",";p_{T} [GeV];",ptBins,ptMin,ptMax);
     h1_JetPt_BosonDecayProdMatched_JetMass  = fs->make<TH1D>("h1_JetPt_BosonDecayProdMatched_JetMass",";p_{T} [GeV];",ptBins,ptMin,ptMax);
     h1_JetEta = fs->make<TH1D>("h1_JetEta",";#eta;",etaBins,etaMin,etaMax);
     h1_JetEta_BosonMatched = fs->make<TH1D>("h1_JetEta_BosonMatched",";#eta;",etaBins,etaMin,etaMax);
     h1_JetEta_BosonMatched_JetMass = fs->make<TH1D>("h1_JetEta_BosonMatched_JetMass",";#eta;",etaBins,etaMin,etaMax);
 
+    h2_JetPt_dRmatchedBhadrons_GSPbJets = fs->make<TH2D>("h2_JetPt_dRmatchedBhadrons_GSPbJets",";p_{T} [GeV];#DeltaR",ptBins,ptMin,ptMax,dRBins,0.,1.6);
     h2_JetPt_JetPtOverBosonPt = fs->make<TH2D>("h2_JetPt_JetPtOverBosonPt",";p_{T} [GeV];p_{T}^{jet}/p_{T}^{boson}",ptBins,ptMin,ptMax,100,0.,2.);
     h2_JetPt_JetPtOverGenJetPt = fs->make<TH2D>("h2_JetPt_JetPtOverGenJetPt",";p_{T} [GeV];p_{T}^{jet}/p_{T}^{genjet}",ptBins,ptMin,ptMax,100,0.,2.);
     h2_JetPt_JetPtOverGenJetPt_BosonMatched = fs->make<TH2D>("h2_JetPt_JetPtOverGenJetPt_BosonMatched",";p_{T} [GeV];p_{T}^{jet}/p_{T}^{genjet}",ptBins,ptMin,ptMax,100,0.,2.);
@@ -326,10 +325,12 @@ RutgersJetAnalyzer::RutgersJetAnalyzer(const edm::ParameterSet& iConfig) :
 
     h1_JetCSVDiscr_BosonMatched_JetMass = fs->make<TH1D>("h1_JetCSVDiscr_BosonMatched_JetMass",";Jet CSV Discr;",100,0.,1.);
     h1_SubJetMinCSVDiscr_BosonMatched_JetMass = fs->make<TH1D>("h1_SubJetMinCSVDiscr_BosonMatched_JetMass",";SubJet min CSV Discr;",100,0.,1.);
+    h1_SubJetMaxCSVDiscr_BosonMatched_JetMass = fs->make<TH1D>("h1_SubJetMaxCSVDiscr_BosonMatched_JetMass",";SubJet max CSV Discr;",100,0.,1.);
     h1_JetDoubleBDiscr_BosonMatched_JetMass = fs->make<TH1D>("h1_JetDoubleBDiscr_BosonMatched_JetMass",";Jet DoubleB Discr;",100,0.,10.);
 
     h2_JetPt_JetCSVL_BosonMatched_JetMass = fs->make<TH2D>("h2_JetPt_JetCSVL_BosonMatched_JetMass",";p_{T} [GeV];Jet CSV Discr",ptBins,ptMin,ptMax,100,0.,1.);
     h2_JetPt_SubJetMinCSVL_BosonMatched_JetMass = fs->make<TH2D>("h2_JetPt_SubJetMinCSVL_BosonMatched_JetMass",";p_{T} [GeV];SubJet min CSV Discr",ptBins,ptMin,ptMax,100,0.,1.);
+    h2_JetPt_SubJetMaxCSVL_BosonMatched_JetMass = fs->make<TH2D>("h2_JetPt_SubJetMaxCSVL_BosonMatched_JetMass",";p_{T} [GeV];SubJet max CSV Discr",ptBins,ptMin,ptMax,100,0.,1.);
 
     for(unsigned i=0; i<=(jetPtBins+1); ++i)
     {
@@ -344,12 +345,14 @@ RutgersJetAnalyzer::RutgersJetAnalyzer(const edm::ParameterSet& iConfig) :
         h2_nPV_tau1_Pt[suffix]            = fs->make<TH2D>(("h2_nPV_tau1_Pt" + suffix).c_str(),(title + ";nPV;#tau_{1}").c_str(),pvBins,pvMin,pvMax,tauBins,tauMin,tauMax);
         h2_nPV_tau2_Pt[suffix]            = fs->make<TH2D>(("h2_nPV_tau2_Pt" + suffix).c_str(),(title + ";nPV;#tau_{2}").c_str(),pvBins,pvMin,pvMax,tauBins,tauMin,tauMax);
         h2_nPV_tau2tau1_Pt[suffix]        = fs->make<TH2D>(("h2_nPV_tau2tau1_Pt" + suffix).c_str(),(title + ";nPV;#tau_{2}/#tau_{1}").c_str(),pvBins,pvMin,pvMax,tauBins,tauMin,tauMax);
-        h2_nPV_MassDrop_Pt[suffix]        = fs->make<TH2D>(("h2_nPV_MassDrop_Pt" + suffix).c_str(),(title + ";nPV;m_{subjet1}/m_{jet}").c_str(),pvBins,pvMin,pvMax,massDropBins,massDropMin,massDropMax);
+        h2_nPV_MassDrop_Pt[suffix]        = fs->make<TH2D>(("h2_nPV_MassDrop_Pt" + suffix).c_str(),(title + ";nPV;#mu=m_{subjet1}/m_{jet}").c_str(),pvBins,pvMin,pvMax,massDropBins,massDropMin,massDropMax);
 
         h2_JetMass_nTracks_Pt[suffix]         = fs->make<TH2D>(("h2_JetMass_nTracks_Pt" + suffix).c_str(),(title + ";m_{jet} [GeV];nTracks").c_str(),massBins,massMin,massMax,trackBins,trackMin,trackMax);
         h2_JetMass_nSelectedTracks_Pt[suffix] = fs->make<TH2D>(("h2_JetMass_nSelectedTracks_Pt" + suffix).c_str(),(title + ";m_{jet} [GeV];nSelectedTracks").c_str(),massBins,massMin,massMax,trackBins,trackMin,trackMax);
         h2_JetMass_tau2tau1_Pt[suffix]        = fs->make<TH2D>(("h2_JetMass_tau2tau1_Pt" + suffix).c_str(),(title + ";m_{jet} [GeV];#tau_{2}/#tau_{1}").c_str(),massBins,massMin,massMax,tauBins,tauMin,tauMax);
+        h2_JetMass_MassDrop_Pt[suffix]        = fs->make<TH2D>(("h2_JetMass_MassDrop_Pt" + suffix).c_str(),(title + ";m_{jet} [GeV];#mu=m_{subjet1}/m_{jet}").c_str(),massBins,massMin,massMax,massDropBins,massDropMin,massDropMax);
         h2_JetMass_SubJetMinCSVL_Pt[suffix]   = fs->make<TH2D>(("h2_JetMass_SubJetMinCSVL_Pt" + suffix).c_str(),(title + ";m_{jet} [GeV];SubJet min CSV Discr").c_str(),massBins,massMin,massMax,100,0.,1.);
+        h2_JetMass_SubJetMaxCSVL_Pt[suffix]   = fs->make<TH2D>(("h2_JetMass_SubJetMaxCSVL_Pt" + suffix).c_str(),(title + ";m_{jet} [GeV];SubJet max CSV Discr").c_str(),massBins,massMin,massMax,100,0.,1.);
         h2_JetMass_TrackJetWidth_Pt[suffix]   = fs->make<TH2D>(("h2_JetMass_TrackJetWidth_Pt" + suffix).c_str(),(title + ";m_{jet} [GeV];Track-jet width").c_str(),massBins,massMin,massMax,100,0.,1.);
         h2_JetMass_SelectedTrackJetWidth_Pt[suffix]   = fs->make<TH2D>(("h2_JetMass_SelectedTrackJetWidth_Pt" + suffix).c_str(),(title + ";m_{jet} [GeV];Selected track track-jet width").c_str(),massBins,massMin,massMax,100,0.,1.);
         h2_JetMass_maxdRTracks_Pt[suffix]   = fs->make<TH2D>(("h2_JetMass_maxdRTracks_Pt" + suffix).c_str(),(title + ";m_{jet} [GeV];max#DeltaR(trk,trk)").c_str(),massBins,massMin,massMax,100,0.,2.);
@@ -376,7 +379,9 @@ RutgersJetAnalyzer::RutgersJetAnalyzer(const edm::ParameterSet& iConfig) :
         h2_JetMass_nTracks_Pt[suffix]         = fs->make<TH2D>(("h2_JetMass_nTracks_Pt" + suffix).c_str(),(title + ";m_{jet} [GeV];nTracks").c_str(),massBins,massMin,massMax,trackBins,trackMin,trackMax);
         h2_JetMass_nSelectedTracks_Pt[suffix] = fs->make<TH2D>(("h2_JetMass_nSelectedTracks_Pt" + suffix).c_str(),(title + ";m_{jet} [GeV];nSelectedTracks").c_str(),massBins,massMin,massMax,trackBins,trackMin,trackMax);
         h2_JetMass_tau2tau1_Pt[suffix]        = fs->make<TH2D>(("h2_JetMass_tau2tau1_Pt" + suffix).c_str(),(title + ";m_{jet} [GeV];#tau_{2}/#tau_{1}").c_str(),massBins,massMin,massMax,tauBins,tauMin,tauMax);
+        h2_JetMass_MassDrop_Pt[suffix]        = fs->make<TH2D>(("h2_JetMass_MassDrop_Pt" + suffix).c_str(),(title + ";m_{jet} [GeV];#mu=m_{subjet1}/m_{jet}").c_str(),massBins,massMin,massMax,massDropBins,massDropMin,massDropMax);
         h2_JetMass_SubJetMinCSVL_Pt[suffix]   = fs->make<TH2D>(("h2_JetMass_SubJetMinCSVL_Pt" + suffix).c_str(),(title + ";m_{jet} [GeV];SubJet min CSV Discr").c_str(),massBins,massMin,massMax,100,0.,1.);
+        h2_JetMass_SubJetMaxCSVL_Pt[suffix]   = fs->make<TH2D>(("h2_JetMass_SubJetMaxCSVL_Pt" + suffix).c_str(),(title + ";m_{jet} [GeV];SubJet max CSV Discr").c_str(),massBins,massMin,massMax,100,0.,1.);
         h2_JetMass_TrackJetWidth_Pt[suffix]   = fs->make<TH2D>(("h2_JetMass_TrackJetWidth_Pt" + suffix).c_str(),(title + ";m_{jet} [GeV];Track-jet width").c_str(),massBins,massMin,massMax,100,0.,1.);
         h2_JetMass_SelectedTrackJetWidth_Pt[suffix]   = fs->make<TH2D>(("h2_JetMass_SelectedTrackJetWidth_Pt" + suffix).c_str(),(title + ";m_{jet} [GeV];Selected track track-jet width").c_str(),massBins,massMin,massMax,100,0.,1.);
         h2_JetMass_maxdRTracks_Pt[suffix]   = fs->make<TH2D>(("h2_JetMass_maxdRTracks_Pt" + suffix).c_str(),(title + ";m_{jet} [GeV];max#DeltaR(trk,trk)").c_str(),massBins,massMin,massMax,100,0.,2.);
@@ -403,7 +408,9 @@ RutgersJetAnalyzer::RutgersJetAnalyzer(const edm::ParameterSet& iConfig) :
         h2_JetMass_nTracks_Pt[suffix]         = fs->make<TH2D>(("h2_JetMass_nTracks_Pt" + suffix).c_str(),(title + ";m_{jet} [GeV];nTracks").c_str(),massBins,massMin,massMax,trackBins,trackMin,trackMax);
         h2_JetMass_nSelectedTracks_Pt[suffix] = fs->make<TH2D>(("h2_JetMass_nSelectedTracks_Pt" + suffix).c_str(),(title + ";m_{jet} [GeV];nSelectedTracks").c_str(),massBins,massMin,massMax,trackBins,trackMin,trackMax);
         h2_JetMass_tau2tau1_Pt[suffix]        = fs->make<TH2D>(("h2_JetMass_tau2tau1_Pt" + suffix).c_str(),(title + ";m_{jet} [GeV];#tau_{2}/#tau_{1}").c_str(),massBins,massMin,massMax,tauBins,tauMin,tauMax);
+        h2_JetMass_MassDrop_Pt[suffix]        = fs->make<TH2D>(("h2_JetMass_MassDrop_Pt" + suffix).c_str(),(title + ";m_{jet} [GeV];#mu=m_{subjet1}/m_{jet}").c_str(),massBins,massMin,massMax,massDropBins,massDropMin,massDropMax);
         h2_JetMass_SubJetMinCSVL_Pt[suffix]   = fs->make<TH2D>(("h2_JetMass_SubJetMinCSVL_Pt" + suffix).c_str(),(title + ";m_{jet} [GeV];SubJet min CSV Discr").c_str(),massBins,massMin,massMax,100,0.,1.);
+        h2_JetMass_SubJetMaxCSVL_Pt[suffix]   = fs->make<TH2D>(("h2_JetMass_SubJetMaxCSVL_Pt" + suffix).c_str(),(title + ";m_{jet} [GeV];SubJet max CSV Discr").c_str(),massBins,massMin,massMax,100,0.,1.);
         h2_JetMass_TrackJetWidth_Pt[suffix]   = fs->make<TH2D>(("h2_JetMass_TrackJetWidth_Pt" + suffix).c_str(),(title + ";m_{jet} [GeV];Track-jet width").c_str(),massBins,massMin,massMax,100,0.,1.);
         h2_JetMass_SelectedTrackJetWidth_Pt[suffix]   = fs->make<TH2D>(("h2_JetMass_SelectedTrackJetWidth_Pt" + suffix).c_str(),(title + ";m_{jet} [GeV];Selected track track-jet width").c_str(),massBins,massMin,massMax,100,0.,1.);
         h2_JetMass_maxdRTracks_Pt[suffix]   = fs->make<TH2D>(("h2_JetMass_maxdRTracks_Pt" + suffix).c_str(),(title + ";m_{jet} [GeV];max#DeltaR(trk,trk)").c_str(),massBins,massMin,massMax,100,0.,2.);
@@ -469,8 +476,8 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
     // fill histogram of the number of reconstructed PVs
     h1_nPV->Fill(nPV, eventWeight);
 
-    // vector of pointers to status=3 b' decay products
-    std::vector<const reco::GenParticle*> bPrimeDecayProducts;
+    // vector of pointers to status=3 b' or t' decay products
+    std::vector<const reco::GenParticle*> resonanceDecayProducts;
     // vector of pointers to bosons
     std::vector<const reco::GenParticle*> bosons;
     // map to vectors of pointers to boson decay products
@@ -485,7 +492,7 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
       for(reco::GenParticleCollection::const_iterator it = genParticles->begin(); it != genParticles->end(); ++it)
       {
         if( abs(it->pdgId()) == 5 && it->status()==3 ) bFoundS3Quark = true;
-        if( abs(it->pdgId()) == 5 && it->status()==2 ) bFoundS2Quark = true;
+        if( abs(it->pdgId()) == 5 && it->status()==2 ) { bFoundS2Quark = true; break; } // no need to continue looping after status=2 b quarks has been found
       }
       // if no status 3 b quark but status 2
       if( (!bFoundS3Quark) && bFoundS2Quark) isGluonSplitting = true;
@@ -500,17 +507,26 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
     if( doBosonMatching )
     {
       int bPrimeCount = 0;
+      int tPrimeCount = 0;
       for(reco::GenParticleCollection::const_iterator it = genParticles->begin(); it != genParticles->end(); ++it)
       {
+        if( it->status() == 2 ) break; // to speed things up (only works with Pythia6)
         // count b' in the list of GenParticles
-        if( abs(it->pdgId()) == 7 && it->status() == 3 ) bPrimeCount++;
-        // only take status=3 GenParticles that appear after b' and b'bar have appeared in the list
-        if( bPrimeCount>1 && it->status() == 3 ) bPrimeDecayProducts.push_back(&(*it));
+        if( abs(it->pdgId()) == 7 && it->status() == 3 ) ++bPrimeCount;
+        // count t' in the list of GenParticles
+        if( abs(it->pdgId()) == 8 && it->status() == 3 ) ++tPrimeCount;
+        // only take status=3 quarks and charged leptons that appear after b' or t' have appeared in the list
+        if( (bPrimeCount>0 || tPrimeCount>0 ) && it->status()==3 )
+        {
+          int dpPdgId = abs(it->pdgId());
+          if( (dpPdgId>=1 && dpPdgId<=5) || dpPdgId==11 || dpPdgId==13 || dpPdgId==15  ) resonanceDecayProducts.push_back(&(*it));
+        }
       }
 
-      // loop over GenParticles and select bosons isolated from other b' decay products
+      // loop over GenParticles and select bosons isolated from other b' or t' decay products
       for(reco::GenParticleCollection::const_iterator it = genParticles->begin(); it != genParticles->end(); ++it)
       {
+        if( it->status() == 2 ) break; // to speed things up (only works with Pythia6)
         if( abs(it->pdgId()) == abs(bosonPdgId) && it->status() == 3 )
         {
           h1_BosonPt->Fill( it->pt(), eventWeight );
@@ -519,21 +535,50 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
           bool isIsolated = true;
           if( applyBosonIsolation )
           {
-            for(std::vector<const reco::GenParticle*>::const_iterator pIt = bPrimeDecayProducts.begin(); pIt != bPrimeDecayProducts.end(); ++pIt)
+            for(std::vector<const reco::GenParticle*>::const_iterator dpIt = resonanceDecayProducts.begin(); dpIt != resonanceDecayProducts.end(); ++dpIt)
             {
-              if( &(*it)==(*pIt) ) continue; // skip the boson itself
+              if( &(*it)==(*dpIt) ) continue; // skip the boson itself (should no longer happen since now comparing only to quarks and charged leptons)
               bool isBosonDecayProduct = false;
-              for(unsigned i=0; i<it->numberOfDaughters(); ++i)
+              if( abs(it->pdgId())==6 ) // special treatment for top quarks
               {
-                if( it->daughter(i) == (*pIt) )
+                for(unsigned i=0; i<it->numberOfDaughters(); ++i)
                 {
-                  isBosonDecayProduct = true;
-                  break;
+                  if( it->daughter(i)->status()==2 ) continue; // only care about status=3 daughters
+                  if( abs(it->daughter(i)->pdgId())==24 ) // if daughter is W
+                  {
+                    for(unsigned j=0; j<it->daughter(i)->numberOfDaughters(); ++j)
+                    {
+                      if( it->daughter(i)->daughter(j) == (*dpIt) )
+                      {
+                        isBosonDecayProduct = true;
+                        break;
+                      }
+                    }
+                  }
+                  else
+                  {
+                    if( it->daughter(i) == (*dpIt) )
+                    {
+                      isBosonDecayProduct = true;
+                      break;
+                    }
+                  }
+                }
+              }
+              else
+              {
+                for(unsigned i=0; i<it->numberOfDaughters(); ++i)
+                {
+                  if( it->daughter(i) == (*dpIt) )
+                  {
+                    isBosonDecayProduct = true;
+                    break;
+                  }
                 }
               }
               if( isBosonDecayProduct ) continue; // skip the boson decay products
 
-              if( reco::deltaR( it->p4(), (*pIt)->p4() ) < jetRadius ) isIsolated = false;
+              if( reco::deltaR( it->p4(), (*dpIt)->p4() ) < jetRadius ) isIsolated = false;
             }
           }
 
@@ -546,29 +591,84 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
           {
             bool decayProductsFound = false;
 
-            for(unsigned i=0; i<it->numberOfDaughters(); ++i)
+            if( abs(it->pdgId())==6 ) // special treatment for top quarks
             {
-              //std::cout << "Daughter " << i << " PDG ID: " << it->daughter(i)->pdgId() << std::endl;
-              for(std::vector<int>::const_iterator pdgIdIt = bosonDecayProdPdgIds.begin(); pdgIdIt != bosonDecayProdPdgIds.end(); ++pdgIdIt)
+              for(unsigned i=0; i<it->numberOfDaughters(); ++i)
               {
-                if( abs(it->daughter(i)->pdgId()) == abs(*pdgIdIt) )
+                if( it->daughter(i)->status()==2 ) continue; // only care about status=3 daughters
+                if( abs(it->daughter(i)->pdgId())<=5 ) decayProducts[&(*it)].push_back(it->daughter(i)); // pick up a quark from the top decay
+
+                if( abs(it->daughter(i)->pdgId())==24 ) // if top decay product is W
                 {
-                  decayProductsFound = true;
-                  decayProducts[&(*it)].push_back(it->daughter(i));
+                  for(unsigned j=0; j<it->daughter(i)->numberOfDaughters(); ++j)
+                  {
+                    if( it->daughter(i)->daughter(j)->status()==2 ) continue; // only care about status=3 daughters
+                    for(std::vector<int>::const_iterator pdgIdIt = bosonDecayProdPdgIds.begin(); pdgIdIt != bosonDecayProdPdgIds.end(); ++pdgIdIt)
+                    {
+                      if( abs(it->daughter(i)->daughter(j)->pdgId()) == abs(*pdgIdIt) )
+                      {
+                        decayProductsFound = true;
+                        decayProducts[&(*it)].push_back(it->daughter(i)->daughter(j));
+                      }
+                    }
+                  }
+                }
+              }
+            }
+            else
+            {
+              for(unsigned i=0; i<it->numberOfDaughters(); ++i)
+              {
+                if( it->daughter(i)->status()==2 ) continue; // only care about status=3 daughters
+                //std::cout << "Daughter " << i << " PDG ID: " << it->daughter(i)->pdgId() << std::endl;
+                for(std::vector<int>::const_iterator pdgIdIt = bosonDecayProdPdgIds.begin(); pdgIdIt != bosonDecayProdPdgIds.end(); ++pdgIdIt)
+                {
+                  if( abs(it->daughter(i)->pdgId()) == abs(*pdgIdIt) )
+                  {
+                    decayProductsFound = true;
+                    decayProducts[&(*it)].push_back(it->daughter(i));
+                  }
                 }
               }
             }
 
             if( decayProductsFound )
             {
-              if( decayProducts[&(*it)].size()>2 ) edm::LogError("TooManyDecayProducts") << "More than two boson decay products found.";
-              if( decayProducts[&(*it)].size()<2 ) edm::LogError("TooFewDecayProducts") << "Less than two boson decay products found.";
+              if( abs(it->pdgId())==6 ) // special treatment for top quarks
+              {
+                if( decayProducts[&(*it)].size()>3 ) edm::LogError("TooManyDecayProducts") << "More than three boson decay products found.";
+                else if( decayProducts[&(*it)].size()<3 ) edm::LogError("TooFewDecayProducts") << "Less than three boson decay products found.";
+                else
+                {
+                  bosons.push_back(&(*it));
+                  h1_BosonPt_DecaySel->Fill( it->pt(), eventWeight );
+                  h1_BosonEta_DecaySel->Fill( it->eta(), eventWeight );
 
-              bosons.push_back(&(*it));
-              h1_BosonPt_DecaySel->Fill( it->pt(), eventWeight );
-              h1_BosonEta_DecaySel->Fill( it->eta(), eventWeight );
-              if( decayProducts[&(*it)].size()>1 )
-                h2_BosonPt_dRdecay->Fill( it->pt(), reco::deltaR( decayProducts[&(*it)].at(0)->p4(), decayProducts[&(*it)].at(1)->p4() ), eventWeight );
+                  double dRmax = -99.;
+                  for(unsigned i=0; i<decayProducts[&(*it)].size(); ++i)
+                  {
+                    for(unsigned j=i+1; j<decayProducts[&(*it)].size(); ++j)
+                    {
+                      double dRtemp = reco::deltaR( decayProducts[&(*it)].at(i)->p4(), decayProducts[&(*it)].at(j)->p4() );
+                      if( dRtemp>dRmax ) dRmax = dRtemp;
+                    }
+                  }
+                  h2_BosonPt_dRdecay->Fill( it->pt(), dRmax, eventWeight );
+                }
+              }
+              else
+              {
+                if( decayProducts[&(*it)].size()>2 ) edm::LogError("TooManyDecayProducts") << "More than two boson decay products found.";
+                else if( decayProducts[&(*it)].size()<2 ) edm::LogError("TooFewDecayProducts") << "Less than two boson decay products found.";
+                else
+                {
+                  bosons.push_back(&(*it));
+                  h1_BosonPt_DecaySel->Fill( it->pt(), eventWeight );
+                  h1_BosonEta_DecaySel->Fill( it->eta(), eventWeight );
+
+                  h2_BosonPt_dRdecay->Fill( it->pt(), reco::deltaR( decayProducts[&(*it)].at(0)->p4(), decayProducts[&(*it)].at(1)->p4() ), eventWeight );
+                }
+              }
             }
           }
           else
@@ -593,7 +693,20 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
         }
       }
 
-      if( decayProducts[*bosonIt].size()>1 )
+      if( abs(bosonPdgId)==6 && decayProducts[*bosonIt].size()>2 ) // special treatment for top quarks
+      {
+        for(PatJetCollection::const_iterator it = jets->begin(); it != jets->end(); ++it)
+        {
+          if( reco::deltaR( decayProducts[*bosonIt].at(0)->p4(), it->p4() ) < jetRadius &&
+              reco::deltaR( decayProducts[*bosonIt].at(1)->p4(), it->p4() ) < jetRadius &&
+              reco::deltaR( decayProducts[*bosonIt].at(2)->p4(), it->p4() ) < jetRadius )
+          {
+            h1_BosonPt_DecayProdMatched->Fill( (*bosonIt)->pt(), eventWeight );
+            break;
+          }
+        }
+      }
+      else if( decayProducts[*bosonIt].size()>1 )
       {
         for(PatJetCollection::const_iterator it = jets->begin(); it != jets->end(); ++it)
         {
@@ -625,6 +738,7 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
         if( useAltGSPbDef ) // use alternative gluon splitting b-jet definition based on the number of B hadrons inside the jet cone
         {
           int nMatchedBHadrons = 0;
+          std::vector<const reco::GenParticle*> matchedBHadrons;
           for(reco::GenParticleCollection::const_iterator gpIt = genParticles->begin(); gpIt != genParticles->end(); ++gpIt)
           {
             int id = abs(gpIt->pdgId());
@@ -640,10 +754,14 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
             }
             if( hasBHadronDaughter ) continue; // skip excited B hadrons that have other B hadrons as daughters
 
-            if( reco::deltaR( it->p4(), gpIt->p4() ) < jetRadius ) ++nMatchedBHadrons;
+            if( reco::deltaR( it->p4(), gpIt->p4() ) < jetRadius ) { ++nMatchedBHadrons; matchedBHadrons.push_back(&(*gpIt)); }
           }
           //std::cout << "nMatchedBHadrons: " << nMatchedBHadrons << std::endl;
-          if( nMatchedBHadrons==2 ) jetFlavor = 85; // custom jet flavor code for gluon splitting b jets
+          if( nMatchedBHadrons==2 )
+          {
+            jetFlavor = 85; // custom jet flavor code for gluon splitting b jets
+            h2_JetPt_dRmatchedBhadrons_GSPbJets->Fill( jetPt, reco::deltaR( matchedBHadrons.at(0)->p4(), matchedBHadrons.at(1)->p4() ), eventWeight );
+          }
         }
 
         for(std::vector<int>::const_iterator pdgIdIt = jetFlavorPdgIds.begin(); pdgIdIt != jetFlavorPdgIds.end(); ++pdgIdIt)
@@ -703,9 +821,22 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
             break;
           }
         }
+        // matching based on decay products only used for making some plots
         for(std::vector<const reco::GenParticle*>::const_iterator bosonIt = bosons.begin(); bosonIt != bosons.end(); ++bosonIt)
         {
-          if( decayProducts[*bosonIt].size()>1 )
+          if( abs(bosonPdgId)==6 && decayProducts[*bosonIt].size()>2 ) // special treatment for top quarks
+          {
+            if( reco::deltaR( decayProducts[*bosonIt].at(0)->p4(), it->p4() ) < jetRadius &&
+                reco::deltaR( decayProducts[*bosonIt].at(1)->p4(), it->p4() ) < jetRadius &&
+                reco::deltaR( decayProducts[*bosonIt].at(2)->p4(), it->p4() ) < jetRadius )
+            {
+              h1_JetPt_BosonDecayProdMatched->Fill( jetPt, eventWeight );
+              if( jetMass > jetMassMin && jetMass < jetMassMax )
+                h1_JetPt_BosonDecayProdMatched_JetMass->Fill( jetPt, eventWeight );
+              break;
+            }
+          }
+          else if( decayProducts[*bosonIt].size()>1 )
           {
             if( reco::deltaR( decayProducts[*bosonIt].at(0)->p4(), it->p4() ) < jetRadius &&
                 reco::deltaR( decayProducts[*bosonIt].at(1)->p4(), it->p4() ) < jetRadius )
@@ -873,19 +1004,24 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
         subJet2_CSV_discr = subjets.at(1)->bDiscriminator(bdiscriminator.c_str());
       }
       double minSubJet_CSV_discr = std::min(subJet1_CSV_discr, subJet2_CSV_discr);
+      double maxSubJet_CSV_discr = std::max(subJet1_CSV_discr, subJet2_CSV_discr);
       double jet_DoubleB_discr = it->bDiscriminator("doubleSecondaryVertexHighEffBJetTags");
 
       h1_JetCSVDiscr_BosonMatched_JetMass->Fill( jet_CSV_discr, eventWeight);
       h1_SubJetMinCSVDiscr_BosonMatched_JetMass->Fill( minSubJet_CSV_discr, eventWeight);
+      h1_SubJetMaxCSVDiscr_BosonMatched_JetMass->Fill( maxSubJet_CSV_discr, eventWeight);
       h1_JetDoubleBDiscr_BosonMatched_JetMass->Fill( jet_DoubleB_discr, eventWeight);
 
       h2_JetPt_JetCSVL_BosonMatched_JetMass->Fill(jetPt, jet_CSV_discr, eventWeight);;
-      h2_JetPt_SubJetMinCSVL_BosonMatched_JetMass->Fill(jetPt, minSubJet_CSV_discr, eventWeight);;
+      h2_JetPt_SubJetMinCSVL_BosonMatched_JetMass->Fill(jetPt, minSubJet_CSV_discr, eventWeight);
+      h2_JetPt_SubJetMaxCSVL_BosonMatched_JetMass->Fill(jetPt, maxSubJet_CSV_discr, eventWeight);
 
       if( jet_CSV_discr>0.244 ) h1_JetPt_BosonMatched_JetMass_CSVL->Fill(jetPt, eventWeight);
       if( jet_CSV_discr>0.679 ) h1_JetPt_BosonMatched_JetMass_CSVM->Fill(jetPt, eventWeight);
-      if( subJet1_CSV_discr>0.244 && subJet2_CSV_discr>0.244 ) h1_JetPt_BosonMatched_JetMass_SubJetCSVL->Fill(jetPt, eventWeight);
-      if( subJet1_CSV_discr>0.679 && subJet2_CSV_discr>0.679 ) h1_JetPt_BosonMatched_JetMass_SubJetCSVM->Fill(jetPt, eventWeight);
+      if( minSubJet_CSV_discr>0.244 ) h1_JetPt_BosonMatched_JetMass_SubJetMinCSVL->Fill(jetPt, eventWeight);
+      if( maxSubJet_CSV_discr>0.244 ) h1_JetPt_BosonMatched_JetMass_SubJetMaxCSVL->Fill(jetPt, eventWeight);
+      if( minSubJet_CSV_discr>0.679 ) h1_JetPt_BosonMatched_JetMass_SubJetMinCSVM->Fill(jetPt, eventWeight);
+      if( maxSubJet_CSV_discr>0.679 ) h1_JetPt_BosonMatched_JetMass_SubJetMaxCSVM->Fill(jetPt, eventWeight);
       if( jet_DoubleB_discr>0. ) h1_JetPt_BosonMatched_JetMass_DoubleB->Fill(jetPt, eventWeight);
 
       PatJetCollection::const_iterator substructJet = it;
@@ -960,6 +1096,7 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
       h2_JetMass_nSelectedTracks_Pt[suffix]->Fill(jetMass, nSelectedTracks, eventWeight);
       h2_JetMass_tau2tau1_Pt[suffix]->Fill(jetMass, tau2overtau1, eventWeight);
       h2_JetMass_SubJetMinCSVL_Pt[suffix]->Fill(jetMass, minSubJet_CSV_discr, eventWeight);
+      h2_JetMass_SubJetMaxCSVL_Pt[suffix]->Fill(jetMass, maxSubJet_CSV_discr, eventWeight);
       h2_JetMass_TrackJetWidth_Pt[suffix]->Fill(jetMass, trackJetWidth, eventWeight);
       h2_JetMass_SelectedTrackJetWidth_Pt[suffix]->Fill(jetMass, selectedTrackJetWidth, eventWeight);
       h2_JetMass_maxdRTracks_Pt[suffix]->Fill(jetMass, maxdRTracks, eventWeight);
@@ -984,6 +1121,7 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
           h2_JetMass_nSelectedTracks_Pt[suffix]->Fill(jetMass, nSelectedTracks, eventWeight);
           h2_JetMass_tau2tau1_Pt[suffix]->Fill(jetMass, tau2overtau1, eventWeight);
           h2_JetMass_SubJetMinCSVL_Pt[suffix]->Fill(jetMass, minSubJet_CSV_discr, eventWeight);
+          h2_JetMass_SubJetMaxCSVL_Pt[suffix]->Fill(jetMass, maxSubJet_CSV_discr, eventWeight);
           h2_JetMass_TrackJetWidth_Pt[suffix]->Fill(jetMass, trackJetWidth, eventWeight);
           h2_JetMass_SelectedTrackJetWidth_Pt[suffix]->Fill(jetMass, selectedTrackJetWidth, eventWeight);
           h2_JetMass_maxdRTracks_Pt[suffix]->Fill(jetMass, maxdRTracks, eventWeight);
@@ -1008,6 +1146,7 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
         h2_JetMass_nSelectedTracks_Pt[suffix]->Fill(jetMass, nSelectedTracks, eventWeight);
         h2_JetMass_tau2tau1_Pt[suffix]->Fill(jetMass, tau2overtau1, eventWeight);
         h2_JetMass_SubJetMinCSVL_Pt[suffix]->Fill(jetMass, minSubJet_CSV_discr, eventWeight);
+        h2_JetMass_SubJetMaxCSVL_Pt[suffix]->Fill(jetMass, maxSubJet_CSV_discr, eventWeight);
         h2_JetMass_TrackJetWidth_Pt[suffix]->Fill(jetMass, trackJetWidth, eventWeight);
         h2_JetMass_SelectedTrackJetWidth_Pt[suffix]->Fill(jetMass, selectedTrackJetWidth, eventWeight);
         h2_JetMass_maxdRTracks_Pt[suffix]->Fill(jetMass, maxdRTracks, eventWeight);
@@ -1021,17 +1160,8 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
         h2_tau2tau1_SubJetMinCSVL_Pt[suffix]->Fill(tau2overtau1, minSubJet_CSV_discr, eventWeight);
       }
 
-      if( tau2/tau1<nsubjCut )
-      {
-        if( jet_CSV_discr>0.244 ) h1_JetPt_BosonMatched_JetMass_Nsubj_CSVL->Fill(jetPt, eventWeight);
-        if( jet_CSV_discr>0.679 ) h1_JetPt_BosonMatched_JetMass_Nsubj_CSVM->Fill(jetPt, eventWeight);
-        if( subJet1_CSV_discr>0.244 && subJet2_CSV_discr>0.244 ) h1_JetPt_BosonMatched_JetMass_Nsubj_SubJetCSVL->Fill(jetPt, eventWeight);
-        if( subJet1_CSV_discr>0.679 && subJet2_CSV_discr>0.679 ) h1_JetPt_BosonMatched_JetMass_Nsubj_SubJetCSVM->Fill(jetPt, eventWeight);
-        if( jet_DoubleB_discr>0. ) h1_JetPt_BosonMatched_JetMass_Nsubj_DoubleB->Fill(jetPt, eventWeight);
-      }
-
       // mass drop
-      if( useMassDrop )
+      if( calculateMassDrop )
       {
         double fatJetMass = jetMass;
         double subjetMass = ( subjets.size()>1 ? std::max( subjets.at(0)->mass(), subjets.at(1)->mass() ) : 0. );
@@ -1044,18 +1174,21 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
         // fill nPV_MassDrop histograms
         suffix = Form("%.0ftoInf",jetPtMin);
         h2_nPV_MassDrop_Pt[suffix]->Fill(nPV, massDrop, eventWeight);
+        h2_JetMass_MassDrop_Pt[suffix]->Fill(jetMass, massDrop, eventWeight);
         for(unsigned i=0; i<jetPtBins; ++i)
         {
           if( jetPt>(jetPtMin + jetPtBinWidth*i) && jetPt<=(jetPtMin + jetPtBinWidth*(i+1)) )
           {
             suffix = Form("%.0fto%.0f",(jetPtMin + jetPtBinWidth*i),(jetPtMin + jetPtBinWidth*(i+1)));
             h2_nPV_MassDrop_Pt[suffix]->Fill(nPV, massDrop, eventWeight);
+            h2_JetMass_MassDrop_Pt[suffix]->Fill(jetMass, massDrop, eventWeight);
           }
         }
         if( jetPt>(jetPtMin+jetPtBinWidth*jetPtBins))
         {
           suffix = Form("%.0ftoInf",(jetPtMin+jetPtBinWidth*jetPtBins));
           h2_nPV_MassDrop_Pt[suffix]->Fill(nPV, massDrop, eventWeight);
+          h2_JetMass_MassDrop_Pt[suffix]->Fill(jetMass, massDrop, eventWeight);
         }
       }
     }

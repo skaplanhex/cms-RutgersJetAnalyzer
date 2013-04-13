@@ -23,10 +23,10 @@ options.register('outFilename', 'outfile.root',
     VarParsing.varType.string,
     "Output file name"
 )
-options.register('reportEvery', 1,
+options.register('reportEvery', 100,
     VarParsing.multiplicity.singleton,
     VarParsing.varType.int,
-    "Report every N events (default is N=1)"
+    "Report every N events (default is N=100)"
 )
 options.register('wantSummary', False,
     VarParsing.multiplicity.singleton,
@@ -100,7 +100,7 @@ options.register('runOnTopBkg', False,
 )
 
 ## 'maxEvents' is already registered by the Framework, changing default value
-options.setDefault('maxEvents', 10)
+options.setDefault('maxEvents', -1)
 
 options.parseArguments()
 

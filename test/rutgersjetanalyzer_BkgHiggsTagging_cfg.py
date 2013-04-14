@@ -78,7 +78,7 @@ options.register('taggingType', 'H',
     VarParsing.varType.string,
     "Heavy object type (H or W)"
 )
-options.register('runQCDFlavorExtra', False,
+options.register('runQCDFlavorExtra', True,
     VarParsing.multiplicity.singleton,
     VarParsing.varType.bool,
     "Run QCD flavor extra"

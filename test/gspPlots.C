@@ -333,6 +333,7 @@ void makePlots()
 //              "CA R=0.8, p_{T}>50 GeV, |#eta|<1.5, pruned m_{jet}>50 GeV", "#tau_{2}/#tau_{1}", 2, 0., 1., 0., 0.11,
 //              "b jets from gluon splitting", "b jets", "uds jets", "g jets", "tau2tau1_Pt50toInf_m50toInf.eps");
 
+
   plot_ProjY("output_files_v2/QCDPythia6_HiggsTagging_dRsubjetBhadron_jetFlavor_JetMass0toInf_JetPtMin50.root", "h2_JetMass_tau2tau1_Pt250to450", 50, 500,
              "CA R=0.8, 250<p_{T}<450 GeV, |#eta|<1.5, pruned m_{jet}>50 GeV", "#tau_{2}/#tau_{1}", 2, 0., 1., 0., 0.11,
              "b jets from gluon splitting", "b jets", "uds jets", "g jets", "tau2tau1_Pt250to450_m50toInf.eps");
@@ -341,6 +342,7 @@ void makePlots()
 //   plot_ProjY("output_files_v2/QCDPythia6_HiggsTagging_dRsubjetBhadron_jetFlavor_JetMass0toInf_JetPtMin50.root", "h2_JetMass_nTracks_Pt50toInf", 50, 500,
 //              "CA R=0.8, p_{T}>50 GeV, |#eta|<1.5, pruned m_{jet}>50 GeV", "Number of associated tracks", 1, 0., 80., 0., 0.1,
 //              "b jets from gluon splitting", "b jets", "uds jets", "g jets", "nTracks_Pt50toInf_m50toInf.eps", 0, 0, 0.4);
+
 
   plot_ProjY("output_files_v2/QCDPythia6_HiggsTagging_dRsubjetBhadron_jetFlavor_JetMass0toInf_JetPtMin50.root", "h2_JetMass_nTracks_Pt250to450", 50, 500,
              "CA R=0.8, 250<p_{T}<450 GeV, |#eta|<1.5, pruned m_{jet}>50 GeV", "Number of associated tracks", 1, 0., 80., 0., 0.1,
@@ -356,14 +358,23 @@ void makePlots()
              "b jets from gluon splitting", "b jets", "uds jets", "g jets", "nSelectedTracks_Pt250to450_m50toInf.eps", 0, 0, 0.4);
 
 
-//   plot_ProjY("output_files_v2/QCDPythia6_HiggsTagging_dRsubjetBhadron_jetFlavor_JetMass0toInf_JetPtMin50.root", "h2_JetMass_nSelectedTracks_Pt50toInf", 50, 500,
-//              "CA R=0.8, p_{T}>50 GeV, |#eta|<1.5, pruned m_{jet}>50 GeV", "Number of selected associated tracks", 1, 0., 40., 0., 0.2,
-//              "b jets from gluon splitting", "b jets", "uds jets", "g jets", "nSelectedTracks_Pt50toInf_m50toInf.eps", 0, 0, 0.4);
+  plot_ProjY("output_files_v2/QCDPythia6_HiggsTagging_dRsubjetBhadron_jetFlavor_JetMass0toInf_JetPtMin50.root", "h2_JetMass_TrackJetWidth_Pt250to450", 50, 500,
+             "CA R=0.8, 250<p_{T}<450 GeV, |#eta|<1.5, pruned m_{jet}>50 GeV", "Track-jet width", 1, 0., 40., 0., 0.2,
+             "b jets from gluon splitting", "b jets", "uds jets", "g jets", "TrackJetWidth_Pt250to450_m50toInf.eps", 0, 0, 0.4);
 
-  plot_ProjY("output_files_v2/QCDPythia6_HiggsTagging_dRsubjetBhadron_jetFlavor_JetMass0toInf_JetPtMin50.root", "h2_JetMass_nSelectedTracks_Pt250to450", 50, 500,
-             "CA R=0.8, 250<p_{T}<450 GeV, |#eta|<1.5, pruned m_{jet}>50 GeV", "Number of selected associated tracks", 1, 0., 40., 0., 0.2,
-             "b jets from gluon splitting", "b jets", "uds jets", "g jets", "nSelectedTracks_Pt250to450_m50toInf.eps", 0, 0, 0.4);
+  plot_ProjY("output_files_v2/QCDPythia6_HiggsTagging_dRsubjetBhadron_jetFlavor_JetMass0toInf_JetPtMin50.root", "h2_JetMass_SelectedTrackJetWidth_Pt250to450", 50, 500,
+             "CA R=0.8, 250<p_{T}<450 GeV, |#eta|<1.5, pruned m_{jet}>50 GeV", "Selected tracks track-jet width", 1, 0., 40., 0., 0.2,
+             "b jets from gluon splitting", "b jets", "uds jets", "g jets", "SelectedTrackJetWidth_Pt250to450_m50toInf.eps", 0, 0, 0.4);
 
+
+  plot_ProjY("output_files_v2/QCDPythia6_HiggsTagging_dRsubjetBhadron_jetFlavor_JetMass0toInf_JetPtMin50.root", "h2_JetMass_maxdRTracks_Pt250to450", 50, 500,
+             "CA R=0.8, 250<p_{T}<450 GeV, |#eta|<1.5, pruned m_{jet}>50 GeV", "max#DeltaR(trk,trk)", 1, 0., 40., 0., 0.3,
+             "b jets from gluon splitting", "b jets", "uds jets", "g jets", "maxdRTracks_Pt250to450_m50toInf.eps", 0, 0, 0.4);
+
+  plot_ProjY("output_files_v2/QCDPythia6_HiggsTagging_dRsubjetBhadron_jetFlavor_JetMass0toInf_JetPtMin50.root", "h2_JetMass_maxdRSelectedTracks_Pt250to450", 50, 500,
+             "CA R=0.8, 250<p_{T}<450 GeV, |#eta|<1.5, pruned m_{jet}>50 GeV", "Selected track max#DeltaR(trk,trk)", 1, 0., 40., 0., 0.3,
+             "b jets from gluon splitting", "b jets", "uds jets", "g jets", "maxdRSelectedTracks_Pt250to450_m50toInf.eps", 0, 0, 0.4);
+  
 
   plot_ProjY("output_files_v2/QCDPythia6_HiggsTagging_dRsubjetBhadron_jetFlavor_JetMass0toInf_JetPtMin50.root", "h2_JetMass_SubJetMinCSVL_Pt50toInf", 0, 500,
              "CA R=0.8, p_{T}>50 GeV, |#eta|<1.5, pruned m_{jet}>0 GeV", "SubJet min CSV Discr", 2, 0., 40., 1e-6, 1,

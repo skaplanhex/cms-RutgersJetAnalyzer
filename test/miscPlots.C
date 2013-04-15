@@ -476,21 +476,21 @@ void makePlots()
 //                "mindRSubjet2Bhadron_BoostedH_Pt700toInf_JetMass_pruned_CA8_vs_AK8.eps", 0,  0.95);
 
 
-/*  // min dR(subjet,Bhadron) to the same B hadron
-  // CA pruned subjets
-  // 300<pT<500 GeV
-  overlay1D_Xrange_Yprojection("output_files_v2/BprimeBprimeToBHBHinc_M-1000_HiggsTagging_dRsubjetBhadron.root", "output_files_v2/BprimeBprimeToBHBHinc_M-1000_HiggsTagging_dRsubjetBhadron.root",
-               "jetAnalyzerCAPrunedJetMass/h2_JetPt_SameMatchedBhadron_BosonMatched", "jetAnalyzerCAPrunedJetMass/h2_JetPt_SameMatchedBhadron_BosonMatched_JetMass",
-               300, 500, 300, 500, 1, -0.5, 1.5, 1E-2, 1E2,
-               "CA R=0.8, 300<p_{T}<500 GeV, #DeltaR(H,jet)<0.5, pruned subjets", "Subjets matched to the same B hadron?", "Relative fraction", "No m cut", "75<m<135 GeV (pruned)",
-               "mindRSubjetSameBhadron_CA8pruned_BoostedH_Pt300to500_JetMassCut.eps", 1,  0.95);
-
-  // pT>700 GeV
-  overlay1D_Xrange_Yprojection("output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRsubjetBhadron.root", "output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRsubjetBhadron.root",
-               "jetAnalyzerCAPrunedJetMass/h2_JetPt_SameMatchedBhadron_BosonMatched", "jetAnalyzerCAPrunedJetMass/h2_JetPt_SameMatchedBhadron_BosonMatched_JetMass",
-               700, 1100, 700, 1100, 1, -0.5, 1.5, 1E-2, 1E2,
-               "CA R=0.8, p_{T}>700 GeV, #DeltaR(H,jet)<0.5, pruned subjets", "Subjets matched to the same B hadron?", "Relative fraction", "No m cut", "75<m<135 GeV (pruned)",
-               "mindRSubjetSameBhadron_CA8pruned_BoostedH_Pt700toInf_JetMassCut.eps", 1,  0.95)*/;
+//   // min dR(subjet,Bhadron) to the same B hadron
+//   // CA pruned subjets
+//   // 300<pT<500 GeV
+//   overlay1D_Xrange_Yprojection("output_files_v2/BprimeBprimeToBHBHinc_M-1000_HiggsTagging_dRsubjetBhadron.root", "output_files_v2/BprimeBprimeToBHBHinc_M-1000_HiggsTagging_dRsubjetBhadron.root",
+//                "jetAnalyzerCAPrunedJetMass/h2_JetPt_SameMatchedBhadron_BosonMatched", "jetAnalyzerCAPrunedJetMass/h2_JetPt_SameMatchedBhadron_BosonMatched_JetMass",
+//                300, 500, 300, 500, 1, -0.5, 1.5, 1E-2, 1E2,
+//                "CA R=0.8, 300<p_{T}<500 GeV, #DeltaR(H,jet)<0.5, pruned subjets", "Subjets matched to the same B hadron?", "Relative fraction", "No m cut", "75<m<135 GeV (pruned)",
+//                "mindRSubjetSameBhadron_CA8pruned_BoostedH_Pt300to500_JetMassCut.eps", 1,  0.95);
+// 
+//   // pT>700 GeV
+//   overlay1D_Xrange_Yprojection("output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRsubjetBhadron.root", "output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRsubjetBhadron.root",
+//                "jetAnalyzerCAPrunedJetMass/h2_JetPt_SameMatchedBhadron_BosonMatched", "jetAnalyzerCAPrunedJetMass/h2_JetPt_SameMatchedBhadron_BosonMatched_JetMass",
+//                700, 1100, 700, 1100, 1, -0.5, 1.5, 1E-2, 1E2,
+//                "CA R=0.8, p_{T}>700 GeV, #DeltaR(H,jet)<0.5, pruned subjets", "Subjets matched to the same B hadron?", "Relative fraction", "No m cut", "75<m<135 GeV (pruned)",
+//                "mindRSubjetSameBhadron_CA8pruned_BoostedH_Pt700toInf_JetMassCut.eps", 1,  0.95);
 
 //   // CA pruned vs filtered subjets
 //   // 300<pT<500 GeV
@@ -551,5 +551,4 @@ void makePlots()
                700, 1100, 700, 1100, 1, -0.5, 1.5, 1E-2, 1E2,
                "CA R=0.8, p_{T}>700 GeV, pruned subjets", "Subjets matched to the same B hadron?", "Relative fraction", "No m cut", "75<m<135 GeV (pruned)",
                "mindRSubjetSameBhadron_bGSP_CA8pruned_BoostedH_Pt700toInf_JetMassCut.eps", 1,  0.95);
-  
 }

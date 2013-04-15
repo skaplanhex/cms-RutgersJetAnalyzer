@@ -137,8 +137,32 @@ void makePlots()
 //   jet_mass("output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRsubjetBhadron.root", "jetAnalyzerPrunedJetMass",
 //            "Pt300toInf", 0, 52, "H#rightarrowb#bar{b}, AK R=0.8 pruned, p_{T}>300 GeV, #DeltaR(H,jet)<0.5",
 //            0, 299.5, "Jet_mass_AKpruned_H_matched_Pt300toInf_BprimeBprimeToBHBHinc_M-1500.eps", 1);
-// 
-//   jet_mass("output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRsubjetBhadron.root", "jetAnalyzerCAPrunedJetMass",
-//            "Pt300toInf", 0, 52, "H#rightarrowb#bar{b}, CA R=0.8 pruned, p_{T}>300 GeV, #DeltaR(H,jet)<0.5",
-//            0, 299.5, "Jet_mass_CApruned_H_matched_Pt300toInf_BprimeBprimeToBHBHinc_M-1500.eps", 1);
+
+  jet_mass("output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRsubjetBhadron_CA8only.root", "jetAnalyzerCAPrunedJetMass",
+           "Pt300toInf", 0, 52, "H#rightarrowb#bar{b}, CA R=0.8 pruned, p_{T}>300 GeV, #DeltaR(H,jet)<0.5",
+           0, 299.5, "Jet_mass_CApruned_H_matched_Pt300toInf_BprimeBprimeToBHBHinc_M-1500.eps", 1);
+
+  // QCDPythia6
+  // nPV inclusive
+  jet_mass("output_files_v2/QCDPythia6_HiggsTagging_dRsubjetBhadron_jetFlavor_CA8only.root", "jetAnalyzerCAPrunedJetMass",
+           "Pt300toInf", 0, 52, "QCD, CA R=0.8 pruned, p_{T}>300 GeV",
+           0, 299.5, "Jet_mass_CApruned_Pt300toInf_QCDPythia6.eps", 1);
+
+  // BprimeBprimeToTWTWinc_M-1300
+  // nPV inclusive
+  jet_mass("output_files_v2/BprimeBprimeToTWTWinc_M-1300_HiggsTagging_WBkg_dRsubjetBhadron_CA8only.root", "jetAnalyzerCAPrunedJetMass",
+           "Pt300toInf", 0, 52, "W, CA R=0.8 pruned, p_{T}>300 GeV, #DeltaR(W,jet)<0.5",
+           0, 299.5, "Jet_mass_CApruned_W_matched_Pt300toInf_BprimeBprimeToTWTWinc_M-1300.eps", 1);
+
+  // BprimeBprimeToBZBZinc_M-1200
+  // nPV inclusive
+  jet_mass("output_files_v2/BprimeBprimeToBZBZinc_M-1200_HiggsTagging_ZBkg_dRsubjetBhadron_CA8only.root", "jetAnalyzerCAPrunedJetMass",
+           "Pt300toInf", 0, 52, "Z, CA R=0.8 pruned, p_{T}>300 GeV, #DeltaR(Z,jet)<0.5",
+           0, 299.5, "Jet_mass_CApruned_Z_matched_Pt300toInf_BprimeBprimeToBZBZinc_M-1200.eps", 1);
+
+  // TprimeToTHinc_M-1700
+  // nPV inclusive
+  jet_mass("output_files_v2/TprimeToTHinc_M-1700_HiggsTagging_TopBkg_dRsubjetBhadron_CA8only.root", "jetAnalyzerCAPrunedJetMass",
+           "Pt300toInf", 0, 52, "t, CA R=0.8 pruned, p_{T}>300 GeV, #DeltaR(t,jet)<0.5",
+           0, 299.5, "Jet_mass_CApruned_Top_matched_Pt300toInf_TprimeToTHinc_M-1700.eps", 1);
 }

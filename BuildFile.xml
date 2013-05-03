@@ -6,3 +6,4 @@
 <use name="FWCore/ServiceRegistry"/>
 <use name="fastjet"/>
 <flags EDM_PLUGIN="1"/>
+#<flags CXXFLAGS="-O0 -g -fno-inline"/>

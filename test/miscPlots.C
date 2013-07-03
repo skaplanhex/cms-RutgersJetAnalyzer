@@ -71,6 +71,7 @@ void plot2D(const string& fInputFile, const string& fPlot, const string& fTitle,
 {
   gROOT->SetBatch(kTRUE);
   setEXOStyle();
+  gStyle->SetGridColor(kGray+3);
   gStyle->SetPalette(1);
   gStyle->SetOptStat("nemruoi");
   gStyle->SetPadTopMargin(fTopMargin);
@@ -90,6 +91,8 @@ void plot2D(const string& fInputFile, const string& fPlot, const string& fTitle,
 
   TCanvas *c = new TCanvas("c", "",1000,800);
   c->cd();
+  c->SetGridx();
+  c->SetGridy();
 
   h2_plot->Rebin2D(fRebinX,fRebinY);
   h2_plot->GetXaxis()->SetRangeUser(fXmin,fXmax);
@@ -117,8 +120,6 @@ void plot2D(const string& fInputFile, const string& fPlot, const string& fTitle,
   l1.DrawLatex(fLeftMargin+0.35,0.97, "#sqrt{s} = 8 TeV");
 
   c->SetLogz();
-  c->SetGridx();
-  c->SetGridy();
   c->SaveAs(fOutputFile.c_str());
 
   delete c;

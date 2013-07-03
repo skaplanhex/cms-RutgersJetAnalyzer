@@ -507,6 +507,7 @@ void efficiency_curves_comp_xrange(const string& fFileS1, const string& fFileS2,
 {
   gROOT->SetBatch(kTRUE);
   setEXOStyle();
+  gStyle->SetGridColor(kGray);
   gStyle->SetOptStat(kFALSE);
   gStyle->SetPadTopMargin(0.07);
   gStyle->SetPadBottomMargin(0.13);
@@ -633,6 +634,8 @@ void efficiency_curves_comp_xrange(const string& fFileS1, const string& fFileS2,
   bkg->GetYaxis()->SetTitle(fYAxisTitle.c_str());
   bkg->SetTitleOffset(1.05,"Y");
   bkg->Draw();
+  c->SetGridx();
+  c->SetGridy();
 
   g_eff_1->Draw("L");
   g_eff_2->Draw("L");
@@ -666,7 +669,7 @@ void efficiency_curves_comp_xrange(const string& fFileS1, const string& fFileS2,
   l1.SetTextAlign(13);
   l1.SetTextFont(42);
   l1.SetNDC();
-  l1.SetTextSize(0.035);
+  l1.SetTextSize(0.04);
   l1.DrawLatex(0.14+0.03,0.90, fTitle.c_str());
 
   l1.SetTextAlign(12);
@@ -676,8 +679,7 @@ void efficiency_curves_comp_xrange(const string& fFileS1, const string& fFileS2,
   l1.SetTextFont(42);
   l1.DrawLatex(0.14+0.40,0.97, "#sqrt{s} = 8 TeV");
 
-  c->SetGridx();
-  c->SetGridy();
+
   if(fLogy) c->SetLogy();
   c->SaveAs(fOutputFile.c_str());
 
@@ -771,6 +773,7 @@ void efficiency1D(const string& fInputFile, const string& fPlotPass, const strin
 {
   gROOT->SetBatch(kTRUE);
   setEXOStyle();
+  gStyle->SetGridColor(kGray);
   gStyle->SetOptStat(kFALSE);
   gStyle->SetPadTopMargin(fTopMargin);
   gStyle->SetPadBottomMargin(1.-fTopMargin-fPlotWidth);
@@ -798,6 +801,8 @@ void efficiency1D(const string& fInputFile, const string& fPlotPass, const strin
   bkg->SetTitleOffset(fTitleOffsetX,"X");
   bkg->SetTitleOffset(fTitleOffsetY,"Y");
   bkg->Draw();
+  c->SetGridx();
+  c->SetGridy();
 
   TGraphAsymmErrors *g_efficiency = new TGraphAsymmErrors(h1_Pass, h1_Total,"cp");
   g_efficiency->SetLineWidth(2);
@@ -813,8 +818,8 @@ void efficiency1D(const string& fInputFile, const string& fPlotPass, const strin
   l1.SetTextFont(42);
   l1.SetTextSize(0.05);
   l1.SetNDC();
-  //l1.DrawLatex(fLeftMargin+0.03,0.19, fTitle.c_str());
-  l1.DrawLatex(fLeftMargin+0.03,0.90, fTitle.c_str());
+  if( fOutputFile.find("Matching_eff_dR")!=string::npos ) l1.DrawLatex(fLeftMargin+0.025,0.21, fTitle.c_str());
+  else                                                    l1.DrawLatex(fLeftMargin+0.03,0.90, fTitle.c_str());
 
   l1.SetTextAlign(12);
   l1.SetTextSize(0.05);
@@ -824,8 +829,6 @@ void efficiency1D(const string& fInputFile, const string& fPlotPass, const strin
   l1.DrawLatex(fLeftMargin+0.35,0.97, "#sqrt{s} = 8 TeV");
 
   c->SetLogz();
-  c->SetGridx();
-  c->SetGridy();
   c->SaveAs(fOutputFile.c_str());
 
   delete g_efficiency;
@@ -842,6 +845,7 @@ void efficiency1D_overlay(const string& fInputFile, const string& fPlotPass, con
 {
   gROOT->SetBatch(kTRUE);
   setEXOStyle();
+  gStyle->SetGridColor(kGray);
   gStyle->SetOptStat(kFALSE);
   gStyle->SetPadTopMargin(fTopMargin);
   gStyle->SetPadBottomMargin(1.-fTopMargin-fPlotWidth);
@@ -877,6 +881,8 @@ void efficiency1D_overlay(const string& fInputFile, const string& fPlotPass, con
   bkg->SetTitleOffset(fTitleOffsetX,"X");
   bkg->SetTitleOffset(fTitleOffsetY,"Y");
   bkg->Draw();
+  c->SetGridx();
+  c->SetGridy();
 
   TGraphAsymmErrors *g_eff_CSVL = new TGraphAsymmErrors(h1_Pass_CSVL, h1_Total,"cp");
   g_eff_CSVL->SetLineWidth(2);
@@ -942,8 +948,6 @@ void efficiency1D_overlay(const string& fInputFile, const string& fPlotPass, con
   l1.DrawLatex(fLeftMargin,0.97, fTitle.c_str());
 
   c->SetLogz();
-  c->SetGridx();
-  c->SetGridy();
   c->SaveAs(fOutputFile.c_str());
 
   delete legend;
@@ -961,6 +965,7 @@ void efficiency1D_overlayMulti(const string& fInputFile1, const string& fInputFi
 {
   gROOT->SetBatch(kTRUE);
   setEXOStyle();
+  gStyle->SetGridColor(kGray);
   gStyle->SetOptStat(kFALSE);
   gStyle->SetPadTopMargin(fTopMargin);
   gStyle->SetPadBottomMargin(1.-fTopMargin-fPlotWidth);
@@ -1002,6 +1007,8 @@ void efficiency1D_overlayMulti(const string& fInputFile1, const string& fInputFi
 
   TCanvas *c = new TCanvas("c", "",1000,800);
   c->cd();
+  c->SetGridx();
+  c->SetGridy();
 
   TH2D *bkg = new TH2D("bkg","",100,fXmin,fXmax,100,fYmin,fYmax);
   bkg->GetXaxis()->SetTitle(fXAxisTitle.c_str());
@@ -1074,7 +1081,7 @@ void efficiency1D_overlayMulti(const string& fInputFile1, const string& fInputFi
   l1.SetTextFont(42);
   l1.SetTextSize(0.05);
   l1.SetNDC();
-  l1.DrawLatex(fLeftMargin+0.02,0.25, fTitle.c_str());
+  l1.DrawLatex(fLeftMargin+0.03,0.25, fTitle.c_str());
 
   l1.SetTextAlign(12);
   l1.SetTextSize(0.05);
@@ -1083,9 +1090,8 @@ void efficiency1D_overlayMulti(const string& fInputFile1, const string& fInputFi
   l1.SetTextFont(42);
   l1.DrawLatex(fLeftMargin+0.35,0.97, "#sqrt{s} = 8 TeV");
 
+  //c->RedrawAxis();
   c->SetLogz();
-  c->SetGridx();
-  c->SetGridy();
   if(fLogy) c->SetLogy();
   c->SaveAs(fOutputFile.c_str());
 
@@ -1245,16 +1251,16 @@ void makePlots()
 //                     "Pruned #tau_{2}/#tau_{1}<", "Mistag rate", 0, 1., 0, 0.16,
 //                     "H_mistag_rate_vs_prunednsj_cut_AK_Pt300toInf_PrunedJetMass_QCDPythia6.eps", 0.9, 1.05);
 
-//   // Higgs true Pt
-//   efficiency1D("output_files_v2/BprimeBprimeToBHBHinc_M-1000_HiggsTagging_dRsubjetBhadron.root",
-//                "jetAnalyzerCAPrunedJetMass/h1_BosonPt_Matched", "jetAnalyzerCAPrunedJetMass/h1_BosonPt_DecaySel",
-//                "H#rightarrowb#bar{b}, CA R=0.8, #DeltaR(H,jet)<0.5",
-//                "Higgs true p_{T} [GeV]", "Matching efficiency", 10, 0, 1000, 0, 1, "Matching_eff_dRHjet_BprimeBprimeToBHBHinc_M-1000.eps", 1., 0.9);
-//
-//   efficiency1D("output_files_v2/BprimeBprimeToBHBHinc_M-1000_HiggsTagging_dRsubjetBhadron.root",
-//                "jetAnalyzerCAPrunedJetMass/h1_BosonPt_DecayProdMatched", "jetAnalyzerCAPrunedJetMass/h1_BosonPt_DecaySel",
-//                "H#rightarrowb#bar{b}, CA R=0.8, #DeltaR(b,jet)<0.8 & #DeltaR(#bar{b},jet)<0.8",
-//                "Higgs true p_{T} [GeV]", "Matching efficiency", 10, 0, 1000, 0, 1, "Matching_eff_dRbjet_BprimeBprimeToBHBHinc_M-1000.eps", 1., 0.9);
+  // Higgs true Pt
+  efficiency1D("output_files_v2/BprimeBprimeToBHBHinc_M-1000_HiggsTagging_dRsubjetBhadron.root",
+               "jetAnalyzerCAPrunedJetMass/h1_BosonPt_Matched", "jetAnalyzerCAPrunedJetMass/h1_BosonPt_DecaySel",
+               "H#rightarrowb#bar{b}, CA R=0.8, #DeltaR(H,jet)<0.5",
+               "Higgs true p_{T} [GeV]", "Matching efficiency", 10, 0, 1000, 0, 1, "Matching_eff_dRHjet_BprimeBprimeToBHBHinc_M-1000.eps", 1., 0.9);
+
+  efficiency1D("output_files_v2/BprimeBprimeToBHBHinc_M-1000_HiggsTagging_dRsubjetBhadron.root",
+               "jetAnalyzerCAPrunedJetMass/h1_BosonPt_DecayProdMatched", "jetAnalyzerCAPrunedJetMass/h1_BosonPt_DecaySel",
+               "H#rightarrowb#bar{b}, CA R=0.8, #DeltaR(b,jet)<0.8 & #DeltaR(#bar{b},jet)<0.8",
+               "Higgs true p_{T} [GeV]", "Matching efficiency", 10, 0, 1000, 0, 1, "Matching_eff_dRbjet_BprimeBprimeToBHBHinc_M-1000.eps", 1., 0.9);
 
   //--------------------------------------------------------------------------------------------------------------------
 
@@ -1281,17 +1287,17 @@ void makePlots()
 //                "QCD, AK R=0.8, 75<m<135 GeV (pruned)",
 //                "Jet p_{T} [GeV]", "Jet mass cut efficiency", 40, 0, 1000, 0, 1, "Jet_mass_cut_eff_PrunedJetMass_QCDPythia6.eps", 1., 0.9);
 
-//   // CA8
-//   efficiency1D("output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRsubjetBhadron_CA8only.root",
-//                "jetAnalyzerCAPrunedJetMass/h1_JetPt_BosonMatched_JetMass", "jetAnalyzerCAPrunedJetMass/h1_JetPt_BosonMatched",
-//                "#splitline{H#rightarrowb#bar{b}, CA R=0.8, #DeltaR(H,jet)<0.5}{75<m_{jet}<135 GeV (pruned)}",
-//                "Jet p_{T} [GeV]", "Jet mass cut efficiency", 10, 0, 1000, 0, 1, "Jet_mass_cut_eff_CApruned_H_matched_BprimeBprimeToBHBHinc_M-1500.eps", 1., 0.9);
-//
-//   efficiency1D("output_files_v2/QCDPythia6_HiggsTagging_dRsubjetBhadron_jetFlavor_CA8only.root",
-//                "jetAnalyzerCAPrunedJetMass/h1_JetPt_BosonMatched_JetMass", "jetAnalyzerCAPrunedJetMass/h1_JetPt_BosonMatched",
-//                "#splitline{QCD, CA R=0.8}{75<m_{jet}<135 GeV (pruned)}",
-//                "Jet p_{T} [GeV]", "Jet mass cut efficiency", 10, 0, 1000, 0, 1, "Jet_mass_cut_eff_CApruned_QCDPythia6.eps", 1., 0.9);
-//
+  // CA8
+  efficiency1D("output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRsubjetBhadron_CA8only.root",
+               "jetAnalyzerCAPrunedJetMass/h1_JetPt_BosonMatched_JetMass", "jetAnalyzerCAPrunedJetMass/h1_JetPt_BosonMatched",
+               "#splitline{H#rightarrowb#bar{b}, CA R=0.8, #DeltaR(H,jet)<0.5}{75<m_{jet}<135 GeV (pruned)}",
+               "Jet p_{T} [GeV]", "Jet mass cut efficiency", 10, 0, 1000, 0, 1, "Jet_mass_cut_eff_CApruned_H_matched_BprimeBprimeToBHBHinc_M-1500.eps", 1., 0.9);
+
+  efficiency1D("output_files_v2/QCDPythia6_HiggsTagging_dRsubjetBhadron_jetFlavor_CA8only.root",
+               "jetAnalyzerCAPrunedJetMass/h1_JetPt_BosonMatched_JetMass", "jetAnalyzerCAPrunedJetMass/h1_JetPt_BosonMatched",
+               "#splitline{QCD, CA R=0.8}{75<m_{jet}<135 GeV (pruned)}",
+               "Jet p_{T} [GeV]", "Jet mass cut efficiency", 10, 0, 1000, 0, 1, "Jet_mass_cut_eff_CApruned_QCDPythia6.eps", 1., 0.9);
+
 //   efficiency1D("output_files_v2/BprimeBprimeToTWTWinc_M-1300_HiggsTagging_WBkg_dRsubjetBhadron_CA8only.root",
 //                "jetAnalyzerCAPrunedJetMass/h1_JetPt_BosonMatched_JetMass", "jetAnalyzerCAPrunedJetMass/h1_JetPt_BosonMatched",
 //                "W, CA R=0.8, #DeltaR(W,jet)<0.5, 75<m<135 GeV (pruned)",
@@ -1383,10 +1389,10 @@ void makePlots()
 //   //             "Jet p_{T} [GeV]", "b-tag eff (subjet CSVL)", 10, 0, 1000, 0, 1, "b-tag_eff_SubjetCSVL_CAPrunedJetMass_HiggsToBBbar_BprimeBprimeToBHBHinc_M-1500_BJM.eps", 1., 0.9);
 
 
-//   efficiency1D("output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRsubjetBhadron_CA8only.root",
-//                "jetAnalyzerCAPrunedJetMass/h1_JetPt_BosonMatched_JetMass_SubJetMinCSVL", "jetAnalyzerCAPrunedJetMass/h1_JetPt_BosonMatched_JetMass",
-//                "#splitline{H#rightarrowb#bar{b}, CA R=0.8, 75<m_{jet}<135 GeV (pruned)}{Subjet CSVL}",
-//                "Jet p_{T} [GeV]", "b-tagging efficiency", 10, 0, 1000, 0, 1, "b-tag_eff_SubjetCSVL_CAPrunedJetMass_HiggsToBBbar_BprimeBprimeToBHBHinc_M-1500.eps", 1., 0.9);
+  efficiency1D("output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRsubjetBhadron_CA8only.root",
+               "jetAnalyzerCAPrunedJetMass/h1_JetPt_BosonMatched_JetMass_SubJetMinCSVL", "jetAnalyzerCAPrunedJetMass/h1_JetPt_BosonMatched_JetMass",
+               "#splitline{H#rightarrowb#bar{b}, CA R=0.8, 75<m_{jet}<135 GeV (pruned)}{Subjet CSVL}",
+               "Jet p_{T} [GeV]", "b-tagging efficiency", 10, 0, 1000, 0, 1, "b-tag_eff_SubjetCSVL_CAPrunedJetMass_HiggsToBBbar_BprimeBprimeToBHBHinc_M-1500.eps", 1., 0.9);
 
   // overlay multiple backgrounds
   efficiency1D_overlayMulti("output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRsubjetBhadron_CA8only.root",
@@ -1452,11 +1458,11 @@ void makePlots()
 //   //                     "QCD, AK R=0.8, 75<m<135 GeV (trimmed)",
 //   //                     "Jet p_{T} [GeV]", "Mistag rate", 40, 0, 1000, 0, 0.2, "b-tag_mistag_rate_FilteredSubJets_ExplicitJTA_QCDPythia6.eps", 1., 1., 0.12, 0.07, 0.8, "Filt");
 
-//   // QCD background
-//   efficiency1D("output_files_v2/QCDPythia6_HiggsTagging_dRsubjetBhadron_jetFlavor_CA8only.root",
-//                "jetAnalyzerCAPrunedJetMass/h1_JetPt_BosonMatched_JetMass_SubJetMinCSVL", "jetAnalyzerCAPrunedJetMass/h1_JetPt_BosonMatched_JetMass",
-//                "#splitline{QCD, CA R=0.8, 75<m_{jet}<135 GeV (pruned)}{Subjet CSVL}",
-//                "Jet p_{T} [GeV]", "Mistag rate", 10, 0, 1000, 0, 0.2, "b-tag_mistag_rate_SubjetCSVL_CAPrunedJetMass_QCDPythia6.eps", 1., 1.1, 0.13);
+  // QCD background
+  efficiency1D("output_files_v2/QCDPythia6_HiggsTagging_dRsubjetBhadron_jetFlavor_CA8only.root",
+               "jetAnalyzerCAPrunedJetMass/h1_JetPt_BosonMatched_JetMass_SubJetMinCSVL", "jetAnalyzerCAPrunedJetMass/h1_JetPt_BosonMatched_JetMass",
+               "#splitline{QCD, CA R=0.8, 75<m_{jet}<135 GeV (pruned)}{Subjet CSVL}",
+               "Jet p_{T} [GeV]", "Mistag rate", 10, 0, 1000, 0, 0.2, "b-tag_mistag_rate_SubjetCSVL_CAPrunedJetMass_QCDPythia6.eps", 1., 1.1, 0.13);
 
 //   // W background
 //   efficiency1D("output_files_v2/BprimeBprimeToTWTWinc_M-1300_HiggsTagging_WBkg_dRsubjetBhadron_CA8only.root",
@@ -1520,10 +1526,10 @@ void makePlots()
 //                        "Jet p_{T} [GeV]", "Higgs tagging efficiency", 40, 0, 1000, 0, 1, "Higgs_tag_eff_total_JTACone_HiggsToBBbar_BprimeBprimeToBHBHinc_M-800.eps", 1., 0.9);
 
 
-//   efficiency1D("output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRsubjetBhadron_CA8only.root",
-//                "jetAnalyzerCAPrunedJetMass/h1_JetPt_BosonMatched_JetMass_SubJetMinCSVL", "jetAnalyzerCAPrunedJetMass/h1_JetPt_BosonMatched",
-//                "#splitline{H#rightarrowb#bar{b}, CA R=0.8, 75<m_{jet}<135 GeV (pruned)}{Subjet CSVL}",
-//                "Jet p_{T} [GeV]", "Higgs-tagging efficiency", 10, 0, 1000, 0, 1, "Higgs_tag_eff_total_CAPrunedJetMass_HiggsToBBbar_BprimeBprimeToBHBHinc_M-1500.eps", 1., 0.9);
+  efficiency1D("output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRsubjetBhadron_CA8only.root",
+               "jetAnalyzerCAPrunedJetMass/h1_JetPt_BosonMatched_JetMass_SubJetMinCSVL", "jetAnalyzerCAPrunedJetMass/h1_JetPt_BosonMatched",
+               "#splitline{H#rightarrowb#bar{b}, CA R=0.8, 75<m_{jet}<135 GeV (pruned)}{Subjet CSVL}",
+               "Jet p_{T} [GeV]", "Higgs-tagging efficiency", 10, 0, 1000, 0, 1, "Higgs_tag_eff_total_CAPrunedJetMass_HiggsToBBbar_BprimeBprimeToBHBHinc_M-1500.eps", 1., 0.9);
 
   // overlay multiple backgrounds
   efficiency1D_overlayMulti("output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRsubjetBhadron_CA8only.root",
@@ -1554,28 +1560,28 @@ void makePlots()
 //                        "QCD, AK R=0.8, 75<m<135 GeV (trimmed)",
 //                        "Jet p_{T} [GeV]", "Higgs mistag rate", 40, 0, 1000, 0, 0.05, "Higgs_mistag_rate_total_JTACone_QCDPythia6.eps", 1., 1.15, 0.14, 0.07, 0.8);
 
-//   efficiency1D("output_files_v2/QCDPythia6_HiggsTagging_dRsubjetBhadron_jetFlavor_CA8only.root",
-//                "jetAnalyzerCAPrunedJetMass/h1_JetPt_BosonMatched_JetMass_SubJetMinCSVL", "jetAnalyzerCAPrunedJetMass/h1_JetPt_BosonMatched",
-//                "#splitline{QCD, CA R=0.8, 75<m_{jet}<135 GeV (pruned)}{Subjet CSVL}",
-//                "Jet p_{T} [GeV]", "Higgs mistag rate", 10, 0, 1000, 0, 0.02, "Higgs_mistag_rate_total_CAPrunedJetMass_QCDPythia6.eps", 1., 1.2, 0.14);
+  efficiency1D("output_files_v2/QCDPythia6_HiggsTagging_dRsubjetBhadron_jetFlavor_CA8only.root",
+               "jetAnalyzerCAPrunedJetMass/h1_JetPt_BosonMatched_JetMass_SubJetMinCSVL", "jetAnalyzerCAPrunedJetMass/h1_JetPt_BosonMatched",
+               "#splitline{QCD, CA R=0.8, 75<m_{jet}<135 GeV (pruned)}{Subjet CSVL}",
+               "Jet p_{T} [GeV]", "Higgs mistag rate", 10, 0, 1000, 0, 0.02, "Higgs_mistag_rate_total_CAPrunedJetMass_QCDPythia6.eps", 1., 1.2, 0.14);
 
   //--------------------------------------------------------------------------------------------------------------------
 
-//   // QCD background
-//   // b-tagging efficiency vs mistag rate (CA8 pruned jets, both subjets b-tagged)
-//   efficiency_curves_comp_xrange("output_files_v2/BprimeBprimeToBHBHinc_M-1000_HiggsTagging_dRsubjetBhadron_CA8only.root", "output_files_v2/BprimeBprimeToBHBHinc_M-1000_HiggsTagging_dRsubjetBhadron_CA8only.root",
-//                          "output_files_v2/QCDPythia6_HiggsTagging_dRsubjetBhadron_jetFlavor_CA8only.root", "output_files_v2/QCDPythia6_HiggsTagging_dRsubjetBhadron_jetFlavor_CA8only.root",
-//                          "jetAnalyzerCAPrunedJetMass/h2_JetPt_JetCSVL_BosonMatched_JetMass", "jetAnalyzerCAPrunedJetMass/h2_JetPt_SubJetMinCSVL_BosonMatched_JetMass",
-//                          "jetAnalyzerCAPrunedJetMass/h2_JetPt_JetCSVL_BosonMatched_JetMass", "jetAnalyzerCAPrunedJetMass/h2_JetPt_SubJetMinCSVL_BosonMatched_JetMass",
-//                          300, 500, "#splitline{CA R=0.8, 300<p_{T}<500 GeV}{75<m_{jet}<135 GeV (pruned)}", "Tagging efficiency (H#rightarrowb#bar{b})", "Mistag rate (QCD)","Fat jet CSV", "Subjet CSV",
-//                          0, 1, 1E-3, 1, "b-tag_eff_vs_mistag_CA8_QCDBkg_Pt300to500_JetMass.eps", 1);
-//
-//   efficiency_curves_comp_xrange("output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRsubjetBhadron_CA8only.root", "output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRsubjetBhadron_CA8only.root",
-//                          "output_files_v2/QCDPythia6_HiggsTagging_dRsubjetBhadron_jetFlavor_CA8only.root", "output_files_v2/QCDPythia6_HiggsTagging_dRsubjetBhadron_jetFlavor_CA8only.root",
-//                          "jetAnalyzerCAPrunedJetMass/h2_JetPt_JetCSVL_BosonMatched_JetMass", "jetAnalyzerCAPrunedJetMass/h2_JetPt_SubJetMinCSVL_BosonMatched_JetMass",
-//                          "jetAnalyzerCAPrunedJetMass/h2_JetPt_JetCSVL_BosonMatched_JetMass", "jetAnalyzerCAPrunedJetMass/h2_JetPt_SubJetMinCSVL_BosonMatched_JetMass",
-//                          700, 1100, "#splitline{CA R=0.8, p_{T}>700 GeV}{75<m_{jet}<135 GeV (pruned)}", "Tagging efficiency (H#rightarrowb#bar{b})", "Mistag rate (QCD)","Fat jet CSV", "Subjet CSV",
-//                          0, 1, 1E-3, 1, "b-tag_eff_vs_mistag_CA8_QCDBkg_Pt700toInf_JetMass.eps", 1);
+  // QCD background
+  // b-tagging efficiency vs mistag rate (CA8 pruned jets, both subjets b-tagged)
+  efficiency_curves_comp_xrange("output_files_v2/BprimeBprimeToBHBHinc_M-1000_HiggsTagging_dRsubjetBhadron_CA8only.root", "output_files_v2/BprimeBprimeToBHBHinc_M-1000_HiggsTagging_dRsubjetBhadron_CA8only.root",
+                         "output_files_v2/QCDPythia6_HiggsTagging_dRsubjetBhadron_jetFlavor_CA8only.root", "output_files_v2/QCDPythia6_HiggsTagging_dRsubjetBhadron_jetFlavor_CA8only.root",
+                         "jetAnalyzerCAPrunedJetMass/h2_JetPt_JetCSVL_BosonMatched_JetMass", "jetAnalyzerCAPrunedJetMass/h2_JetPt_SubJetMinCSVL_BosonMatched_JetMass",
+                         "jetAnalyzerCAPrunedJetMass/h2_JetPt_JetCSVL_BosonMatched_JetMass", "jetAnalyzerCAPrunedJetMass/h2_JetPt_SubJetMinCSVL_BosonMatched_JetMass",
+                         300, 500, "#splitline{CA R=0.8, 300<p_{T}<500 GeV}{75<m_{jet}<135 GeV (pruned)}", "Tagging efficiency (H#rightarrowb#bar{b})", "Mistag rate (QCD)","Fat jet CSV", "Subjet CSV",
+                         0, 1, 1E-3, 1, "b-tag_eff_vs_mistag_CA8_QCDBkg_Pt300to500_JetMass.eps", 1);
+
+  efficiency_curves_comp_xrange("output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRsubjetBhadron_CA8only.root", "output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRsubjetBhadron_CA8only.root",
+                         "output_files_v2/QCDPythia6_HiggsTagging_dRsubjetBhadron_jetFlavor_CA8only.root", "output_files_v2/QCDPythia6_HiggsTagging_dRsubjetBhadron_jetFlavor_CA8only.root",
+                         "jetAnalyzerCAPrunedJetMass/h2_JetPt_JetCSVL_BosonMatched_JetMass", "jetAnalyzerCAPrunedJetMass/h2_JetPt_SubJetMinCSVL_BosonMatched_JetMass",
+                         "jetAnalyzerCAPrunedJetMass/h2_JetPt_JetCSVL_BosonMatched_JetMass", "jetAnalyzerCAPrunedJetMass/h2_JetPt_SubJetMinCSVL_BosonMatched_JetMass",
+                         700, 1100, "#splitline{CA R=0.8, p_{T}>700 GeV}{75<m_{jet}<135 GeV (pruned)}", "Tagging efficiency (H#rightarrowb#bar{b})", "Mistag rate (QCD)","Fat jet CSV", "Subjet CSV",
+                         0, 1, 1E-3, 1, "b-tag_eff_vs_mistag_CA8_QCDBkg_Pt700toInf_JetMass.eps", 1);
 
 //   // b-tagging efficiency vs mistag rate (CA8 pruned jets, single b-tagged subjet)
 //   efficiency_curves_comp_xrange("output_files_v2/BprimeBprimeToBHBHinc_M-1000_HiggsTagging_dRsubjetBhadron_CA8only.root", "output_files_v2/BprimeBprimeToBHBHinc_M-1000_HiggsTagging_dRsubjetBhadron_CA8only.root",
@@ -1842,20 +1848,20 @@ void makePlots()
 
   //--------------------------------------------------------------------------------------------------------------------
 
-//   // b-tagging efficiency vs mistag rate (CA8 pruned jets with enlarged JTA cone)
-//   efficiency_curves_comp_xrange("output_files_v2/BprimeBprimeToBHBHinc_M-1000_HiggsTagging_dRsubjetBhadron.root", "output_files_v2/BprimeBprimeToBHBHinc_M-1000_HiggsTagging_dRsubjetBhadron.root",
-//                          "output_files_v2/QCDPythia6_HiggsTagging_dRsubjetBhadron.root", "output_files_v2/QCDPythia6_HiggsTagging_dRsubjetBhadron.root",
-//                          "jetAnalyzerCAPrunedJetMassJTACone/h2_JetPt_JetCSVL_BosonMatched_JetMass", "jetAnalyzerCAPrunedJetMassJTACone/h2_JetPt_SubJetMinCSVL_BosonMatched_JetMass",
-//                          "jetAnalyzerCAPrunedJetMassJTACone/h2_JetPt_JetCSVL_BosonMatched_JetMass", "jetAnalyzerCAPrunedJetMassJTACone/h2_JetPt_SubJetMinCSVL_BosonMatched_JetMass",
-//                          300, 500, "#splitline{CA R=0.8, 300<p_{T}<500 GeV}{75<m_{jet}<135 GeV (pruned)}", "Tagging efficiency (H#rightarrowb#bar{b})", "Mistag rate (QCD)","Fat jet CSV (relaxed JTA)", "Subjet CSV",
-//                          0, 1, 1E-3, 1, "b-tag_eff_vs_mistag_CA8_JTA_QCDBkg_Pt300to500_JetMass.eps", 1);
-//
-//   efficiency_curves_comp_xrange("output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRsubjetBhadron.root", "output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRsubjetBhadron.root",
-//                          "output_files_v2/QCDPythia6_HiggsTagging_dRsubjetBhadron.root", "output_files_v2/QCDPythia6_HiggsTagging_dRsubjetBhadron.root",
-//                          "jetAnalyzerCAPrunedJetMassJTACone/h2_JetPt_JetCSVL_BosonMatched_JetMass", "jetAnalyzerCAPrunedJetMassJTACone/h2_JetPt_SubJetMinCSVL_BosonMatched_JetMass",
-//                          "jetAnalyzerCAPrunedJetMassJTACone/h2_JetPt_JetCSVL_BosonMatched_JetMass", "jetAnalyzerCAPrunedJetMassJTACone/h2_JetPt_SubJetMinCSVL_BosonMatched_JetMass",
-//                          700, 1100, "#splitline{CA R=0.8, p_{T}>700 GeV}{75<m_{jet}<135 GeV (pruned)}", "Tagging efficiency (H#rightarrowb#bar{b})", "Mistag rate (QCD)","Fat jet CSV (relaxed JTA)", "Subjet CSV",
-//                          0, 1, 1E-3, 1, "b-tag_eff_vs_mistag_CA8_JTA_QCDBkg_Pt700toInf_JetMass.eps", 1);
+  // b-tagging efficiency vs mistag rate (CA8 pruned jets with enlarged JTA cone)
+  efficiency_curves_comp_xrange("output_files_v2/BprimeBprimeToBHBHinc_M-1000_HiggsTagging_dRsubjetBhadron.root", "output_files_v2/BprimeBprimeToBHBHinc_M-1000_HiggsTagging_dRsubjetBhadron.root",
+                         "output_files_v2/QCDPythia6_HiggsTagging_dRsubjetBhadron.root", "output_files_v2/QCDPythia6_HiggsTagging_dRsubjetBhadron.root",
+                         "jetAnalyzerCAPrunedJetMassJTACone/h2_JetPt_JetCSVL_BosonMatched_JetMass", "jetAnalyzerCAPrunedJetMassJTACone/h2_JetPt_SubJetMinCSVL_BosonMatched_JetMass",
+                         "jetAnalyzerCAPrunedJetMassJTACone/h2_JetPt_JetCSVL_BosonMatched_JetMass", "jetAnalyzerCAPrunedJetMassJTACone/h2_JetPt_SubJetMinCSVL_BosonMatched_JetMass",
+                         300, 500, "#splitline{CA R=0.8, 300<p_{T}<500 GeV}{75<m_{jet}<135 GeV (pruned)}", "Tagging efficiency (H#rightarrowb#bar{b})", "Mistag rate (QCD)","Fat jet CSV (relaxed JTA)", "Subjet CSV",
+                         0, 1, 1E-3, 1, "b-tag_eff_vs_mistag_CA8_JTA_QCDBkg_Pt300to500_JetMass.eps", 1);
+
+  efficiency_curves_comp_xrange("output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRsubjetBhadron.root", "output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRsubjetBhadron.root",
+                         "output_files_v2/QCDPythia6_HiggsTagging_dRsubjetBhadron.root", "output_files_v2/QCDPythia6_HiggsTagging_dRsubjetBhadron.root",
+                         "jetAnalyzerCAPrunedJetMassJTACone/h2_JetPt_JetCSVL_BosonMatched_JetMass", "jetAnalyzerCAPrunedJetMassJTACone/h2_JetPt_SubJetMinCSVL_BosonMatched_JetMass",
+                         "jetAnalyzerCAPrunedJetMassJTACone/h2_JetPt_JetCSVL_BosonMatched_JetMass", "jetAnalyzerCAPrunedJetMassJTACone/h2_JetPt_SubJetMinCSVL_BosonMatched_JetMass",
+                         700, 1100, "#splitline{CA R=0.8, p_{T}>700 GeV}{75<m_{jet}<135 GeV (pruned)}", "Tagging efficiency (H#rightarrowb#bar{b})", "Mistag rate (QCD)","Fat jet CSV (relaxed JTA)", "Subjet CSV",
+                         0, 1, 1E-3, 1, "b-tag_eff_vs_mistag_CA8_JTA_QCDBkg_Pt700toInf_JetMass.eps", 1);
 
 //   // b-tagging efficiency vs mistag rate (CA8 pruned jets, PF JTA for fat jets)
 //   efficiency_curves_comp_xrange("output_files_v2/BprimeBprimeToBHBHinc_M-1000_HiggsTagging_dRsubjetBhadron.root", "output_files_v2/BprimeBprimeToBHBHinc_M-1000_HiggsTagging_PFJTA.root",

@@ -22,7 +22,8 @@ void jet_mass(const string& fFile, const string& fFileDir,
 {
   gROOT->SetBatch(kTRUE);
   setEXOStyle();
-  gStyle->SetOptStat("nemruoi");
+  //gStyle->SetOptStat("nemruoi");
+  gStyle->SetOptStat(0);
   gStyle->SetPadTopMargin(0.07);
   gStyle->SetPadBottomMargin(0.13);
   gStyle->SetPadLeftMargin(0.14);
@@ -43,7 +44,7 @@ void jet_mass(const string& fFile, const string& fFileDir,
   c->cd();
 
   h1_JetMass->Rebin(fRebin);
-  h1_JetMass->GetXaxis()->SetTitle("m_{jet} (pruned) [GeV]");
+  h1_JetMass->GetXaxis()->SetTitle("m_{jet} (pruned) [GeV/c^{2}]");
   h1_JetMass->GetYaxis()->SetTitle("Entries");
   h1_JetMass->GetXaxis()->SetRangeUser(fXmin,fXmax);
   h1_JetMass->SetTitleOffset(1.0,"X");
@@ -56,10 +57,10 @@ void jet_mass(const string& fFile, const string& fFileDir,
   f1->SetLineColor(kRed);
   f1->SetLineWidth(2);
 
-  //h1_JetMass->Fit("f1","R");
+  h1_JetMass->Fit("f1","R");
 
   h1_JetMass->Draw("hists");
-  //f1->Draw("same");
+  f1->Draw("same");
 
   TLatex l1;
   l1.SetTextAlign(13);
@@ -156,13 +157,13 @@ void makePlots()
 //            0, 299.5, "Jet_mass_AKpruned_H_matched_Pt300toInf_BprimeBprimeToBHBHinc_M-1500.eps", 1);
 
   jet_mass("output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRsubjetBhadron_CA8only.root", "jetAnalyzerCAPrunedJetMass",
-           "Pt300toInf", 0, 52, "#splitline{H#rightarrowb#bar{b}, CA R=0.8, p_{T}>300 GeV}{#DeltaR(H,jet)<0.5}",
+           "Pt300toInf", 0, 52, "#splitline{H#rightarrowb#bar{b}, CA R=0.8, p_{T}>300 GeV/c}{#DeltaR(H,jet)<0.5}",
            0, 299.5, "Jet_mass_CApruned_H_matched_Pt300toInf_BprimeBprimeToBHBHinc_M-1500.eps", 1);
 
   // QCDPythia6
   // nPV inclusive
   jet_mass("output_files_v2/QCDPythia6_HiggsTagging_dRsubjetBhadron_jetFlavor_CA8only.root", "jetAnalyzerCAPrunedJetMass",
-           "Pt300toInf", 0, 52, "#splitline{QCD, CA R=0.8, p_{T}>300 GeV}{}",
+           "Pt300toInf", 0, 52, "#splitline{QCD, CA R=0.8, p_{T}>300 GeV/c}{}",
            0, 299.5, "Jet_mass_CApruned_Pt300toInf_QCDPythia6.eps", 1);
 
 //   // BprimeBprimeToTWTWinc_M-1300

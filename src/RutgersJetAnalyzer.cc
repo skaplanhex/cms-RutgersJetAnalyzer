@@ -173,7 +173,9 @@ private:
     TH2D *h2_JetPt_mindRSubjet2Bhadron_BosonMatched_JetMass;
 
     TH2D *h2_JetPt_SameMatchedBhadron_BosonMatched;
+    TH2D *h2_JetPt_SameMatchedBhadron_BosonMatched_SubJetMinCSVL;
     TH2D *h2_JetPt_SameMatchedBhadron_BosonMatched_JetMass;
+    TH2D *h2_JetPt_SameMatchedBhadron_BosonMatched_JetMass_SubJetMinCSVL;
 
     TH1D *h1_JetCSVDiscr_BosonMatched_JetMass;
     TH1D *h1_SubJetMinCSVDiscr_BosonMatched_JetMass;
@@ -321,7 +323,9 @@ RutgersJetAnalyzer::RutgersJetAnalyzer(const edm::ParameterSet& iConfig) :
     h2_JetPt_mindRSubjet2Bhadron_BosonMatched_JetMass = fs->make<TH2D>("h2_JetPt_mindRSubjet2Bhadron_BosonMatched_JetMass",";p_{T} [GeV];min #DeltaR(subjet_{2},B hadron)",ptBins,ptMin,ptMax,dRBins,0.,2.);
 
     h2_JetPt_SameMatchedBhadron_BosonMatched = fs->make<TH2D>("h2_JetPt_SameMatchedBhadron_BosonMatched",";p_{T} [GeV];Same matched B hadron",ptBins,ptMin,ptMax,2,-0.5,1.5);
+    h2_JetPt_SameMatchedBhadron_BosonMatched_SubJetMinCSVL = fs->make<TH2D>("h2_JetPt_SameMatchedBhadron_BosonMatched_SubJetMinCSVL",";p_{T} [GeV];Same matched B hadron",ptBins,ptMin,ptMax,2,-0.5,1.5);
     h2_JetPt_SameMatchedBhadron_BosonMatched_JetMass = fs->make<TH2D>("h2_JetPt_SameMatchedBhadron_BosonMatched_JetMass",";p_{T} [GeV];Same matched B hadron",ptBins,ptMin,ptMax,2,-0.5,1.5);
+    h2_JetPt_SameMatchedBhadron_BosonMatched_JetMass_SubJetMinCSVL = fs->make<TH2D>("h2_JetPt_SameMatchedBhadron_BosonMatched_JetMass_SubJetMinCSVL",";p_{T} [GeV];Same matched B hadron",ptBins,ptMin,ptMax,2,-0.5,1.5);
 
     h1_JetCSVDiscr_BosonMatched_JetMass = fs->make<TH1D>("h1_JetCSVDiscr_BosonMatched_JetMass",";Jet CSV Discr;",100,0.,1.);
     h1_SubJetMinCSVDiscr_BosonMatched_JetMass = fs->make<TH1D>("h1_SubJetMinCSVDiscr_BosonMatched_JetMass",";SubJet min CSV Discr;",100,0.,1.);
@@ -976,6 +980,24 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
           h2_JetPt_SameMatchedBhadron_BosonMatched->Fill(jetPt, ( bHadronMatchSubjet1 == bHadronMatchSubjet2 ? 1. : 0. ), eventWeight);
       }
 
+      // get b-tag discriminators
+      double jet_CSV_discr = it->bDiscriminator((bdiscriminator).c_str());
+      double subJet1_CSV_discr = -999., subJet2_CSV_discr = -999.;
+      if( subjets.size()>1 )
+      {
+        subJet1_CSV_discr = subjets.at(0)->bDiscriminator(bdiscriminator.c_str());
+        subJet2_CSV_discr = subjets.at(1)->bDiscriminator(bdiscriminator.c_str());
+      }
+      double minSubJet_CSV_discr = std::min(subJet1_CSV_discr, subJet2_CSV_discr);
+      double maxSubJet_CSV_discr = std::max(subJet1_CSV_discr, subJet2_CSV_discr);
+      double jet_DoubleB_discr = it->bDiscriminator("doubleSecondaryVertexHighEffBJetTags");
+
+      if( minSubJet_CSV_discr>0.244 )
+      {
+        if( bHadronMatchSubjet1 != genParticles->end() && bHadronMatchSubjet2 != genParticles->end() )
+          h2_JetPt_SameMatchedBhadron_BosonMatched_SubJetMinCSVL->Fill(jetPt, ( bHadronMatchSubjet1 == bHadronMatchSubjet2 ? 1. : 0. ), eventWeight);
+      }
+
 
       // skip the jet if it does not pass the invariant mass cut
       if( !(jetMass > jetMassMin && jetMass < jetMassMax) ) continue;
@@ -994,19 +1016,6 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
           h2_JetPt_SameMatchedBhadron_BosonMatched_JetMass->Fill(jetPt, ( bHadronMatchSubjet1 == bHadronMatchSubjet2 ? 1. : 0. ), eventWeight);
       }
 
-
-      // get b-tag discriminators
-      double jet_CSV_discr = it->bDiscriminator((bdiscriminator).c_str());
-      double subJet1_CSV_discr = -999., subJet2_CSV_discr = -999.;
-      if( subjets.size()>1 )
-      {
-        subJet1_CSV_discr = subjets.at(0)->bDiscriminator(bdiscriminator.c_str());
-        subJet2_CSV_discr = subjets.at(1)->bDiscriminator(bdiscriminator.c_str());
-      }
-      double minSubJet_CSV_discr = std::min(subJet1_CSV_discr, subJet2_CSV_discr);
-      double maxSubJet_CSV_discr = std::max(subJet1_CSV_discr, subJet2_CSV_discr);
-      double jet_DoubleB_discr = it->bDiscriminator("doubleSecondaryVertexHighEffBJetTags");
-
       h1_JetCSVDiscr_BosonMatched_JetMass->Fill( jet_CSV_discr, eventWeight);
       h1_SubJetMinCSVDiscr_BosonMatched_JetMass->Fill( minSubJet_CSV_discr, eventWeight);
       h1_SubJetMaxCSVDiscr_BosonMatched_JetMass->Fill( maxSubJet_CSV_discr, eventWeight);
@@ -1018,7 +1027,12 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
 
       if( jet_CSV_discr>0.244 ) h1_JetPt_BosonMatched_JetMass_CSVL->Fill(jetPt, eventWeight);
       if( jet_CSV_discr>0.679 ) h1_JetPt_BosonMatched_JetMass_CSVM->Fill(jetPt, eventWeight);
-      if( minSubJet_CSV_discr>0.244 ) h1_JetPt_BosonMatched_JetMass_SubJetMinCSVL->Fill(jetPt, eventWeight);
+      if( minSubJet_CSV_discr>0.244 )
+      {
+        h1_JetPt_BosonMatched_JetMass_SubJetMinCSVL->Fill(jetPt, eventWeight);
+        if( bHadronMatchSubjet1 != genParticles->end() && bHadronMatchSubjet2 != genParticles->end() )
+          h2_JetPt_SameMatchedBhadron_BosonMatched_JetMass_SubJetMinCSVL->Fill(jetPt, ( bHadronMatchSubjet1 == bHadronMatchSubjet2 ? 1. : 0. ), eventWeight);
+      }
       if( maxSubJet_CSV_discr>0.244 ) h1_JetPt_BosonMatched_JetMass_SubJetMaxCSVL->Fill(jetPt, eventWeight);
       if( minSubJet_CSV_discr>0.679 ) h1_JetPt_BosonMatched_JetMass_SubJetMinCSVM->Fill(jetPt, eventWeight);
       if( maxSubJet_CSV_discr>0.679 ) h1_JetPt_BosonMatched_JetMass_SubJetMaxCSVM->Fill(jetPt, eventWeight);

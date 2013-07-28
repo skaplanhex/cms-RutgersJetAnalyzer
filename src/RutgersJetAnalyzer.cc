@@ -13,7 +13,7 @@
 //
 // Original Author:  Dinko Ferencek
 //         Created:  Fri Jul 20 12:32:38 CDT 2012
-// $Id: RutgersJetAnalyzer.cc,v 1.20 2013/04/05 20:13:46 ferencek Exp $
+// $Id: RutgersJetAnalyzer.cc,v 1.21 2013/04/13 23:21:58 ferencek Exp $
 //
 //
 
@@ -757,7 +757,7 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
             if( reco::deltaR( it->p4(), gpIt->p4() ) < jetRadius ) { ++nMatchedBHadrons; matchedBHadrons.push_back(&(*gpIt)); }
           }
           //std::cout << "nMatchedBHadrons: " << nMatchedBHadrons << std::endl;
-          if( nMatchedBHadrons==2 )
+          if( nMatchedBHadrons>=2 )
           {
             jetFlavor = 85; // custom jet flavor code for gluon splitting b jets
             h2_JetPt_dRmatchedBhadrons_GSPbJets->Fill( jetPt, reco::deltaR( matchedBHadrons.at(0)->p4(), matchedBHadrons.at(1)->p4() ), eventWeight );

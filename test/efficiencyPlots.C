@@ -956,8 +956,125 @@ void efficiency1D_overlay(const string& fInputFile, const string& fPlotPass, con
   delete file;
 }
 
+void efficiency1D_overlayMulti_3(const string& fInputFile1, const string& fInputFile2, const string& fInputFile3,
+                               const string& fPlotPass, const string& fPlotTotal, const string& fTitle, const string& fXAxisTitle, const string& fYAxisTitle,
+                               const Int_t fRebinX, const Double_t fXmin, const Double_t fXmax, const Double_t fYmin, const Double_t fYmax,
+                               const string& fOutputFile, const Int_t fLogy=0, const Double_t fTitleOffsetX=1.0, const Double_t fTitleOffsetY=1.0,
+                               const Double_t fLeftMargin=0.12, const Double_t fTopMargin=0.07, const Double_t fPlotWidth=0.8)
+{
+  gROOT->SetBatch(kTRUE);
+  setEXOStyle();
+  gStyle->SetGridColor(kGray);
+  gStyle->SetOptStat(kFALSE);
+  gStyle->SetPadTopMargin(fTopMargin);
+  gStyle->SetPadBottomMargin(1.-fTopMargin-fPlotWidth);
+  gStyle->SetPadLeftMargin(fLeftMargin);
+  gStyle->SetPadRightMargin(1.-fLeftMargin-fPlotWidth);
+  gROOT->ForceStyle();
 
-void efficiency1D_overlayMulti(const string& fInputFile1, const string& fInputFile2, const string& fInputFile3, const string& fInputFile4, const string& fInputFile5,
+  // input files
+  TFile *file1  = new TFile(fInputFile1.c_str());
+  TFile *file2  = new TFile(fInputFile2.c_str());
+  TFile *file3  = new TFile(fInputFile3.c_str());
+
+  // histograms
+  TH1D *h1_Pass1 = (TH1D*)file1->Get(fPlotPass.c_str());
+  TH1D *h1_Pass2 = (TH1D*)file2->Get(fPlotPass.c_str());
+  TH1D *h1_Pass3 = (TH1D*)file3->Get(fPlotPass.c_str());
+
+  TH1D *h1_Total1 = (TH1D*)file1->Get(fPlotTotal.c_str());
+  TH1D *h1_Total2 = (TH1D*)file2->Get(fPlotTotal.c_str());
+  TH1D *h1_Total3 = (TH1D*)file3->Get(fPlotTotal.c_str());
+
+  h1_Pass1->Rebin(fRebinX);
+  h1_Pass2->Rebin(fRebinX);
+  h1_Pass3->Rebin(fRebinX);
+
+  h1_Total1->Rebin(fRebinX);
+  h1_Total2->Rebin(fRebinX);
+  h1_Total3->Rebin(fRebinX);
+
+  TCanvas *c = new TCanvas("c", "",1000,800);
+  c->cd();
+  c->SetGridx();
+  c->SetGridy();
+
+  TH2D *bkg = new TH2D("bkg","",100,fXmin,fXmax,100,fYmin,fYmax);
+  bkg->GetXaxis()->SetTitle(fXAxisTitle.c_str());
+  bkg->GetYaxis()->SetTitle(fYAxisTitle.c_str());
+  bkg->SetTitleOffset(fTitleOffsetX,"X");
+  bkg->SetTitleOffset(fTitleOffsetY,"Y");
+  bkg->Draw();
+
+  TGraphAsymmErrors *g_efficiency1 = new TGraphAsymmErrors(h1_Pass1, h1_Total1,"cp");
+  g_efficiency1->SetLineWidth(2);
+  g_efficiency1->SetLineStyle(1);
+  g_efficiency1->SetLineColor(kGreen+2);
+  g_efficiency1->SetMarkerSize(1.);
+  g_efficiency1->SetMarkerStyle(24);
+  g_efficiency1->SetMarkerColor(kGreen+2);
+
+  TGraphAsymmErrors *g_efficiency2 = new TGraphAsymmErrors(h1_Pass2, h1_Total2,"cp");
+  g_efficiency2->SetLineWidth(2);
+  g_efficiency2->SetLineStyle(2);
+  g_efficiency2->SetLineColor(kRed);
+  g_efficiency2->SetMarkerSize(1.);
+  g_efficiency2->SetMarkerStyle(26);
+  g_efficiency2->SetMarkerColor(kRed);
+
+  TGraphAsymmErrors *g_efficiency3 = new TGraphAsymmErrors(h1_Pass3, h1_Total3,"cp");
+  g_efficiency3->SetLineWidth(2);
+  g_efficiency3->SetLineStyle(3);
+  g_efficiency3->SetLineColor(kBlue+2);
+  g_efficiency3->SetMarkerSize(1.);
+  g_efficiency3->SetMarkerStyle(20);
+  g_efficiency3->SetMarkerColor(kBlue+2);
+
+  g_efficiency1->Draw("LP");
+  g_efficiency2->Draw("LPsame");
+  g_efficiency3->Draw("LPsame");
+
+  TLegend *legend = new TLegend(.15+(fLeftMargin-0.12),.67,.35+(fLeftMargin-0.12),.90);
+  legend->SetBorderSize(0);
+  legend->SetFillColor(0);
+  legend->SetFillStyle(0);
+  legend->SetTextFont(42);
+  legend->SetTextSize(0.045);
+  legend->AddEntry(g_efficiency3, "106<m_{jet}<135 GeV/c^{2} (pruned)","lp");
+  legend->AddEntry(g_efficiency1, "75<m_{jet}<135 GeV/c^{2} (pruned)","lp");
+  legend->AddEntry(g_efficiency2, "75<m_{jet}<106 GeV/c^{2} (pruned)","lp");
+  legend->Draw();
+
+  TLatex l1;
+  l1.SetTextAlign(13);
+  l1.SetTextFont(42);
+  l1.SetTextSize(0.05);
+  l1.SetNDC();
+  l1.DrawLatex(fLeftMargin+0.03,0.27, fTitle.c_str());
+
+  l1.SetTextAlign(12);
+  l1.SetTextSize(0.05);
+  l1.SetTextFont(62);
+  l1.DrawLatex(fLeftMargin,0.97, "CMS Simulation");
+  l1.SetTextFont(42);
+  l1.DrawLatex(fLeftMargin+0.35,0.97, "#sqrt{s} = 8 TeV");
+
+  //c->RedrawAxis();
+  c->SetLogz();
+  if(fLogy) c->SetLogy();
+  c->SaveAs(fOutputFile.c_str());
+
+  delete legend;
+  delete g_efficiency1;
+  delete g_efficiency2;
+  delete bkg;
+  delete c;
+  delete file1;
+  delete file2;
+}
+
+
+void efficiency1D_overlayMulti_5(const string& fInputFile1, const string& fInputFile2, const string& fInputFile3, const string& fInputFile4, const string& fInputFile5,
                                const string& fPlotPass, const string& fPlotTotal, const string& fTitle, const string& fXAxisTitle, const string& fYAxisTitle,
                                const Int_t fRebinX, const Double_t fXmin, const Double_t fXmax, const Double_t fYmin, const Double_t fYmax,
                                const string& fOutputFile, const Int_t fLogy=0, const Double_t fTitleOffsetX=1.0, const Double_t fTitleOffsetY=1.0,
@@ -1394,8 +1511,17 @@ void makePlots()
                "#splitline{H#rightarrowb#bar{b}, CA R=0.8, 75<m_{jet}<135 GeV/c^{2} (pruned)}{Subjet CSVL}",
                "Fat jet p_{T} [GeV/c]", "b-tagging efficiency", 10, 0, 1000, 0, 1, "b-tag_eff_SubjetCSVL_CAPrunedJetMass_HiggsToBBbar_BprimeBprimeToBHBHinc_M-1500.eps", 1., 0.9);
 
+  // overlay multiple jet mass selections
+  efficiency1D_overlayMulti_3("output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRsubjetBhadron_CA8only.root",
+                            "output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRsubjetBhadron_JetMass75to106_CA8only.root",
+                            "output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRsubjetBhadron_JetMass106to135_CA8only.root",
+                            "jetAnalyzerCAPrunedJetMass/h1_JetPt_BosonMatched_JetMass_SubJetMinCSVL", "jetAnalyzerCAPrunedJetMass/h1_JetPt_BosonMatched_JetMass",
+                            "#splitline{H#rightarrowb#bar{b}, CA R=0.8, #DeltaR(H,jet)<0.5}{Subjet CSVL}",
+                            "Fat jet p_{T} [GeV/c]", "b-tagging efficiency", 10, 0, 1000, 0.001, 1,
+                            "b-tag_eff_SubjetCSVL_CAPrunedJetMass_JetMassCutComparison.eps", 0, 1., 1.);
+
   // overlay multiple backgrounds
-  efficiency1D_overlayMulti("output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRsubjetBhadron_CA8only.root",
+  efficiency1D_overlayMulti_5("output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRsubjetBhadron_CA8only.root",
                             "output_files_v2/QCDPythia6_HiggsTagging_dRsubjetBhadron_jetFlavor_CA8only.root",
                             "output_files_v2/BprimeBprimeToTWTWinc_M-1300_HiggsTagging_WBkg_dRsubjetBhadron_CA8only.root",
                             "output_files_v2/BprimeBprimeToBZBZinc_M-1200_HiggsTagging_ZBkg_dRsubjetBhadron_CA8only.root",
@@ -1532,7 +1658,7 @@ void makePlots()
                "Fat jet p_{T} [GeV/c]", "Higgs-tagging efficiency", 10, 0, 1000, 0, 1, "Higgs_tag_eff_total_CAPrunedJetMass_HiggsToBBbar_BprimeBprimeToBHBHinc_M-1500.eps", 1., 0.9);
 
   // overlay multiple backgrounds
-  efficiency1D_overlayMulti("output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRsubjetBhadron_CA8only.root",
+  efficiency1D_overlayMulti_5("output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRsubjetBhadron_CA8only.root",
                             "output_files_v2/QCDPythia6_HiggsTagging_dRsubjetBhadron_jetFlavor_CA8only.root",
                             "output_files_v2/BprimeBprimeToTWTWinc_M-1300_HiggsTagging_WBkg_dRsubjetBhadron_CA8only.root",
                             "output_files_v2/BprimeBprimeToBZBZinc_M-1200_HiggsTagging_ZBkg_dRsubjetBhadron_CA8only.root",

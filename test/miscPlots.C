@@ -547,6 +547,12 @@ void makePlots()
 //   plot2D("output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRsubjetBhadron.root", "jetAnalyzerCAPrunedJetMass/h2_JetPt_dRsubjets_BosonMatched_JetMass", "CA R=0.8, #DeltaR(H,jet)<0.5, 75<m<135 GeV (pruned)",
 //          "Jet p_{T} [GeV]", "#DeltaR(subjets)", 2, 0, 1000, 1, 0, 5, "JetPt_dRsubjets_CA8pruned_BoostedH_JetMass_BprimeBprimeToBHBHinc_M-1500.eps", 1., 0.9, 0.11, 0.07, 0.77);
 
+  plot2D("output_files_v2/QCDPythia6_HiggsTagging_dRsubjetBhadronExtra_jetFlavor_CA8only.root", "jetAnalyzerCAPrunedJetMass_bQuarksGSP/h2_JetPt_dRsubjets_BosonMatched", "QCD g#rightarrowb#bar{b}, CA R=0.8",
+         "Fat jet p_{T} [GeV/c]", "#DeltaR(subjets)", 2, 0, 1000, 1, 0, 5, "JetPt_dRsubjets_CA8pruned_QCD_bGSP.eps", 1., 0.9, 0.11, 0.07, 0.77);
+
+  plot2D("output_files_v2/QCDPythia6_HiggsTagging_dRsubjetBhadronExtra_jetFlavor_CA8only.root", "jetAnalyzerCAPrunedJetMass_bQuarksGSP/h2_JetPt_dRsubjets_BosonMatched_JetMass", "#splitline{QCD g#rightarrowb#bar{b}, CA R=0.8}{75<m_{jet}<135 GeV/c^{2} (pruned)}",
+         "Fat jet p_{T} [GeV/c]", "#DeltaR(subjets)", 2, 0, 1000, 1, 0, 5, "JetPt_dRsubjets_CA8pruned_QCD_bGSP_JetMass.eps", 1., 0.9, 0.11, 0.07, 0.77);
+
 //
 //   overlay1D_Xbinrange_Yprojection("output_files_v2/BprimeBprimeToBHBHinc_M-800_HiggsTagging.root", "output_files_v2/QCDPythia6_HiggsTagging.root",
 //             "jetAnalyzerCAPrunedJets/h2_nPV_MassDrop_Pt300toInf", 0, 52, 2,
@@ -762,20 +768,44 @@ void makePlots()
 //                700, 1100, 700, 1100, 1, 0, 0.5, 0, 0.8,
 //                "CA R=0.8, p_{T}>700 GeV, pruned subjets", "min #DeltaR(subjet_{2},b hadron)", "Relative fraction", "No m cut", "75<m<135 GeV (pruned)",
 //                "mindRSubjet2Bhadron_bGSP_CA8pruned_BoostedH_Pt700toInf_JetMassCut.eps", 0,  0.95);
-//
-//   // min dR(subjet,Bhadron) to the same b hadron for gluon splitting b jets
-//   // CA pruned subjets
-//   // 300<pT<500 GeV
-//   overlay1D_Xrange_Yprojection("output_files_v2/QCDPythia6_HiggsTagging_dRsubjetBhadron_jetFlavor.root", "output_files_v2/QCDPythia6_HiggsTagging_dRsubjetBhadron_jetFlavor.root",
-//                "jetAnalyzerCAPrunedJetMass_bQuarksGSP/h2_JetPt_SameMatchedBhadron_BosonMatched", "jetAnalyzerCAPrunedJetMass_bQuarksGSP/h2_JetPt_SameMatchedBhadron_BosonMatched_JetMass",
-//                300, 500, 300, 500, 1, -0.5, 1.5, 1E-2, 1E2,
-//                "CA R=0.8, 300<p_{T}<500 GeV, pruned subjets", "Subjets matched to the same b hadron?", "Relative fraction", "No m cut", "75<m<135 GeV (pruned)",
-//                "mindRSubjetSameBhadron_bGSP_CA8pruned_BoostedH_Pt300to500_JetMassCut.eps", 1,  0.95);
-//
-//   // pT>700 GeV
-//   overlay1D_Xrange_Yprojection("output_files_v2/QCDPythia6_HiggsTagging_dRsubjetBhadron_jetFlavor.root", "output_files_v2/QCDPythia6_HiggsTagging_dRsubjetBhadron_jetFlavor.root",
-//                "jetAnalyzerCAPrunedJetMass_bQuarksGSP/h2_JetPt_SameMatchedBhadron_BosonMatched", "jetAnalyzerCAPrunedJetMass_bQuarksGSP/h2_JetPt_SameMatchedBhadron_BosonMatched_JetMass",
-//                700, 1100, 700, 1100, 1, -0.5, 1.5, 1E-2, 1E2,
-//                "CA R=0.8, p_{T}>700 GeV, pruned subjets", "Subjets matched to the same b hadron?", "Relative fraction", "No m cut", "75<m<135 GeV (pruned)",
-//                "mindRSubjetSameBhadron_bGSP_CA8pruned_BoostedH_Pt700toInf_JetMassCut.eps", 1,  0.95);
+
+  // min dR(subjet,Bhadron) to the same b hadron for gluon splitting b jets
+  // CA pruned subjets
+  // 300<pT<500 GeV
+  overlay1D_2_Xrange_Yprojection("output_files_v2/QCDPythia6_HiggsTagging_dRsubjetBhadronExtra_jetFlavor_CA8only.root", "output_files_v2/QCDPythia6_HiggsTagging_dRsubjetBhadronExtra_jetFlavor_CA8only.root",
+               "jetAnalyzerCAPrunedJetMass_bQuarksGSP/h2_JetPt_SameMatchedBhadron_BosonMatched", "jetAnalyzerCAPrunedJetMass_bQuarksGSP/h2_JetPt_SameMatchedBhadron_BosonMatched_JetMass",
+               300, 500, 300, 500, 1, -0.5, 1.5, 1E-2, 1E2,
+               "#splitline{QCD g#rightarrowb#bar{b}, CA R=0.8, 300<p_{T}<500 GeV/c}{Pruned subjets}", "Subjets matched to the same b hadron?", "Relative fraction", "No m_{jet} cut", "75<m_{jet}<135 GeV/c^{2} (pruned)",
+               "mindRSubjetSameBhadron_QCD_bGSP_CA8pruned_Pt300to500_JetMassCut.eps", 1,  0.95);
+
+  overlay1D_2_Xrange_Yprojection("output_files_v2/QCDPythia6_HiggsTagging_dRsubjetBhadronExtra_jetFlavor_CA8only.root", "output_files_v2/QCDPythia6_HiggsTagging_dRsubjetBhadronExtra_jetFlavor_CA8only.root",
+               "jetAnalyzerCAPrunedJetMass_bQuarksGSP/h2_JetPt_SameMatchedBhadron_BosonMatched", "jetAnalyzerCAPrunedJetMass_bQuarksGSP/h2_JetPt_SameMatchedBhadron_BosonMatched_SubJetMinCSVL",
+               300, 500, 300, 500, 1, -0.5, 1.5, 1E-2, 1E2,
+               "#splitline{QCD g#rightarrowb#bar{b}, CA R=0.8, 300<p_{T}<500 GeV/c}{Pruned subjets}", "Subjets matched to the same b hadron?", "Relative fraction", "No m_{jet} cut", "+ subjet CSVL",
+               "mindRSubjetSameBhadron_QCD_bGSP_CA8pruned_Pt300to500_SubJetCSVL.eps", 1,  0.95);
+
+  overlay1D_2_Xrange_Yprojection("output_files_v2/QCDPythia6_HiggsTagging_dRsubjetBhadronExtra_jetFlavor_CA8only.root", "output_files_v2/QCDPythia6_HiggsTagging_dRsubjetBhadronExtra_jetFlavor_CA8only.root",
+               "jetAnalyzerCAPrunedJetMass_bQuarksGSP/h2_JetPt_SameMatchedBhadron_BosonMatched", "jetAnalyzerCAPrunedJetMass_bQuarksGSP/h2_JetPt_SameMatchedBhadron_BosonMatched_JetMass_SubJetMinCSVL",
+               300, 500, 300, 500, 1, -0.5, 1.5, 1E-2, 1E2,
+               "#splitline{QCD g#rightarrowb#bar{b}, CA R=0.8, 300<p_{T}<500 GeV/c}{Pruned subjets}", "Subjets matched to the same b hadron?", "Relative fraction", "No m_{jet} cut", "#splitline{75<m_{jet}<135 GeV/c^{2} (pruned)}{+ subjet CSVL}",
+               "mindRSubjetSameBhadron_QCD_bGSP_CA8pruned_Pt300to500_JetMassCut_SubJetCSVL.eps", 1,  0.95);
+
+  // pT>700 GeV
+  overlay1D_2_Xrange_Yprojection("output_files_v2/QCDPythia6_HiggsTagging_dRsubjetBhadronExtra_jetFlavor_CA8only.root", "output_files_v2/QCDPythia6_HiggsTagging_dRsubjetBhadronExtra_jetFlavor_CA8only.root",
+               "jetAnalyzerCAPrunedJetMass_bQuarksGSP/h2_JetPt_SameMatchedBhadron_BosonMatched", "jetAnalyzerCAPrunedJetMass_bQuarksGSP/h2_JetPt_SameMatchedBhadron_BosonMatched_JetMass",
+               700, 1100, 700, 1100, 1, -0.5, 1.5, 1E-2, 1E2,
+               "#splitline{QCD g#rightarrowb#bar{b}, CA R=0.8, p_{T}>700 GeV/c}{Pruned subjets}", "Subjets matched to the same b hadron?", "Relative fraction", "No m_{jet} cut", "75<m_{jet}<135 GeV/c^{2} (pruned)",
+               "mindRSubjetSameBhadron_QCD_bGSP_CA8pruned_Pt700toInf_JetMassCut.eps", 1,  0.95);
+
+  overlay1D_2_Xrange_Yprojection("output_files_v2/QCDPythia6_HiggsTagging_dRsubjetBhadronExtra_jetFlavor_CA8only.root", "output_files_v2/QCDPythia6_HiggsTagging_dRsubjetBhadronExtra_jetFlavor_CA8only.root",
+               "jetAnalyzerCAPrunedJetMass_bQuarksGSP/h2_JetPt_SameMatchedBhadron_BosonMatched", "jetAnalyzerCAPrunedJetMass_bQuarksGSP/h2_JetPt_SameMatchedBhadron_BosonMatched_SubJetMinCSVL",
+               700, 1100, 700, 1100, 1, -0.5, 1.5, 1E-2, 1E2,
+               "#splitline{QCD g#rightarrowb#bar{b}, CA R=0.8, p_{T}>700 GeV/c}{Pruned subjets}", "Subjets matched to the same b hadron?", "Relative fraction", "No m_{jet} cut", "+ subjet CSVL",
+               "mindRSubjetSameBhadron_QCD_bGSP_CA8pruned_Pt700toInf_SubJetCSVL.eps", 1,  0.95);
+
+  overlay1D_2_Xrange_Yprojection("output_files_v2/QCDPythia6_HiggsTagging_dRsubjetBhadronExtra_jetFlavor_CA8only.root", "output_files_v2/QCDPythia6_HiggsTagging_dRsubjetBhadronExtra_jetFlavor_CA8only.root",
+               "jetAnalyzerCAPrunedJetMass_bQuarksGSP/h2_JetPt_SameMatchedBhadron_BosonMatched", "jetAnalyzerCAPrunedJetMass_bQuarksGSP/h2_JetPt_SameMatchedBhadron_BosonMatched_JetMass_SubJetMinCSVL",
+               700, 1100, 700, 1100, 1, -0.5, 1.5, 1E-2, 1E2,
+               "#splitline{QCD g#rightarrowb#bar{b}, CA R=0.8, p_{T}>700 GeV/c}{Pruned subjets}", "Subjets matched to the same b hadron?", "Relative fraction", "No m_{jet} cut", "#splitline{75<m_{jet}<135 GeV/c^{2} (pruned)}{+ subjet CSVL}",
+               "mindRSubjetSameBhadron_QCD_bGSP_CA8pruned_Pt700toInf_JetMassCut_SubJetCSVL.eps", 1,  0.95);
 }

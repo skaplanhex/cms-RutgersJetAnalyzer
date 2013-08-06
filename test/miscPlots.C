@@ -115,9 +115,10 @@ void plot2D(const string& fInputFile, const string& fPlot, const string& fTitle,
   l1.SetTextAlign(12);
   l1.SetTextSize(0.05);
   l1.SetTextFont(62);
-  l1.DrawLatex(fLeftMargin,0.97, "CMS Simulation");
-  l1.SetTextFont(42);
-  l1.DrawLatex(fLeftMargin+0.35,0.97, "#sqrt{s} = 8 TeV");
+  l1.DrawLatex(fLeftMargin,0.97, "CMS simulation, #sqrt{s} = 8 TeV");
+  //l1.DrawLatex(fLeftMargin,0.97, "CMS Simulation");
+  //l1.SetTextFont(42);
+  //l1.DrawLatex(fLeftMargin+0.35,0.97, "#sqrt{s} = 8 TeV");
 
   c->SetLogz();
   c->SaveAs(fOutputFile.c_str());
@@ -349,9 +350,10 @@ void overlay1D_2_Xrange_Yprojection(const string& fInputFile1, const string& fIn
   l1.SetTextAlign(12);
   l1.SetTextSize(0.05);
   l1.SetTextFont(62);
-  l1.DrawLatex(fLeftMargin,0.97, "CMS Simulation");
-  l1.SetTextFont(42);
-  l1.DrawLatex(fLeftMargin+0.35,0.97, "#sqrt{s} = 8 TeV");
+  l1.DrawLatex(fLeftMargin,0.97, "CMS simulation, #sqrt{s} = 8 TeV");
+  //l1.DrawLatex(fLeftMargin,0.97, "CMS Simulation");
+  //l1.SetTextFont(42);
+  //l1.DrawLatex(fLeftMargin+0.35,0.97, "#sqrt{s} = 8 TeV");
 
   if(fLogy) c->SetLogy();
   c->SaveAs(fOutputFile.c_str());
@@ -445,9 +447,10 @@ void overlay1D_3_Xrange_Yprojection(const string& fInputFile1, const string& fIn
   l1.SetTextAlign(12);
   l1.SetTextSize(0.05);
   l1.SetTextFont(62);
-  l1.DrawLatex(fLeftMargin,0.97, "CMS Simulation");
-  l1.SetTextFont(42);
-  l1.DrawLatex(fLeftMargin+0.35,0.97, "#sqrt{s} = 8 TeV");
+  l1.DrawLatex(fLeftMargin,0.97, "CMS simulation, #sqrt{s} = 8 TeV");
+  //l1.DrawLatex(fLeftMargin,0.97, "CMS Simulation");
+  //l1.SetTextFont(42);
+  //l1.DrawLatex(fLeftMargin+0.35,0.97, "#sqrt{s} = 8 TeV");
 
   if(fLogy) c->SetLogy();
   c->SaveAs(fOutputFile.c_str());

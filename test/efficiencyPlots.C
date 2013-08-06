@@ -675,9 +675,13 @@ void efficiency_curves_comp_xrange(const string& fFileS1, const string& fFileS2,
   l1.SetTextAlign(12);
   l1.SetTextSize(0.05);
   l1.SetTextFont(62);
-  l1.DrawLatex(0.14,0.97, "CMS Simulation");
+  l1.DrawLatex(0.14,0.97, "CMS simulation, #sqrt{s} = 8 TeV");
+  //l1.DrawLatex(0.14,0.97, "CMS Simulation");
+  //l1.SetTextFont(42);
+  //l1.DrawLatex(0.14+0.40,0.97, "#sqrt{s} = 8 TeV");
   l1.SetTextFont(42);
-  l1.DrawLatex(0.14+0.40,0.97, "#sqrt{s} = 8 TeV");
+  l1.SetTextSize(0.04);
+  l1.DrawLatex(0.48,0.18, "JTA = jet-track association");
 
 
   if(fLogy) c->SetLogy();
@@ -1198,14 +1202,15 @@ void efficiency1D_overlayMulti_5(const string& fInputFile1, const string& fInput
   l1.SetTextFont(42);
   l1.SetTextSize(0.05);
   l1.SetNDC();
-  l1.DrawLatex(fLeftMargin+0.03,0.25, fTitle.c_str());
+  l1.DrawLatex(fLeftMargin+0.03,0.26, fTitle.c_str());
 
   l1.SetTextAlign(12);
   l1.SetTextSize(0.05);
   l1.SetTextFont(62);
-  l1.DrawLatex(fLeftMargin,0.97, "CMS Simulation");
-  l1.SetTextFont(42);
-  l1.DrawLatex(fLeftMargin+0.35,0.97, "#sqrt{s} = 8 TeV");
+  l1.DrawLatex(fLeftMargin,0.97, "CMS simulation, #sqrt{s} = 8 TeV");
+  //l1.DrawLatex(fLeftMargin,0.97, "CMS Simulation");
+  //l1.SetTextFont(42);
+  //l1.DrawLatex(fLeftMargin+0.35,0.97, "#sqrt{s} = 8 TeV");
 
   //c->RedrawAxis();
   c->SetLogz();

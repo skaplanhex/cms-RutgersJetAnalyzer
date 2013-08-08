@@ -13,7 +13,7 @@
 //
 // Original Author:  Dinko Ferencek
 //         Created:  Fri Jul 20 12:32:38 CDT 2012
-// $Id: RutgersJetAnalyzer.cc,v 1.21 2013/04/13 23:21:58 ferencek Exp $
+// $Id: RutgersJetAnalyzer.cc,v 1.23 2013/07/28 19:03:29 ferencek Exp $
 //
 //
 
@@ -1014,6 +1014,38 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
         h2_JetPt_dRsubjets_BosonMatched_JetMass->Fill(jetPt, reco::deltaR( subjets.at(0)->p4(), subjets.at(1)->p4() ), eventWeight);
         if( bHadronMatchSubjet1 != genParticles->end() && bHadronMatchSubjet2 != genParticles->end() )
           h2_JetPt_SameMatchedBhadron_BosonMatched_JetMass->Fill(jetPt, ( bHadronMatchSubjet1 == bHadronMatchSubjet2 ? 1. : 0. ), eventWeight);
+
+        if( subjets.at(0)->tagInfoSecondaryVertex("secondaryVertex")->nVertices() > 0
+            && subjets.at(1)->tagInfoSecondaryVertex("secondaryVertex")->nVertices() > 0 )
+        {
+          std::string category = "DoubleSecondaryVertex";
+
+          std::cout << category << ": ----------- START ------------" << std::endl;
+
+          std::cout << category << ": Run, lumi, event: " << iEvent.id().run() << ", "
+                                                          << iEvent.luminosityBlock() << ", "
+                                                          << iEvent.id().event() << std::endl;
+          std::cout << category << ": Fat jet pt, eta, phi, mass, jes: " << it->pt() << ", "
+                                                                         << it->eta() << ", "
+                                                                         << it->phi() << ", "
+                                                                         << jetMass << ", "
+                                                                         << it->pt()/it->correctedJet("Uncorrected").pt() << std::endl;
+          std::cout << category << ": SubJet1 pt, eta, phi, mass, jes: " << subjets.at(0)->pt() << ", "
+                                                                         << subjets.at(0)->eta() << ", "
+                                                                         << subjets.at(0)->phi() << ", "
+                                                                         << subjets.at(0)->mass() << ", "
+                                                                         << subjets.at(0)->pt()/subjets.at(0)->correctedJet("Uncorrected").pt() << std::endl;
+          std::cout << category << ": SubJet2 pt, eta, phi, mass, jes: " << subjets.at(1)->pt() << ", "
+                                                                         << subjets.at(1)->eta() << ", "
+                                                                         << subjets.at(1)->phi() << ", "
+                                                                         << subjets.at(1)->mass() << ", "
+                                                                         << subjets.at(1)->pt()/subjets.at(1)->correctedJet("Uncorrected").pt() << std::endl;
+          std::cout << category << ": dR(fat jet, subjet1): "<< reco::deltaR( it->p4(), subjets.at(0)->p4() ) << std::endl;
+          std::cout << category << ": dR(fat jet, subjet2): "<< reco::deltaR( it->p4(), subjets.at(1)->p4() ) << std::endl;
+          std::cout << category << ": dR(subjet1, subjet2): "<< reco::deltaR( subjets.at(0)->p4(), subjets.at(1)->p4() ) << std::endl;
+
+          std::cout << category << ": ------------ END -------------" << std::endl;
+        }
       }
 
       h1_JetCSVDiscr_BosonMatched_JetMass->Fill( jet_CSV_discr, eventWeight);

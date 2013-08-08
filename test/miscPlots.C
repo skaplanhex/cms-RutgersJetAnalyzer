@@ -519,6 +519,9 @@ void makePlots()
 //   plot2D("output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRsubjetBhadron.root", "jetAnalyzerCAPrunedJetMass/h2_BosonPt_dRdecay", "H#rightarrowb#bar{b}, #DeltaR(H,other b' decay products)>0.8",
 //          "Higgs true p_{T} [GeV]", "#DeltaR(b,#bar{b})", 2, 0, 1000, 1, 0, 5, "Pt_HiggsToBBbar_Isolated_dRdecay_BprimeBprimeToBHBHinc_M-1500.eps", 1., 0.9, 0.11, 0.07, 0.77);
 
+  plot2D("output_files_v2/RadionToHHTo4B_M-1000_HiggsTagging_dRsubjetBhadron_JetMass75to140_CA8only.root", "jetAnalyzerCAPrunedJetMass/h2_BosonPt_dRdecay", "H(125)#rightarrowb#bar{b}",
+         "Higgs true p_{T} [GeV/c]", "#DeltaR(b,#bar{b})", 2, 0, 1000, 1, 0, 5, "Pt_HiggsToBBbar_dRdecay_RadionToHHTo4B_M-1000.eps", 1., 0.9, 0.11, 0.07, 0.77);
+
 
 //   plot2D("output_files_v2/BprimeBprimeToBHBHinc_M-800_HiggsTagging_NonIsolatedBosons_TrimmedJetMass.root", "jetAnalyzerTrimmedJetMass/h2_JetPt_JetPtOverBosonPt", "H#rightarrowb#bar{b} (non-isolated), AK R=0.8, #DeltaR(H,jet)<0.5",
 //          "p_{T}^{jet} [GeV]", "p_{T}^{jet}/p_{T}^{boson}", 10, 300, 1000, 2, 0, 2, "JetPt_JetPtOverBosonPt_HiggsToBBbar_NonIsolated_BprimeBprimeToBHBHinc_M-800.eps", 1., 0.9, 0.12, 0.07, 0.76);

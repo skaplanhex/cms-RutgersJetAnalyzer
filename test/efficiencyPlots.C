@@ -1517,6 +1517,16 @@ void makePlots()
                "#splitline{H(120)#rightarrowb#bar{b}, CA R=0.8, #DeltaR(H,jet)<0.5}{75<m_{jet}<135 GeV/c^{2} (pruned), Subjet CSVL}",
                "Fat jet p_{T} [GeV/c]", "Double-b-tagging efficiency", 10, 0, 1000, 0, 1, "b-tag_eff_SubjetCSVL_CAPrunedJetMass_HiggsToBBbar_BprimeBprimeToBHBHinc_M-1500.eps", 1., 0.9);
 
+  efficiency1D("output_files_v2/RadionToHHTo4B_M-1500_HiggsTagging_dRsubjetBhadron_JetMass75to140_CA8only.root",
+               "jetAnalyzerCAPrunedJetMass/h1_JetPt_BosonMatched_JetMass_SubJetMinCSVL", "jetAnalyzerCAPrunedJetMass/h1_JetPt_BosonMatched_JetMass",
+               "#splitline{H(125)#rightarrowb#bar{b}, CA R=0.8, #DeltaR(H,jet)<0.5}{75<m_{jet}<140 GeV/c^{2} (pruned), Subjet CSVL}",
+               "Fat jet p_{T} [GeV/c]", "Double-b-tagging efficiency", 10, 0, 1000, 0, 1, "b-tag_eff_SubjetCSVL_CAPrunedJetMass_HiggsToBBbar_RadionToHHTo4B_M-1500.eps", 1., 0.9);
+
+  efficiency1D("output_files_v2/RadionToHHTo4B_M-2000_HiggsTagging_dRsubjetBhadron_JetMass75to140_CA8only.root",
+               "jetAnalyzerCAPrunedJetMass/h1_JetPt_BosonMatched_JetMass_SubJetMinCSVL", "jetAnalyzerCAPrunedJetMass/h1_JetPt_BosonMatched_JetMass",
+               "#splitline{H(125)#rightarrowb#bar{b}, CA R=0.8, #DeltaR(H,jet)<0.5}{75<m_{jet}<140 GeV/c^{2} (pruned), Subjet CSVL}",
+               "Fat jet p_{T} [GeV/c]", "Double-b-tagging efficiency", 10, 0, 1000, 0, 1, "b-tag_eff_SubjetCSVL_CAPrunedJetMass_HiggsToBBbar_RadionToHHTo4B_M-2000.eps", 1., 0.9);
+
   // overlay multiple jet mass selections
   //efficiency1D_overlayMulti_3("output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRsubjetBhadron_CA8only.root",
   //                          "output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRsubjetBhadron_JetMass75to106_CA8only.root",

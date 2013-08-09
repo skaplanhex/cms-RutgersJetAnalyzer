@@ -13,7 +13,7 @@
 //
 // Original Author:  Dinko Ferencek
 //         Created:  Fri Jul 20 12:32:38 CDT 2012
-// $Id: RutgersJetAnalyzer.cc,v 1.23 2013/07/28 19:03:29 ferencek Exp $
+// $Id: RutgersJetAnalyzer.cc,v 1.24 2013/08/08 05:54:06 ferencek Exp $
 //
 //
 
@@ -43,8 +43,10 @@
 #include "DataFormats/Math/interface/deltaR.h"
 #include "FWCore/ServiceRegistry/interface/Service.h"
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
+#include "DataFormats/BTauReco/interface/TaggingVariable.h"
 #include "TH1D.h"
 #include "TH2D.h"
+#include "TProfile.h"
 
 //
 // class declaration
@@ -123,6 +125,7 @@ private:
     const bool             useAltGSPbDef;
     const bool             findGluonSplitting;
     const bool             findMatrixElement;
+    const bool             eventDisplayPrintout;
 
     Njettiness nsubjettinessCalculator;
 
@@ -158,6 +161,11 @@ private:
     TH1D *h1_JetEta;
     TH1D *h1_JetEta_BosonMatched;
     TH1D *h1_JetEta_BosonMatched_JetMass;
+
+    TH1D *h1_SubJetPt_BosonMatched_JetMass;
+    TProfile *p1_SubJetPt_TotalTracks_BosonMatched_JetMass;
+    TProfile *p1_SubJetPt_SharedTracks_BosonMatched_JetMass;
+    TProfile *p1_SubJetPt_SharedTracksRatio_BosonMatched_JetMass;
 
     TH2D *h2_JetPt_JetPtOverBosonPt;
     TH2D *h2_JetPt_JetPtOverGenJetPt;
@@ -256,6 +264,7 @@ RutgersJetAnalyzer::RutgersJetAnalyzer(const edm::ParameterSet& iConfig) :
   useAltGSPbDef( iConfig.exists("UseAltGSPbDef") ? iConfig.getParameter<bool>("UseAltGSPbDef") : false ),
   findGluonSplitting( iConfig.exists("FindGluonSplitting") ? iConfig.getParameter<bool>("FindGluonSplitting") : false ),
   findMatrixElement( iConfig.exists("FindMatrixElement") ? iConfig.getParameter<bool>("FindMatrixElement") : false ),
+  eventDisplayPrintout( iConfig.exists("EventDisplayPrintout") ? iConfig.getParameter<bool>("EventDisplayPrintout") : false ),
   nsubjettinessCalculator(( useOnePassKtAxes ? Njettiness::onepass_kt_axes : Njettiness::kt_axes ), NsubParameters(1.0, jetRadius, jetRadius))
 
 {
@@ -307,6 +316,11 @@ RutgersJetAnalyzer::RutgersJetAnalyzer(const edm::ParameterSet& iConfig) :
     h1_JetEta = fs->make<TH1D>("h1_JetEta",";#eta;",etaBins,etaMin,etaMax);
     h1_JetEta_BosonMatched = fs->make<TH1D>("h1_JetEta_BosonMatched",";#eta;",etaBins,etaMin,etaMax);
     h1_JetEta_BosonMatched_JetMass = fs->make<TH1D>("h1_JetEta_BosonMatched_JetMass",";#eta;",etaBins,etaMin,etaMax);
+
+    h1_SubJetPt_BosonMatched_JetMass = fs->make<TH1D>("h1_SubJetPt_BosonMatched_JetMass",";p_{T} [GeV];",ptBins,ptMin,ptMax);
+    p1_SubJetPt_TotalTracks_BosonMatched_JetMass = fs->make<TProfile>("p1_SubJetPt_TotalTracks_BosonMatched_JetMass",";p_{T} [GeV];",20,ptMin,ptMax);
+    p1_SubJetPt_SharedTracks_BosonMatched_JetMass = fs->make<TProfile>("p1_SubJetPt_SharedTracks_BosonMatched_JetMass",";p_{T} [GeV];",20,ptMin,ptMax);
+    p1_SubJetPt_SharedTracksRatio_BosonMatched_JetMass = fs->make<TProfile>("p1_SubJetPt_SharedTracksRatio_BosonMatched_JetMass",";p_{T} [GeV];",20,ptMin,ptMax);
 
     h2_JetPt_dRmatchedBhadrons_GSPbJets = fs->make<TH2D>("h2_JetPt_dRmatchedBhadrons_GSPbJets",";p_{T} [GeV];#DeltaR",ptBins,ptMin,ptMax,dRBins,0.,1.6);
     h2_JetPt_JetPtOverBosonPt = fs->make<TH2D>("h2_JetPt_JetPtOverBosonPt",";p_{T} [GeV];p_{T}^{jet}/p_{T}^{boson}",ptBins,ptMin,ptMax,100,0.,2.);
@@ -1009,42 +1023,81 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
       h2_JetPt_mindRSubjet1Bhadron_BosonMatched_JetMass->Fill(jetPt, (mindRsubjet1<999. ? mindRsubjet1 : -99.), eventWeight);
       h2_JetPt_mindRSubjet2Bhadron_BosonMatched_JetMass->Fill(jetPt, (mindRsubjet2<999. ? mindRsubjet2 : -99.), eventWeight);
 
+//       reco::TaggingVariableList tvlIP = it->tagInfoTrackIP("impactParameter")->taggingVariables();
+//
+//       std::cout << ">> Fat jet pt, eta, phi, mass: " << it->pt()  << ", "
+//                                                      << it->eta() << ", "
+//                                                      << it->phi() << ", "
+//                                                      << jetMass   << std::endl;
+//       std::cout << "   Assoc. tracks: " << it->associatedTracks().size() << std::endl
+//                 << "   Assoc. tracks (IPTagInfo): " << it->tagInfoTrackIP("impactParameter")->tracks().size() << std::endl
+//                 << "   Assoc. tracks (SVTagInfo): " << it->tagInfoSecondaryVertex("secondaryVertex")->tracks().size() << std::endl
+//                 << "   Selected tracks (IPTagInfo): " << it->tagInfoTrackIP("impactParameter")->selectedTracks().size() << std::endl
+//                 << "   Selected tracks (SVTagInfo): " << it->tagInfoSecondaryVertex("secondaryVertex")->selectedTracks().size() << std::endl
+//                 << "   Vertex tracks (SVTagInfo): " << it->tagInfoSecondaryVertex("secondaryVertex")->vertexTracks().size() << std::endl
+//                 << "   TaggingVariableList tracks: " << tvlIP.getList(reco::btau::trackDeltaR,false).size() << std::endl; // the same as selected tracks
+
       if( subjets.size()>1 )
       {
         h2_JetPt_dRsubjets_BosonMatched_JetMass->Fill(jetPt, reco::deltaR( subjets.at(0)->p4(), subjets.at(1)->p4() ), eventWeight);
         if( bHadronMatchSubjet1 != genParticles->end() && bHadronMatchSubjet2 != genParticles->end() )
           h2_JetPt_SameMatchedBhadron_BosonMatched_JetMass->Fill(jetPt, ( bHadronMatchSubjet1 == bHadronMatchSubjet2 ? 1. : 0. ), eventWeight);
 
-        if( subjets.at(0)->tagInfoSecondaryVertex("secondaryVertex")->nVertices() > 0
-            && subjets.at(1)->tagInfoSecondaryVertex("secondaryVertex")->nVertices() > 0 )
+        for(int i=0; i<2; ++i)
         {
-          std::string category = "DoubleSecondaryVertex";
+           h1_SubJetPt_BosonMatched_JetMass->Fill(subjets.at(i)->pt(), eventWeight);
 
-          std::cout << category << ": ----------- START ------------" << std::endl;
+           int j = (i==0 ? 1 : 0); // companion subjet index
+           int nTracks = ( subjets.at(i)->hasTagInfo("impactParameter") ? subjets.at(i)->tagInfoTrackIP("impactParameter")->selectedTracks().size() : 0 );
+           int nTotal = 0, nShared = 0;
 
-          std::cout << category << ": Run, lumi, event: " << iEvent.id().run() << ", "
-                                                          << iEvent.luminosityBlock() << ", "
-                                                          << iEvent.id().event() << std::endl;
-          std::cout << category << ": Fat jet pt, eta, phi, mass, jes: " << it->pt() << ", "
-                                                                         << it->eta() << ", "
-                                                                         << it->phi() << ", "
-                                                                         << jetMass << ", "
-                                                                         << it->pt()/it->correctedJet("Uncorrected").pt() << std::endl;
-          std::cout << category << ": SubJet1 pt, eta, phi, mass, jes: " << subjets.at(0)->pt() << ", "
-                                                                         << subjets.at(0)->eta() << ", "
-                                                                         << subjets.at(0)->phi() << ", "
-                                                                         << subjets.at(0)->mass() << ", "
-                                                                         << subjets.at(0)->pt()/subjets.at(0)->correctedJet("Uncorrected").pt() << std::endl;
-          std::cout << category << ": SubJet2 pt, eta, phi, mass, jes: " << subjets.at(1)->pt() << ", "
-                                                                         << subjets.at(1)->eta() << ", "
-                                                                         << subjets.at(1)->phi() << ", "
-                                                                         << subjets.at(1)->mass() << ", "
-                                                                         << subjets.at(1)->pt()/subjets.at(1)->correctedJet("Uncorrected").pt() << std::endl;
-          std::cout << category << ": dR(fat jet, subjet1): "<< reco::deltaR( it->p4(), subjets.at(0)->p4() ) << std::endl;
-          std::cout << category << ": dR(fat jet, subjet2): "<< reco::deltaR( it->p4(), subjets.at(1)->p4() ) << std::endl;
-          std::cout << category << ": dR(subjet1, subjet2): "<< reco::deltaR( subjets.at(0)->p4(), subjets.at(1)->p4() ) << std::endl;
+           for(int t=0; t<nTracks; ++t)
+           {
+             if( reco::deltaR( subjets.at(i)->tagInfoTrackIP("impactParameter")->selectedTracks().at(t)->eta(), subjets.at(i)->tagInfoTrackIP("impactParameter")->selectedTracks().at(t)->phi(), subjets.at(i)->eta(), subjets.at(i)->phi() ) < 0.3 )
+             {
+               ++nTotal;
+               if( reco::deltaR( subjets.at(i)->tagInfoTrackIP("impactParameter")->selectedTracks().at(t)->eta(), subjets.at(i)->tagInfoTrackIP("impactParameter")->selectedTracks().at(t)->phi(), subjets.at(j)->eta(), subjets.at(j)->phi() ) < 0.3 ) ++nShared;
+             }
+           }
 
-          std::cout << category << ": ------------ END -------------" << std::endl;
+           p1_SubJetPt_TotalTracks_BosonMatched_JetMass->Fill(subjets.at(i)->pt(), nTotal, eventWeight);
+           p1_SubJetPt_SharedTracks_BosonMatched_JetMass->Fill(subjets.at(i)->pt(), nShared, eventWeight);
+           if( nTotal>0 ) p1_SubJetPt_SharedTracksRatio_BosonMatched_JetMass->Fill(subjets.at(i)->pt(), double(nShared)/double(nTotal), eventWeight);
+        }
+
+        if( eventDisplayPrintout )
+        {
+          if( subjets.at(0)->tagInfoSecondaryVertex("secondaryVertex")->nVertices() > 0
+              && subjets.at(1)->tagInfoSecondaryVertex("secondaryVertex")->nVertices() > 0 )
+          {
+            std::string category = "DoubleSecondaryVertex";
+
+            std::cout << category << ": ----------- START ------------" << std::endl;
+
+            std::cout << category << ": Run, lumi, event: " << iEvent.id().run() << ", "
+                                                            << iEvent.luminosityBlock() << ", "
+                                                            << iEvent.id().event() << std::endl;
+            std::cout << category << ": Fat jet pt, eta, phi, mass, jes: " << it->pt() << ", "
+                                                                           << it->eta() << ", "
+                                                                           << it->phi() << ", "
+                                                                           << jetMass << ", "
+                                                                           << it->pt()/it->correctedJet("Uncorrected").pt() << std::endl;
+            std::cout << category << ": SubJet1 pt, eta, phi, mass, jes: " << subjets.at(0)->pt() << ", "
+                                                                           << subjets.at(0)->eta() << ", "
+                                                                           << subjets.at(0)->phi() << ", "
+                                                                           << subjets.at(0)->mass() << ", "
+                                                                           << subjets.at(0)->pt()/subjets.at(0)->correctedJet("Uncorrected").pt() << std::endl;
+            std::cout << category << ": SubJet2 pt, eta, phi, mass, jes: " << subjets.at(1)->pt() << ", "
+                                                                           << subjets.at(1)->eta() << ", "
+                                                                           << subjets.at(1)->phi() << ", "
+                                                                           << subjets.at(1)->mass() << ", "
+                                                                           << subjets.at(1)->pt()/subjets.at(1)->correctedJet("Uncorrected").pt() << std::endl;
+            std::cout << category << ": dR(fat jet, subjet1): "<< reco::deltaR( it->p4(), subjets.at(0)->p4() ) << std::endl;
+            std::cout << category << ": dR(fat jet, subjet2): "<< reco::deltaR( it->p4(), subjets.at(1)->p4() ) << std::endl;
+            std::cout << category << ": dR(subjet1, subjet2): "<< reco::deltaR( subjets.at(0)->p4(), subjets.at(1)->p4() ) << std::endl;
+
+            std::cout << category << ": ------------ END -------------" << std::endl;
+          }
         }
       }
 

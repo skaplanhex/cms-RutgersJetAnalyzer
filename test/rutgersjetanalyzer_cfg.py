@@ -160,11 +160,12 @@ process.source = cms.Source("PoolSource",
         #'file:patTuple_PF2PAT_v2.root'
         #'file:/cms/ferencek/store/ferencek/WWtoAnything_ptmin500_TuneZ2Star_8TeV-pythia6-tauola/Summer12_DR53X-PU_S10_START53_V7A-v1_PATTuple_v2/6950c4b6452599a829ed09f6192c8cf5/patTuple_PF2PAT_v2_1_2_NZA.root'
         #'file:/cms/ferencek/store/skaplan/BprimeBprimeToBHBHinc_M-1000_TuneZ2star_8TeV-madgraph/Summer12_DR53X-PU_S10_START53_V7C-v1_PATTuple_v2/6950c4b6452599a829ed09f6192c8cf5/patTuple_PF2PAT_v2_1_1_bnp.root'
-        'file:/cms/ferencek/store/skaplan/BprimeBprimeToBHBHinc_M-1500_TuneZ2star_8TeV-madgraph/Summer12_DR53X-PU_S10_START53_V7C-v1_PATTuple_v2/6950c4b6452599a829ed09f6192c8cf5/patTuple_PF2PAT_v2_1_1_djM.root'
+        #'file:/cms/ferencek/store/skaplan/BprimeBprimeToBHBHinc_M-1500_TuneZ2star_8TeV-madgraph/Summer12_DR53X-PU_S10_START53_V7C-v1_PATTuple_v2/6950c4b6452599a829ed09f6192c8cf5/patTuple_PF2PAT_v2_1_1_djM.root'
         #'file:/cms/ferencek/store/ferencek/TprimeToBWinc_M-1000_TuneZ2star_8TeV-madgraph/Summer12_DR53X-PU_S10_START53_V7A-v1_PATTuple_v2/6950c4b6452599a829ed09f6192c8cf5/patTuple_PF2PAT_v2_1_1_9ZZ.root'
         #'file:/cms/ferencek/store/ferencek/BprimeBprimeToBZBZinc_M-1200_TuneZ2star_8TeV-madgraph/Summer12_DR53X-PU_S10_START53_V7C-v1_PATTuple_v2/6950c4b6452599a829ed09f6192c8cf5/patTuple_PF2PAT_v2_1_1_vSQ.root'
         #'file:/cms/ferencek/store/ferencek/TprimeToTHinc_M-1700_TuneZ2star_8TeV-madgraph/Summer12_DR53X-PU_S10_START53_V7C-v1_PATTuple_v2/6950c4b6452599a829ed09f6192c8cf5/patTuple_PF2PAT_v2_1_1_gMe.root'
         #'file:/cms/ferencek/store/ferencek/QCD_Pt-15to3000_TuneZ2star_Flat_8TeV_pythia6/Summer12_DR53X-PU_S10_START53_V7A-v1_PATTuple_v2/6950c4b6452599a829ed09f6192c8cf5/patTuple_PF2PAT_v2_1_1_mRj.root'
+        'file:/cms/ferencek/store/ferencek/RadionToHHTo4B_M-1500_TuneZ2star_8TeV-nm-madgraph/Summer12_DR53X-PU_S10_START53_V7C-v1_PATTuple_v2/6950c4b6452599a829ed09f6192c8cf5/patTuple_PF2PAT_v2_1_1_fdQ.root'
     )
 )
 
@@ -768,7 +769,9 @@ adaptPVs(process, pvCollection=cms.InputTag('goodOfflinePrimaryVertices'), postf
 
 if options.doBTagging:
     # Add tag infos if b tagging is run
-    for m in ['patJets', 'patJetsAKJTAPF', 'patJetsAKPF', 'patJetsCAJTAPF']:
+    for m in ['patJets', 'patJetsCAJTAPF', 'patJetsAKPF', 'patJetsAKJTAPF',
+              'patJetsCAKtSubPF', 'patJetsCAFilteredSubPF', 'patJetsCAPrunedSubPF',
+              'patJetsAKKtSubPF', 'patJetsAKFilteredSubPF', 'patJetsAKPrunedSubPF']:
         if hasattr(process,m) and getattr( getattr(process,m), 'addBTagInfo' ):
             print "Switching 'addTagInfos' for " + m + " to 'True'"
             setattr( getattr(process,m), 'addTagInfos', cms.bool(True) )

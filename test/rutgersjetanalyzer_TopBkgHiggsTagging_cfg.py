@@ -761,7 +761,9 @@ adaptPVs(process, pvCollection=cms.InputTag('goodOfflinePrimaryVertices'), postf
 
 if options.doBTagging:
     # Add tag infos if b tagging is run
-    for m in ['patJets', 'patJetsAKJTAPF', 'patJetsAKPF', 'patJetsCAJTAPF']:
+    for m in ['patJets', 'patJetsCAJTAPF', 'patJetsAKPF', 'patJetsAKJTAPF',
+              'patJetsCAKtSubPF', 'patJetsCAFilteredSubPF', 'patJetsCAPrunedSubPF',
+              'patJetsAKKtSubPF', 'patJetsAKFilteredSubPF', 'patJetsAKPrunedSubPF']:
         if hasattr(process,m) and getattr( getattr(process,m), 'addBTagInfo' ):
             print "Switching 'addTagInfos' for " + m + " to 'True'"
             setattr( getattr(process,m), 'addTagInfos', cms.bool(True) )

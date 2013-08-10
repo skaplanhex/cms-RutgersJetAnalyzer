@@ -13,7 +13,7 @@
 //
 // Original Author:  Dinko Ferencek
 //         Created:  Fri Jul 20 12:32:38 CDT 2012
-// $Id: RutgersJetAnalyzer.cc,v 1.24 2013/08/08 05:54:06 ferencek Exp $
+// $Id: RutgersJetAnalyzer.cc,v 1.25 2013/08/09 22:47:09 ferencek Exp $
 //
 //
 
@@ -166,6 +166,9 @@ private:
     TProfile *p1_SubJetPt_TotalTracks_BosonMatched_JetMass;
     TProfile *p1_SubJetPt_SharedTracks_BosonMatched_JetMass;
     TProfile *p1_SubJetPt_SharedTracksRatio_BosonMatched_JetMass;
+    TProfile *p1_SubJetPt_TotalVertexTracks_BosonMatched_JetMass;
+    TProfile *p1_SubJetPt_SharedVertexTracks_BosonMatched_JetMass;
+    TProfile *p1_SubJetPt_SharedVertexTracksRatio_BosonMatched_JetMass;
 
     TH2D *h2_JetPt_JetPtOverBosonPt;
     TH2D *h2_JetPt_JetPtOverGenJetPt;
@@ -321,6 +324,9 @@ RutgersJetAnalyzer::RutgersJetAnalyzer(const edm::ParameterSet& iConfig) :
     p1_SubJetPt_TotalTracks_BosonMatched_JetMass = fs->make<TProfile>("p1_SubJetPt_TotalTracks_BosonMatched_JetMass",";p_{T} [GeV];",20,ptMin,ptMax);
     p1_SubJetPt_SharedTracks_BosonMatched_JetMass = fs->make<TProfile>("p1_SubJetPt_SharedTracks_BosonMatched_JetMass",";p_{T} [GeV];",20,ptMin,ptMax);
     p1_SubJetPt_SharedTracksRatio_BosonMatched_JetMass = fs->make<TProfile>("p1_SubJetPt_SharedTracksRatio_BosonMatched_JetMass",";p_{T} [GeV];",20,ptMin,ptMax);
+    p1_SubJetPt_TotalVertexTracks_BosonMatched_JetMass = fs->make<TProfile>("p1_SubJetPt_TotalVertexTracks_BosonMatched_JetMass",";p_{T} [GeV];",20,ptMin,ptMax);
+    p1_SubJetPt_SharedVertexTracks_BosonMatched_JetMass = fs->make<TProfile>("p1_SubJetPt_SharedVertexTracks_BosonMatched_JetMass",";p_{T} [GeV];",20,ptMin,ptMax);
+    p1_SubJetPt_SharedVertexTracksRatio_BosonMatched_JetMass = fs->make<TProfile>("p1_SubJetPt_SharedVertexTracksRatio_BosonMatched_JetMass",";p_{T} [GeV];",20,ptMin,ptMax);
 
     h2_JetPt_dRmatchedBhadrons_GSPbJets = fs->make<TH2D>("h2_JetPt_dRmatchedBhadrons_GSPbJets",";p_{T} [GeV];#DeltaR",ptBins,ptMin,ptMax,dRBins,0.,1.6);
     h2_JetPt_JetPtOverBosonPt = fs->make<TH2D>("h2_JetPt_JetPtOverBosonPt",";p_{T} [GeV];p_{T}^{jet}/p_{T}^{boson}",ptBins,ptMin,ptMax,100,0.,2.);
@@ -1063,6 +1069,22 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
            p1_SubJetPt_TotalTracks_BosonMatched_JetMass->Fill(subjets.at(i)->pt(), nTotal, eventWeight);
            p1_SubJetPt_SharedTracks_BosonMatched_JetMass->Fill(subjets.at(i)->pt(), nShared, eventWeight);
            if( nTotal>0 ) p1_SubJetPt_SharedTracksRatio_BosonMatched_JetMass->Fill(subjets.at(i)->pt(), double(nShared)/double(nTotal), eventWeight);
+
+           int nVertexTracks_i = ( subjets.at(i)->hasTagInfo("secondaryVertex") ? subjets.at(i)->tagInfoSecondaryVertex("secondaryVertex")->vertexTracks().size() : 0 );
+           int nVertexTracks_j = ( subjets.at(j)->hasTagInfo("secondaryVertex") ? subjets.at(j)->tagInfoSecondaryVertex("secondaryVertex")->vertexTracks().size() : 0 );
+           int nVertexTotal = nVertexTracks_i, nVertexShared = 0;
+
+           for(int vt_i=0; vt_i<nVertexTracks_i; ++vt_i)
+           {
+             for(int vt_j=0; vt_j<nVertexTracks_j; ++vt_j)
+             {
+               if( &(*(subjets.at(i)->tagInfoSecondaryVertex("secondaryVertex")->vertexTracks().at(vt_i))) == &(*(subjets.at(j)->tagInfoSecondaryVertex("secondaryVertex")->vertexTracks().at(vt_j))) ) ++nVertexShared;
+             }
+           }
+
+           p1_SubJetPt_TotalVertexTracks_BosonMatched_JetMass->Fill(subjets.at(i)->pt(), nVertexTotal, eventWeight);
+           p1_SubJetPt_SharedVertexTracks_BosonMatched_JetMass->Fill(subjets.at(i)->pt(), nVertexShared, eventWeight);
+           if( nVertexTotal>0 ) p1_SubJetPt_SharedVertexTracksRatio_BosonMatched_JetMass->Fill(subjets.at(i)->pt(), double(nVertexShared)/double(nVertexTotal), eventWeight);
         }
 
         if( eventDisplayPrintout )

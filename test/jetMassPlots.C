@@ -73,7 +73,7 @@ void jet_mass(const string& fFile, const string& fFileDir,
   l1.SetTextAlign(12);
   l1.SetTextSize(0.05);
   l1.SetTextFont(62);
-  l1.DrawLatex(0.14,0.97, "CMS Preliminary Simulation, #sqrt{s} = 8 TeV");
+  l1.DrawLatex(0.14,0.97, "CMS Simulation Preliminary, #sqrt{s} = 8 TeV");
   //l1.DrawLatex(0.14,0.97, "CMS Simulation");
   //l1.SetTextFont(42);
   //l1.DrawLatex(0.14+0.35,0.97, "#sqrt{s} = 8 TeV");

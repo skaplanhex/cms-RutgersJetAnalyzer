@@ -5,6 +5,7 @@
 #include "TCanvas.h"
 #include "TH1D.h"
 #include "TH2D.h"
+#include "TProfile.h"
 #include "TGraph.h"
 #include "TF1.h"
 #include "TLine.h"
@@ -56,6 +57,60 @@ void plot1D(const string& fInputFile, const string& fPlot, const string& fTitle,
   l1.SetTextSize(0.05);
   l1.SetNDC();
   l1.DrawLatex(fLeftMargin,0.97, fTitle.c_str());
+
+  c->SaveAs(fOutputFile.c_str());
+
+  delete c;
+  delete file;
+}
+
+void plot1D_profile(const string& fInputFile, const string& fPlot, const string& fTitle, const string& fXAxisTitle, const string& fYAxisTitle,
+                    const Int_t fRebinX, const Double_t fXmin, const Double_t fXmax, const string& fOutputFile,
+                    const Double_t fTitleOffsetX=1.0, const Double_t fTitleOffsetY=1.0, const Double_t fLeftMargin=0.10, const Double_t fTopMargin=0.07, const Double_t fPlotWidth=0.8)
+{
+  gROOT->SetBatch(kTRUE);
+  setEXOStyle();
+  gStyle->SetOptStat("nemruoi");
+  gStyle->SetPadTopMargin(fTopMargin);
+  gStyle->SetPadBottomMargin(1.-fTopMargin-fPlotWidth);
+  gStyle->SetPadLeftMargin(fLeftMargin);
+  gStyle->SetPadRightMargin(1.-fLeftMargin-fPlotWidth);
+  gStyle->SetStatX(fLeftMargin+fPlotWidth);
+  gStyle->SetStatY(1.-fTopMargin);
+  gStyle->SetStatH(0.25);
+  gStyle->SetStatW(0.25);
+  gStyle->SetOptStat(0);
+  gROOT->ForceStyle();
+
+  TFile *file = new TFile(fInputFile.c_str());
+
+  TProfile *h1_plot = (TProfile*)file->Get(fPlot.c_str());
+
+  TCanvas *c = new TCanvas("c", "",1000,800);
+  c->cd();
+
+  //h1_plot->Rebin(fRebinX);
+  h1_plot->GetXaxis()->SetRangeUser(fXmin,fXmax);
+  h1_plot->GetYaxis()->SetRangeUser(0.,1.);
+  h1_plot->GetXaxis()->SetTitle(fXAxisTitle.c_str());
+  h1_plot->GetYaxis()->SetTitle(fYAxisTitle.c_str());
+  h1_plot->SetTitleOffset(fTitleOffsetX,"X");
+  h1_plot->SetTitleOffset(fTitleOffsetY,"Y");
+  h1_plot->SetLineColor(kBlue+2);
+
+  h1_plot->Draw();
+
+  TLatex l1;
+  l1.SetTextAlign(13);
+  l1.SetTextFont(42);
+  l1.SetTextSize(0.045);
+  l1.SetNDC();
+  l1.DrawLatex(fLeftMargin+0.03,0.90, fTitle.c_str());
+
+  l1.SetTextAlign(13);
+  l1.SetTextSize(0.05);
+  l1.SetTextFont(62);
+  l1.DrawLatex(fLeftMargin,0.99, "CMS Simulation Preliminary, #sqrt{s} = 8 TeV");
 
   c->SaveAs(fOutputFile.c_str());
 
@@ -508,8 +563,11 @@ void makePlots()
 //
 //   plot1D("output_files_v2/BprimeBprimeToBHBHinc_M-800_HiggsTagging.root", "jetAnalyzerTrimmedJetMass/h1_BosonEta_DecaySel", "H#rightarrowb#bar{b}, #DeltaR(H,other b' decay products)>0.8",
 //          "Higgs true #eta", "Entries", 1, -4, 4, "eta_HiggsToBBbar_Isolated_BprimeBprimeToBHBHinc_M-800.eps", 1., 1.3);
-//
-//
+
+  plot1D_profile("output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRsubjetBhadron_CA8only.root", "jetAnalyzerCAPrunedJetMass/p1_JetPt_SharedTracksRatio_BosonMatched_JetMass", "#splitline{H(120)#rightarrowb#bar{b}, CA R=0.8, #DeltaR(H,jet)<0.5}{75<m_{jet}<135 GeV/c^{2} (pruned)}",
+                 "Fat jet p_{T} [GeV/c]", "Average fraction of shared tracks", 1, 0., 1000., "Average_fraction_shared_tracks_HiggsToBBbar_Isolated_BprimeBprimeToBHBHinc_M-1500.eps", 1., 0.9, 0.12);
+
+
 //   plot2D("output_files_v2/BprimeBprimeToBHBHinc_M-800_HiggsTagging.root", "jetAnalyzerTrimmedJetMass/h2_BosonPt_dRdecay", "H#rightarrowb#bar{b}, #DeltaR(H,other b' decay products)>0.8",
 //          "Higgs true p_{T} [GeV]", "#DeltaR(b,#bar{b})", 10, 0, 1000, 1, 0, 5, "Pt_HiggsToBBbar_Isolated_dRdecay_BprimeBprimeToBHBHinc_M-800.eps", 1., 0.9, 0.11, 0.07, 0.77);
 

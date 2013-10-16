@@ -78,6 +78,11 @@ options.register('taggingType', 'H',
     VarParsing.varType.string,
     "Heavy object type (H or W)"
 )
+options.register('useAK5Jets', True,
+    VarParsing.multiplicity.singleton,
+    VarParsing.varType.bool,
+    "Use AK5 jets"
+)
 options.register('runQCDFlavorExtra', True,
     VarParsing.multiplicity.singleton,
     VarParsing.varType.bool,
@@ -200,6 +205,17 @@ process.akGenJetsNoNu = ak5GenJets.clone(
 from RecoJets.JetProducers.ak5PFJets_cfi import ak5PFJets
 process.akPFJets = ak5PFJets.clone(
     rParam = options.jetRadius,
+    doAreaFastjet = cms.bool(True),
+    src = cms.InputTag("pfNoElectronPFlow"),
+    srcPVs = cms.InputTag("goodOfflinePrimaryVertices")
+)
+## Anti-kT R=0.5 jets (GEN and RECO)
+process.ak5GenJetsNoNu = ak5GenJets.clone(
+    rParam = 0.5,
+    src = cms.InputTag("genParticlesForJetsNoNu")
+)
+process.ak5PFJets = ak5PFJets.clone(
+    rParam = 0.5,
     doAreaFastjet = cms.bool(True),
     src = cms.InputTag("pfNoElectronPFlow"),
     srcPVs = cms.InputTag("goodOfflinePrimaryVertices")
@@ -536,21 +552,21 @@ if options.taggingType=='H':
         #doJetID=False,
         #genJetCollection=cms.InputTag('akGenJetsNoNu')
     #)
-    #addJetCollection(
-        #process,
-        #cms.InputTag('caPFJets'),
-        #'CAJTA', 'PF',
-        #doJTA=options.doJTA,
-        #doBTagging=options.doBTagging,
-        #btagInfo=bTagInfos,
-        #btagdiscriminators=bTagDiscriminators,
-        #jetCorrLabel=inputJetCorrLabelAK7,
-        #doType1MET=False,
-        #doL1Cleaning=False,
-        #doL1Counters=False,
-        #doJetID=False,
-        #genJetCollection=cms.InputTag('caGenJetsNoNu')
-    #)
+    addJetCollection(
+        process,
+        cms.InputTag('caPFJets'),
+        'CAJTA', 'PF',
+        doJTA=options.doJTA,
+        doBTagging=options.doBTagging,
+        btagInfo=bTagInfos,
+        btagdiscriminators=bTagDiscriminators,
+        jetCorrLabel=inputJetCorrLabelAK7,
+        doType1MET=False,
+        doL1Cleaning=False,
+        doL1Counters=False,
+        doJetID=False,
+        genJetCollection=cms.InputTag('caGenJetsNoNu')
+    )
     #addJetCollection(
         #process,
         #cms.InputTag('akPFJetsRU'),
@@ -671,6 +687,22 @@ if options.taggingType=='H':
         #doJetID=False,
         #genJetCollection=cms.InputTag('caGenJetsNoNuFiltered','SubJets')
     #)
+    if options.useAK5Jets:
+        addJetCollection(
+            process,
+            cms.InputTag('ak5PFJets'),
+            'AK5','PF',
+            doJTA=options.doJTA,
+            doBTagging=options.doBTagging,
+            btagInfo=bTagInfos,
+            btagdiscriminators=bTagDiscriminators,
+            jetCorrLabel=inputJetCorrLabelAK5,
+            doType1MET=False,
+            doL1Cleaning=False,
+            doL1Counters=False,
+            doJetID=False,
+            genJetCollection=cms.InputTag("ak5GenJetsNoNu")
+        )
 
 ## Define jet sequences
 process.genJetSeq = cms.Sequence(
@@ -706,6 +738,9 @@ process.recoJetSeqExtra = cms.Sequence(
 if options.taggingType=='H':
     process.genJetSeq = cms.Sequence( process.genJetSeq + process.genJetSeqExtra )
     process.recoJetSeq = cms.Sequence( process.recoJetSeq + process.recoJetSeqExtra )
+    if options.useAK5Jets:
+        process.genJetSeq = cms.Sequence( process.genJetSeq + process.ak5GenJetsNoNu )
+        process.recoJetSeq = cms.Sequence( process.recoJetSeq + process.ak5PFJets )
 
 
 ## Establish references between PAT fat jets and PAT subjets using the BoostedJetMerger
@@ -769,22 +804,24 @@ if options.doBTagging:
             setattr( getattr(process,m), 'addTagInfos', cms.bool(True) )
     # Set the cone size for the jet-track association to the jet radius
     if hasattr( process, 'jetTracksAssociatorAtVertexAKJTAPF' ):
-        process.jetTracksAssociatorAtVertexAKJTAPF.coneSize = cms.double(options.jetRadius)
+        process.jetTracksAssociatorAtVertexAKJTAPF.coneSize = cms.double(options.jetRadius) # default is 0.5
     if hasattr( process, 'secondaryVertexTagInfosAKJTAPF' ):
-        process.secondaryVertexTagInfosAKJTAPF.trackSelection.jetDeltaRMax = cms.double(options.jetRadius)
+        process.secondaryVertexTagInfosAKJTAPF.trackSelection.jetDeltaRMax = cms.double(options.jetRadius)   # default is 0.3
+        process.secondaryVertexTagInfosAKJTAPF.vertexCuts.maxDeltaRToJetAxis = cms.double(options.jetRadius) # default is 0.5
     if hasattr( process, 'jetTracksAssociatorAtVertexCAJTAPF' ):
-        process.jetTracksAssociatorAtVertexCAJTAPF.coneSize = cms.double(options.jetRadius)
+        process.jetTracksAssociatorAtVertexCAJTAPF.coneSize = cms.double(options.jetRadius) # default is 0.5
     if hasattr( process, 'secondaryVertexTagInfosCAJTAPF' ):
-        process.secondaryVertexTagInfosCAJTAPF.trackSelection.jetDeltaRMax = cms.double(options.jetRadius)
+        process.secondaryVertexTagInfosCAJTAPF.trackSelection.jetDeltaRMax = cms.double(options.jetRadius)   # default is 0.3
+        process.secondaryVertexTagInfosCAJTAPF.vertexCuts.maxDeltaRToJetAxis = cms.double(options.jetRadius) # default is 0.5
     # Set the jet-SV dR to the jet radius
     if hasattr( process, 'inclusiveSecondaryVertexFinderTagInfosFilteredAOD' ):
-        process.inclusiveSecondaryVertexFinderTagInfosFilteredAOD.extSVDeltaRToJet = cms.double(options.jetRadius)
+        process.inclusiveSecondaryVertexFinderTagInfosFilteredAOD.extSVDeltaRToJet = cms.double(options.jetRadius) # default is 0.3
     if hasattr( process, 'inclusiveSecondaryVertexFinderTagInfosFilteredAKPF' ):
-        process.inclusiveSecondaryVertexFinderTagInfosFilteredCAPF.extSVDeltaRToJet = cms.double(options.jetRadius)
+        process.inclusiveSecondaryVertexFinderTagInfosFilteredCAPF.extSVDeltaRToJet = cms.double(options.jetRadius) # default is 0.3
     if hasattr( process, 'inclusiveSecondaryVertexFinderTagInfosFilteredAKJTAPF' ):
-        process.inclusiveSecondaryVertexFinderTagInfosFilteredAKJTAPF.extSVDeltaRToJet = cms.double(options.jetRadius)
+        process.inclusiveSecondaryVertexFinderTagInfosFilteredAKJTAPF.extSVDeltaRToJet = cms.double(options.jetRadius) # default is 0.3
     if hasattr( process, 'inclusiveSecondaryVertexFinderTagInfosFilteredCAJTAPF' ):
-        process.inclusiveSecondaryVertexFinderTagInfosFilteredCAJTAPF.extSVDeltaRToJet = cms.double(options.jetRadius)
+        process.inclusiveSecondaryVertexFinderTagInfosFilteredCAJTAPF.extSVDeltaRToJet = cms.double(options.jetRadius) # default is 0.3
 
 
 ## Initialize instances of the RutgersJetAnalyzer
@@ -1107,6 +1144,8 @@ process.jetAnalyzerCAPrunedJetMass = cms.EDAnalyzer('RutgersJetAnalyzer',
     GroomedJetsTag            = cms.InputTag('selectedPatJetsCAPrunedPF'),
     UseSubJets                = cms.bool(True),
     GroomedBasicJetsTag       = cms.InputTag('selectedPatJetsCAPrunedPFPacked'),
+    UseAK5Jets                = cms.bool(True),
+    AK5JetsTag                = cms.InputTag('selectedPatJetsAK5PF'),
     SubJetMode                = cms.string('Pruned'),
     PvTag                     = cms.InputTag('goodOfflinePrimaryVertices'),
     JetRadius                 = cms.double(options.jetRadius),
@@ -1410,7 +1449,7 @@ process.jetAnalyzerSequenceExtra = cms.Sequence(
     #+ process.jetAnalyzerPrunedJetMassJTACone
     #+ process.jetAnalyzerCAPrunedJetMassKtSub
     #+ process.jetAnalyzerCAPrunedJetMassFilteredSub
-    #+ process.jetAnalyzerCAPrunedJetMassJTACone
+    process.jetAnalyzerCAPrunedJetMassJTACone
 )
 
 process.jetAnalyzerSequenceQCDFlavorExtra = cms.Sequence(

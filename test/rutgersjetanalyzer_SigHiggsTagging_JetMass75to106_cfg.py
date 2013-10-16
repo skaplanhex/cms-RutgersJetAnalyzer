@@ -23,10 +23,10 @@ options.register('outFilename', 'outfile.root',
     VarParsing.varType.string,
     "Output file name"
 )
-options.register('reportEvery', 1,
+options.register('reportEvery', 100,
     VarParsing.multiplicity.singleton,
     VarParsing.varType.int,
-    "Report every N events (default is N=1)"
+    "Report every N events (default is N=100)"
 )
 options.register('wantSummary', False,
     VarParsing.multiplicity.singleton,
@@ -105,7 +105,7 @@ options.register('runOnTopBkg', False,
 )
 
 ## 'maxEvents' is already registered by the Framework, changing default value
-options.setDefault('maxEvents', 10)
+options.setDefault('maxEvents', -1)
 
 options.parseArguments()
 
@@ -162,21 +162,13 @@ process.options   = cms.untracked.PSet( wantSummary = cms.untracked.bool(options
 ## Input files
 process.source = cms.Source("PoolSource",
     fileNames = cms.untracked.vstring(
-        #'file:patTuple_PF2PAT_v2.root'
-        #'file:/cms/ferencek/store/ferencek/WWtoAnything_ptmin500_TuneZ2Star_8TeV-pythia6-tauola/Summer12_DR53X-PU_S10_START53_V7A-v1_PATTuple_v2/6950c4b6452599a829ed09f6192c8cf5/patTuple_PF2PAT_v2_1_2_NZA.root'
-        'file:/cms/ferencek/store/skaplan/BprimeBprimeToBHBHinc_M-1000_TuneZ2star_8TeV-madgraph/Summer12_DR53X-PU_S10_START53_V7C-v1_PATTuple_v2/6950c4b6452599a829ed09f6192c8cf5/patTuple_PF2PAT_v2_1_1_bnp.root'
-        #'file:/cms/ferencek/store/skaplan/BprimeBprimeToBHBHinc_M-1500_TuneZ2star_8TeV-madgraph/Summer12_DR53X-PU_S10_START53_V7C-v1_PATTuple_v2/6950c4b6452599a829ed09f6192c8cf5/patTuple_PF2PAT_v2_1_1_djM.root'
-        #'file:/cms/ferencek/store/ferencek/TprimeToBWinc_M-1000_TuneZ2star_8TeV-madgraph/Summer12_DR53X-PU_S10_START53_V7A-v1_PATTuple_v2/6950c4b6452599a829ed09f6192c8cf5/patTuple_PF2PAT_v2_1_1_9ZZ.root'
-        #'file:/cms/ferencek/store/ferencek/BprimeBprimeToBZBZinc_M-1200_TuneZ2star_8TeV-madgraph/Summer12_DR53X-PU_S10_START53_V7C-v1_PATTuple_v2/6950c4b6452599a829ed09f6192c8cf5/patTuple_PF2PAT_v2_1_1_vSQ.root'
-        #'file:/cms/ferencek/store/ferencek/TprimeToTHinc_M-1700_TuneZ2star_8TeV-madgraph/Summer12_DR53X-PU_S10_START53_V7C-v1_PATTuple_v2/6950c4b6452599a829ed09f6192c8cf5/patTuple_PF2PAT_v2_1_1_gMe.root'
-        #'file:/cms/ferencek/store/ferencek/QCD_Pt-15to3000_TuneZ2star_Flat_8TeV_pythia6/Summer12_DR53X-PU_S10_START53_V7A-v1_PATTuple_v2/6950c4b6452599a829ed09f6192c8cf5/patTuple_PF2PAT_v2_1_1_mRj.root'
-        #'file:/cms/ferencek/store/ferencek/RadionToHHTo4B_M-1500_TuneZ2star_8TeV-nm-madgraph/Summer12_DR53X-PU_S10_START53_V7C-v1_PATTuple_v2/6950c4b6452599a829ed09f6192c8cf5/patTuple_PF2PAT_v2_1_1_fdQ.root'
+DUMMY_INPUTFILES
     )
 )
 
 ## Output file
 process.TFileService = cms.Service("TFileService",
-   fileName = cms.string(options.outFilename)
+   fileName = cms.string(DUMMY_OUTPUTFILE)
 )
 
 ## Standard PAT Configuration File
@@ -1169,7 +1161,7 @@ process.jetAnalyzerCAPrunedJetMass = cms.EDAnalyzer('RutgersJetAnalyzer',
     JetPtBinWidth             = cms.double(200.),
     JetAbsEtaMax              = cms.double(1.5),
     JetMassMin                = cms.double(75.),
-    JetMassMax                = cms.double(135.),
+    JetMassMax                = cms.double(106.),
     Bdiscriminator            = cms.string("combinedSecondaryVertexBJetTags"),
     DoJetFlavor               = cms.bool(False),
     JetFlavorPdgIds           = cms.vint32(5)
@@ -1398,7 +1390,7 @@ process.jetAnalyzerCAPrunedJetMassJTACone = cms.EDAnalyzer('RutgersJetAnalyzer',
     JetPtBinWidth             = cms.double(200.),
     JetAbsEtaMax              = cms.double(1.5),
     JetMassMin                = cms.double(75.),
-    JetMassMax                = cms.double(135.),
+    JetMassMax                = cms.double(106.),
     Bdiscriminator            = cms.string("combinedSecondaryVertexBJetTags"),
     DoJetFlavor               = cms.bool(False),
     JetFlavorPdgIds           = cms.vint32(5)

@@ -222,7 +222,7 @@ private:
     TH2D *h2_JetPt_SubJetMaxJP_BosonMatched_JetMass;
 
     TH2D *h2_JetPt_AK5JetCSV_BosonMatched_JetMass;
-    TH2D *h2_JetPt_AK5JetsMinCSV_BosonMatched_JetMass;
+    TH2D *h2_JetPt_AK5JetMinCSV_BosonMatched_JetMass;
 
     std::map<std::string, TH2D*> h2_nPV_JetMass_Pt;
     std::map<std::string, TH2D*> h2_nPV_tau1_Pt;
@@ -407,8 +407,8 @@ RutgersJetAnalyzer::RutgersJetAnalyzer(const edm::ParameterSet& iConfig) :
     h2_JetPt_SubJetMinJP_BosonMatched_JetMass = fs->make<TH2D>("h2_JetPt_SubJetMinJP_BosonMatched_JetMass",";p_{T} [GeV];SubJet min JP Discr",ptBins,ptMin,ptMax,100,0.,2.);
     h2_JetPt_SubJetMaxJP_BosonMatched_JetMass = fs->make<TH2D>("h2_JetPt_SubJetMaxJP_BosonMatched_JetMass",";p_{T} [GeV];SubJet max JP Discr",ptBins,ptMin,ptMax,100,0.,2.);
 
-    h2_JetPt_AK5JetCSV_BosonMatched_JetMass = fs->make<TH2D>("h2_JetPt_AK5JetCSV_BosonMatched_JetMass",";p_{T} [GeV];Jet CSV Discr",ptBins,ptMin,ptMax,100,0.,1.);
-    h2_JetPt_AK5JetsMinCSV_BosonMatched_JetMass = fs->make<TH2D>("h2_JetPt_AK5JetMinCSV_BosonMatched_JetMass",";p_{T} [GeV];SubJet min CSV Discr",ptBins,ptMin,ptMax,100,0.,1.);
+    h2_JetPt_AK5JetCSV_BosonMatched_JetMass = fs->make<TH2D>("h2_JetPt_AK5JetCSV_BosonMatched_JetMass",";p_{T} [GeV];AK5 Jet CSV Discr",ptBins,ptMin,ptMax,100,0.,1.);
+    h2_JetPt_AK5JetMinCSV_BosonMatched_JetMass = fs->make<TH2D>("h2_JetPt_AK5JetMinCSV_BosonMatched_JetMass",";p_{T} [GeV];AK5 Jets min CSV Discr",ptBins,ptMin,ptMax,100,0.,1.);
 
     for(unsigned i=0; i<=(jetPtBins+1); ++i)
     {
@@ -1310,7 +1310,7 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
       h2_JetPt_SubJetMaxJP_BosonMatched_JetMass->Fill(jetPt, maxSubJet_JP_discr, eventWeight);
 
       h2_JetPt_AK5JetCSV_BosonMatched_JetMass->Fill(jetPt, ak5Jet_CSV_discr, eventWeight);;
-      h2_JetPt_AK5JetsMinCSV_BosonMatched_JetMass->Fill(jetPt, minAK5Jets_CSV_discr, eventWeight);
+      h2_JetPt_AK5JetMinCSV_BosonMatched_JetMass->Fill(jetPt, minAK5Jets_CSV_discr, eventWeight);
 
       if( jet_CSV_discr>0.244 ) h1_JetPt_BosonMatched_JetMass_CSVL->Fill(jetPt, eventWeight);
       if( jet_CSV_discr>0.679 ) h1_JetPt_BosonMatched_JetMass_CSVM->Fill(jetPt, eventWeight);

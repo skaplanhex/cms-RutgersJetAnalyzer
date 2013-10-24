@@ -4,6 +4,9 @@
 <use name="DataFormats/Candidate"/>
 <use name="PhysicsTools/UtilAlgos"/>
 <use name="FWCore/ServiceRegistry"/>
+<use name="TrackingTools/IPTools"/>
+<use name="TrackingTools/Records"/>
+<use name="TrackingTools/TransientTrack"/>
 <use name="fastjet"/>
 <flags EDM_PLUGIN="1"/>
 #<flags CXXFLAGS="-O0 -g -fno-inline"/>

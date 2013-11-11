@@ -567,6 +567,9 @@ void makePlots()
   plot1D_profile("output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRsubjetBhadron_CA8only.root", "jetAnalyzerCAPrunedJetMass/p1_JetPt_SharedTracksRatio_BosonMatched_JetMass", "#splitline{H(120)#rightarrowb#bar{b}, CA R=0.8, #DeltaR(H,jet)<0.5}{75<m_{jet}<135 GeV/c^{2} (pruned)}",
                  "Fat jet p_{T} [GeV/c]", "Average fraction of shared tracks", 1, 0., 1000., "Average_fraction_shared_tracks_HiggsToBBbar_Isolated_BprimeBprimeToBHBHinc_M-1500.eps", 1., 0.9, 0.12);
 
+  plot1D_profile("output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRBhadron_CA8andAK5.root", "jetAnalyzerCAPrunedJetMass/p1_dRsubjets_SharedTracksRatio_BosonMatched_JetMass", "#splitline{H(120)#rightarrowb#bar{b}, CA R=0.8, #DeltaR(H,jet)<0.5}{75<m_{jet}<135 GeV/c^{2} (pruned)}",
+                 "#DeltaR(subjets)", "Average fraction of shared tracks", 1, 0., 0.8, "Average_fraction_shared_tracks_vs_dRsubjets_HiggsToBBbar_Isolated_BprimeBprimeToBHBHinc_M-1500.eps", 1., 0.9, 0.12);
+
 
 //   plot2D("output_files_v2/BprimeBprimeToBHBHinc_M-800_HiggsTagging.root", "jetAnalyzerTrimmedJetMass/h2_BosonPt_dRdecay", "H#rightarrowb#bar{b}, #DeltaR(H,other b' decay products)>0.8",
 //          "Higgs true p_{T} [GeV]", "#DeltaR(b,#bar{b})", 10, 0, 1000, 1, 0, 5, "Pt_HiggsToBBbar_Isolated_dRdecay_BprimeBprimeToBHBHinc_M-800.eps", 1., 0.9, 0.11, 0.07, 0.77);

@@ -18,6 +18,70 @@
 using namespace std;
 
 
+void plot2D(const string& fInputFile, const string& fPlot, const string& fTitle, const string& fXAxisTitle, const string& fYAxisTitle,
+            const Int_t fRebinX, const Double_t fXmin, const Double_t fXmax, const Int_t fRebinY, const Double_t fYmin, const Double_t fYmax,
+            const string& fOutputFile, const Double_t fTitleOffsetX=1.0, const Double_t fTitleOffsetY=1.0,
+            const Double_t fLeftMargin=0.16, const Double_t fTopMargin=0.07, const Double_t fPlotWidth=0.8)
+{
+  gROOT->SetBatch(kTRUE);
+  setEXOStyle();
+  gStyle->SetGridColor(kGray+3);
+  gStyle->SetPalette(1);
+  gStyle->SetOptStat(0);
+  gStyle->SetPadTopMargin(fTopMargin);
+  gStyle->SetPadBottomMargin(1.-fTopMargin-fPlotWidth);
+  gStyle->SetPadLeftMargin(fLeftMargin);
+  gStyle->SetPadRightMargin(1.-fLeftMargin-fPlotWidth);
+//   gStyle->SetStatX(fLeftMargin+fPlotWidth);
+//   gStyle->SetStatY(1.-fTopMargin);
+//   gStyle->SetStatH(0.25);
+//   gStyle->SetStatW(0.25);
+//   gStyle->SetOptStat(0);
+  gROOT->ForceStyle();
+
+  TFile *file = new TFile(fInputFile.c_str());
+
+  TH2D *h2_plot = (TH2D*)file->Get(fPlot.c_str());
+
+  TCanvas *c = new TCanvas("c", "",1000,1000);
+  c->cd();
+  c->SetGridx();
+  c->SetGridy();
+
+  h2_plot->Rebin2D(fRebinX,fRebinY);
+  h2_plot->GetXaxis()->SetRangeUser(fXmin,fXmax);
+  h2_plot->GetYaxis()->SetRangeUser(fYmin,fYmax);
+  h2_plot->GetXaxis()->SetTitle(fXAxisTitle.c_str());
+  h2_plot->GetYaxis()->SetTitle(fYAxisTitle.c_str());
+  h2_plot->SetTitleOffset(fTitleOffsetX,"X");
+  h2_plot->SetTitleOffset(fTitleOffsetY,"Y");
+  h2_plot->SetLineColor(kBlue+2);
+
+  h2_plot->Draw("col");
+
+  TLatex l1;
+  l1.SetTextAlign(13);
+  l1.SetTextFont(42);
+  l1.SetTextSize(0.05);
+  l1.SetNDC();
+  //l1.DrawLatex(fLeftMargin+0.03,0.90, fTitle.c_str());
+
+  l1.SetTextAlign(12);
+  l1.SetTextSize(0.05);
+  l1.SetTextFont(62);
+  //l1.DrawLatex(fLeftMargin,0.97, "CMS Simulation Preliminary, #sqrt{s} = 8 TeV");
+  //l1.DrawLatex(fLeftMargin,0.97, "CMS Simulation");
+  //l1.SetTextFont(42);
+  //l1.DrawLatex(fLeftMargin+0.35,0.97, "#sqrt{s} = 8 TeV");
+
+  c->SetLogz();
+  c->SaveAs(fOutputFile.c_str());
+
+  delete c;
+  delete file;
+}
+
+
 void plot_eff(const string& fInputFile, const string& fPlot, const double fOP, const string& fTitle, const string& fXAxisTitle, const string& fYAxisTitle, const string& fOutputFile,
               const double fYmin=0., const double fYmax=1.0, const Int_t fLogy=0, const Double_t fTitleOffsetX=1.0, const Double_t fTitleOffsetY=1.0,
               const Double_t fLeftMargin=0.12, const Double_t fTopMargin=0.07, const Double_t fPlotWidth=0.8
@@ -106,11 +170,11 @@ void plot_eff(const string& fInputFile, const string& fPlot, const double fOP, c
   legend->SetFillColor(0);
   legend->SetFillStyle(0);
   legend->SetTextFont(42);
-  legend->SetTextSize(0.035);
-  legend->AddEntry(g_eff_subjet1, "Subjet_{1}","lp");
-  legend->AddEntry(g_eff_subjet2, "Subjet_{2}","lp");
-  legend->AddEntry(g_eff_subjet12, "Subjet_{1} & Subjet_{2}","lp");
-  legend->AddEntry(g_eff_subjet12_prod, "Subjet_{1} #times Subjet_{2}","lp");
+  legend->SetTextSize(0.05);
+  legend->AddEntry(g_eff_subjet1, "#varepsilon_{1}","lp");
+  legend->AddEntry(g_eff_subjet2, "#varepsilon_{2}","lp");
+  legend->AddEntry(g_eff_subjet12, "#varepsilon_{1 & 2}","lp");
+  legend->AddEntry(g_eff_subjet12_prod, "#varepsilon_{1} #times #varepsilon_{2}","lp");
   legend->Draw();
 
   TLatex l1;
@@ -220,11 +284,11 @@ void plot_eff_NoErrors(const string& fInputFile, const string& fPlot, const doub
   legend->SetFillColor(0);
   legend->SetFillStyle(0);
   legend->SetTextFont(42);
-  legend->SetTextSize(0.035);
-  legend->AddEntry(g_eff_subjet1, "Subjet_{1}","lp");
-  legend->AddEntry(g_eff_subjet2, "Subjet_{2}","lp");
-  legend->AddEntry(g_eff_subjet12, "Subjet_{1} & Subjet_{2}","lp");
-  legend->AddEntry(g_eff_subjet12_prod, "Subjet_{1} #times Subjet_{2}","lp");
+  legend->SetTextSize(0.05);
+  legend->AddEntry(g_eff_subjet1, "#varepsilon_{1}","lp");
+  legend->AddEntry(g_eff_subjet2, "#varepsilon_{2}","lp");
+  legend->AddEntry(g_eff_subjet12, "#varepsilon_{1 & 2}","lp");
+  legend->AddEntry(g_eff_subjet12_prod, "#varepsilon_{1} #times #varepsilon_{2}","lp");
   legend->Draw();
 
   TLatex l1;
@@ -246,14 +310,19 @@ void plot_eff_NoErrors(const string& fInputFile, const string& fPlot, const doub
 
 void makePlots()
 {
+  // Subjet CSV discriminators
+  plot2D("output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRBhadron_CA8andAK5.root", "jetAnalyzerCAPrunedJetMass/h2_SubJet1CSV_SubJet2CSV_BosonMatched_JetMass_dRsubjets0p4to0p6",
+         "#splitline{H(120)#rightarrowb#bar{b}, CA R=0.8}{75<m_{jet}<135 GeV/c^{2} (pruned), Subjet CSVL}",
+         "Subjet_{1} CSV discr.", "Subjet_{2} CSV discr.", 1, 0, 1, 1, 0, 1, "CSV_dicsr_subjet1_vs_subjet2_HiggsToBBbar_BprimeBprimeToBHBHinc_M-1500.eps", 0.95, 1.1, 0.16, 0.07, 0.8);
+
   // CSVL
   plot_eff("output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRBhadron_CA8andAK5.root", "jetAnalyzerCAPrunedJetMass/h2_SubJet1CSV_SubJet2CSV_BosonMatched_JetMass_dRsubjets",
            0.244, "#splitline{H(120)#rightarrowb#bar{b}, CA R=0.8}{75<m_{jet}<135 GeV/c^{2} (pruned), Subjet CSVL}",
            "#DeltaR(subjets)", "Tagging efficiency","Subjet_tag_correlation_SubjetCSVL_CAPrunedJetMass_HiggsToBBbar_BprimeBprimeToBHBHinc_M-1500.eps");
 
-  plot_eff("output_files_v2/BprimeBprimeToBHBHinc_M-1000_HiggsTagging_dRBhadron_CA8andAK5.root", "jetAnalyzerCAPrunedJetMass/h2_SubJet1CSV_SubJet2CSV_BosonMatched_JetMass_dRsubjets",
-           0.244, "#splitline{H(120)#rightarrowb#bar{b}, CA R=0.8}{75<m_{jet}<135 GeV/c^{2} (pruned), Subjet CSVL}",
-           "#DeltaR(subjets)", "Tagging efficiency","Subjet_tag_correlation_SubjetCSVL_CAPrunedJetMass_HiggsToBBbar_BprimeBprimeToBHBHinc_M-1000.eps");
+//   plot_eff("output_files_v2/BprimeBprimeToBHBHinc_M-1000_HiggsTagging_dRBhadron_CA8andAK5.root", "jetAnalyzerCAPrunedJetMass/h2_SubJet1CSV_SubJet2CSV_BosonMatched_JetMass_dRsubjets",
+//            0.244, "#splitline{H(120)#rightarrowb#bar{b}, CA R=0.8}{75<m_{jet}<135 GeV/c^{2} (pruned), Subjet CSVL}",
+//            "#DeltaR(subjets)", "Tagging efficiency","Subjet_tag_correlation_SubjetCSVL_CAPrunedJetMass_HiggsToBBbar_BprimeBprimeToBHBHinc_M-1000.eps");
 
   plot_eff("output_files_v2/BprimeBprimeToBZBZinc_M-1200_HiggsTagging_dRBhadron_LightFlavor_CA8andAK5.root", "jetAnalyzerCAPrunedJetMass/h2_SubJet1CSV_SubJet2CSV_BosonMatched_JetMass_dRsubjets",
            0.244, "#splitline{Z#rightarrowq#bar{q} (q=u,d,s), CA R=0.8}{75<m_{jet}<135 GeV/c^{2} (pruned), Subjet CSVL}",
@@ -264,20 +333,20 @@ void makePlots()
                     "#DeltaR(subjets)", "Tagging efficiency","Subjet_tag_correlation_SubjetCSVL_CAPrunedJetMass_QCD.eps", 0., 0.15);
 
   // CSVM
-  plot_eff("output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRBhadron_CA8andAK5.root", "jetAnalyzerCAPrunedJetMass/h2_SubJet1CSV_SubJet2CSV_BosonMatched_JetMass_dRsubjets",
-           0.679, "#splitline{H(120)#rightarrowb#bar{b}, CA R=0.8}{75<m_{jet}<135 GeV/c^{2} (pruned), Subjet CSVM}",
-           "#DeltaR(subjets)", "Tagging efficiency","Subjet_tag_correlation_SubjetCSVM_CAPrunedJetMass_HiggsToBBbar_BprimeBprimeToBHBHinc_M-1500.eps");
-
-  plot_eff("output_files_v2/BprimeBprimeToBHBHinc_M-1000_HiggsTagging_dRBhadron_CA8andAK5.root", "jetAnalyzerCAPrunedJetMass/h2_SubJet1CSV_SubJet2CSV_BosonMatched_JetMass_dRsubjets",
-           0.679, "#splitline{H(120)#rightarrowb#bar{b}, CA R=0.8}{75<m_{jet}<135 GeV/c^{2} (pruned), Subjet CSVM}",
-           "#DeltaR(subjets)", "Tagging efficiency","Subjet_tag_correlation_SubjetCSVM_CAPrunedJetMass_HiggsToBBbar_BprimeBprimeToBHBHinc_M-1000.eps");
-
-  plot_eff("output_files_v2/BprimeBprimeToBZBZinc_M-1200_HiggsTagging_dRBhadron_LightFlavor_CA8andAK5.root", "jetAnalyzerCAPrunedJetMass/h2_SubJet1CSV_SubJet2CSV_BosonMatched_JetMass_dRsubjets",
-           0.679, "#splitline{Z#rightarrowq#bar{q} (q=u,d,s), CA R=0.8}{75<m_{jet}<135 GeV/c^{2} (pruned), Subjet CSVM}",
-           "#DeltaR(subjets)", "Tagging efficiency","Subjet_tag_correlation_SubjetCSVM_CAPrunedJetMass_ZToQQbarLight_BprimeBprimeToBZBZinc_M-1200.eps", 0., 0.03);
-
-  plot_eff_NoErrors("output_files_v2/QCDPythia6_HiggsTagging_dRBhadron_jetFlavor_CA8andAK5.root", "jetAnalyzerCAPrunedJetMass/h2_SubJet1CSV_SubJet2CSV_BosonMatched_JetMass_dRsubjets",
-                    0.679, "#splitline{QCD, CA R=0.8}{75<m_{jet}<135 GeV/c^{2} (pruned), Subjet CSVM}",
-                    "#DeltaR(subjets)", "Tagging efficiency","Subjet_tag_correlation_SubjetCSVM_CAPrunedJetMass_QCD.eps", 0., 0.03);
+//   plot_eff("output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRBhadron_CA8andAK5.root", "jetAnalyzerCAPrunedJetMass/h2_SubJet1CSV_SubJet2CSV_BosonMatched_JetMass_dRsubjets",
+//            0.679, "#splitline{H(120)#rightarrowb#bar{b}, CA R=0.8}{75<m_{jet}<135 GeV/c^{2} (pruned), Subjet CSVM}",
+//            "#DeltaR(subjets)", "Tagging efficiency","Subjet_tag_correlation_SubjetCSVM_CAPrunedJetMass_HiggsToBBbar_BprimeBprimeToBHBHinc_M-1500.eps");
+//
+//   plot_eff("output_files_v2/BprimeBprimeToBHBHinc_M-1000_HiggsTagging_dRBhadron_CA8andAK5.root", "jetAnalyzerCAPrunedJetMass/h2_SubJet1CSV_SubJet2CSV_BosonMatched_JetMass_dRsubjets",
+//            0.679, "#splitline{H(120)#rightarrowb#bar{b}, CA R=0.8}{75<m_{jet}<135 GeV/c^{2} (pruned), Subjet CSVM}",
+//            "#DeltaR(subjets)", "Tagging efficiency","Subjet_tag_correlation_SubjetCSVM_CAPrunedJetMass_HiggsToBBbar_BprimeBprimeToBHBHinc_M-1000.eps");
+//
+//   plot_eff("output_files_v2/BprimeBprimeToBZBZinc_M-1200_HiggsTagging_dRBhadron_LightFlavor_CA8andAK5.root", "jetAnalyzerCAPrunedJetMass/h2_SubJet1CSV_SubJet2CSV_BosonMatched_JetMass_dRsubjets",
+//            0.679, "#splitline{Z#rightarrowq#bar{q} (q=u,d,s), CA R=0.8}{75<m_{jet}<135 GeV/c^{2} (pruned), Subjet CSVM}",
+//            "#DeltaR(subjets)", "Tagging efficiency","Subjet_tag_correlation_SubjetCSVM_CAPrunedJetMass_ZToQQbarLight_BprimeBprimeToBZBZinc_M-1200.eps", 0., 0.03);
+//
+//   plot_eff_NoErrors("output_files_v2/QCDPythia6_HiggsTagging_dRBhadron_jetFlavor_CA8andAK5.root", "jetAnalyzerCAPrunedJetMass/h2_SubJet1CSV_SubJet2CSV_BosonMatched_JetMass_dRsubjets",
+//                     0.679, "#splitline{QCD, CA R=0.8}{75<m_{jet}<135 GeV/c^{2} (pruned), Subjet CSVM}",
+//                     "#DeltaR(subjets)", "Tagging efficiency","Subjet_tag_correlation_SubjetCSVM_CAPrunedJetMass_QCD.eps", 0., 0.03);
 
 }

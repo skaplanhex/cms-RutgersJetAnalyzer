@@ -100,6 +100,15 @@ void plot1D_profile(const string& fInputFile, const string& fPlot, const string&
 
   h1_plot->Draw();
 
+  // only for Average_fraction_shared_tracks_vs_dRsubjets plots
+  if(fOutputFile.find("Average_fraction_shared_tracks_vs_dRsubjets")!=string::npos)
+  {
+    TF1 *f1 = new TF1("f1","(-(1/2)*TMath::Sqrt((2-x/0.3)*(x/0.3*x/0.3)*(2+x/0.3))+2*TMath::ACos(x/0.3/2))/(2*TMath::Pi()-(-(1/2)*TMath::Sqrt((2-x/0.3)*(x/0.3*x/0.3)*(2+x/0.3))+2*TMath::ACos(x/0.3/2)))",0,0.6);
+    f1->SetLineColor(kRed);
+    f1->SetLineWidth(2);
+    f1->Draw("same");
+  }
+
   TLatex l1;
   l1.SetTextAlign(13);
   l1.SetTextFont(42);

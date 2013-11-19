@@ -101,13 +101,13 @@ void plot1D_profile(const string& fInputFile, const string& fPlot, const string&
   h1_plot->Draw();
 
   // only for Average_fraction_shared_tracks_vs_dRsubjets plots
-  if(fOutputFile.find("Average_fraction_shared_tracks_vs_dRsubjets")!=string::npos)
-  {
-    TF1 *f1 = new TF1("f1","(-(1/2)*TMath::Sqrt((2-x/0.3)*(x/0.3*x/0.3)*(2+x/0.3))+2*TMath::ACos(x/0.3/2))/(2*TMath::Pi()-(-(1/2)*TMath::Sqrt((2-x/0.3)*(x/0.3*x/0.3)*(2+x/0.3))+2*TMath::ACos(x/0.3/2)))",0,0.6);
-    f1->SetLineColor(kRed);
-    f1->SetLineWidth(2);
-    f1->Draw("same");
-  }
+//   if(fOutputFile.find("Average_fraction_shared_tracks_vs_dRsubjets")!=string::npos)
+//   {
+//     TF1 *f1 = new TF1("f1","(-(1/2)*TMath::Sqrt((2-x/0.3)*(x/0.3*x/0.3)*(2+x/0.3))+2*TMath::ACos(x/0.3/2))/(2*TMath::Pi()-(-(1/2)*TMath::Sqrt((2-x/0.3)*(x/0.3*x/0.3)*(2+x/0.3))+2*TMath::ACos(x/0.3/2)))",0,0.6);
+//     f1->SetLineColor(kRed);
+//     f1->SetLineWidth(2);
+//     f1->Draw("same");
+//   }
 
   TLatex l1;
   l1.SetTextAlign(13);
@@ -578,6 +578,12 @@ void makePlots()
 
   plot1D_profile("output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRBhadron_CA8andAK5.root", "jetAnalyzerCAPrunedJetMass/p1_dRsubjets_SharedTracksRatio_BosonMatched_JetMass", "#splitline{H(120)#rightarrowb#bar{b}, CA R=0.8, #DeltaR(H,jet)<0.5}{75<m_{jet}<135 GeV/c^{2} (pruned)}",
                  "#DeltaR(subjets)", "Average fraction of shared tracks", 1, 0., 0.8, "Average_fraction_shared_tracks_vs_dRsubjets_HiggsToBBbar_Isolated_BprimeBprimeToBHBHinc_M-1500.eps", 1., 0.9, 0.12);
+
+  plot1D_profile("output_files_v2/BprimeBprimeToBZBZinc_M-1200_HiggsTagging_dRBhadron_LightFlavor_CA8andAK5.root", "jetAnalyzerCAPrunedJetMass/p1_dRsubjets_SharedTracksRatio_BosonMatched_JetMass", "#splitline{Z#rightarrowq#bar{q} (q=u,d,s), CA R=0.8}{75<m_{jet}<135 GeV/c^{2} (pruned)}",
+                 "#DeltaR(subjets)", "Average fraction of shared tracks", 1, 0., 0.8, "Average_fraction_shared_tracks_vs_dRsubjets_ZToQQbarLight_BprimeBprimeToBZBZinc_M-1200.eps", 1., 0.9, 0.12);
+
+  plot1D_profile("output_files_v2/QCDPythia6_HiggsTagging_dRBhadron_jetFlavor_CA8andAK5.root", "jetAnalyzerCAPrunedJetMass/p1_dRsubjets_SharedTracksRatio_BosonMatched_JetMass", "#splitline{QCD, CA R=0.8}{75<m_{jet}<135 GeV/c^{2} (pruned)}",
+                 "#DeltaR(subjets)", "Average fraction of shared tracks", 1, 0., 0.8, "Average_fraction_shared_tracks_vs_dRsubjets_QCD.eps", 1., 0.9, 0.12);
 
 
 //   plot2D("output_files_v2/BprimeBprimeToBHBHinc_M-800_HiggsTagging.root", "jetAnalyzerTrimmedJetMass/h2_BosonPt_dRdecay", "H#rightarrowb#bar{b}, #DeltaR(H,other b' decay products)>0.8",

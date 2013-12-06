@@ -311,11 +311,12 @@ void plot_eff_NoErrors(const string& fInputFile, const string& fPlot, const doub
 void makePlots()
 {
   // Subjet CSV discriminators
-  plot2D("output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRBhadron_CA8andAK5.root", "jetAnalyzerCAPrunedJetMass/h2_SubJet1CSV_SubJet2CSV_BosonMatched_JetMass_dRsubjets0p4to0p6",
-         "#splitline{H(120)#rightarrowb#bar{b}, CA R=0.8}{75<m_{jet}<135 GeV/c^{2} (pruned), Subjet CSVL}",
-         "Subjet_{1} CSV discr.", "Subjet_{2} CSV discr.", 1, 0, 1, 1, 0, 1, "CSV_dicsr_subjet1_vs_subjet2_HiggsToBBbar_BprimeBprimeToBHBHinc_M-1500.eps", 0.95, 1.1, 0.16, 0.07, 0.8);
+//   plot2D("output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRBhadron_CA8andAK5.root", "jetAnalyzerCAPrunedJetMass/h2_SubJet1CSV_SubJet2CSV_BosonMatched_JetMass_dRsubjets0p4to0p6",
+//          "#splitline{H(120)#rightarrowb#bar{b}, CA R=0.8}{75<m_{jet}<135 GeV/c^{2} (pruned), Subjet CSVL}",
+//          "Subjet_{1} CSV discr.", "Subjet_{2} CSV discr.", 1, 0, 1, 1, 0, 1, "CSV_dicsr_subjet1_vs_subjet2_HiggsToBBbar_BprimeBprimeToBHBHinc_M-1500.eps", 0.95, 1.1, 0.16, 0.07, 0.8);
 
   // CSVL
+  // BprimeBprimeToBHBHinc
   plot_eff("output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRBhadron_CA8andAK5.root", "jetAnalyzerCAPrunedJetMass/h2_SubJet1CSV_SubJet2CSV_BosonMatched_JetMass_dRsubjets",
            0.244, "#splitline{H(120)#rightarrowb#bar{b}, CA R=0.8}{75<m_{jet}<135 GeV/c^{2} (pruned), Subjet CSVL}",
            "#DeltaR(subjets)", "Tagging efficiency","Subjet_tag_correlation_SubjetCSVL_CAPrunedJetMass_HiggsToBBbar_BprimeBprimeToBHBHinc_M-1500.eps");
@@ -323,30 +324,79 @@ void makePlots()
 //   plot_eff("output_files_v2/BprimeBprimeToBHBHinc_M-1000_HiggsTagging_dRBhadron_CA8andAK5.root", "jetAnalyzerCAPrunedJetMass/h2_SubJet1CSV_SubJet2CSV_BosonMatched_JetMass_dRsubjets",
 //            0.244, "#splitline{H(120)#rightarrowb#bar{b}, CA R=0.8}{75<m_{jet}<135 GeV/c^{2} (pruned), Subjet CSVL}",
 //            "#DeltaR(subjets)", "Tagging efficiency","Subjet_tag_correlation_SubjetCSVL_CAPrunedJetMass_HiggsToBBbar_BprimeBprimeToBHBHinc_M-1000.eps");
-
+  // BprimeBprimeToBZBZinc
   plot_eff("output_files_v2/BprimeBprimeToBZBZinc_M-1200_HiggsTagging_dRBhadron_LightFlavor_CA8andAK5.root", "jetAnalyzerCAPrunedJetMass/h2_SubJet1CSV_SubJet2CSV_BosonMatched_JetMass_dRsubjets",
            0.244, "#splitline{Z#rightarrowq#bar{q} (q=u,d,s), CA R=0.8}{75<m_{jet}<135 GeV/c^{2} (pruned), Subjet CSVL}",
            "#DeltaR(subjets)", "Tagging efficiency","Subjet_tag_correlation_SubjetCSVL_CAPrunedJetMass_ZToQQbarLight_BprimeBprimeToBZBZinc_M-1200.eps", 0., 0.15);
+  // QCD
+  plot_eff("output_files_v2/QCDPythia6_HiggsTagging_Unweighted_dRBhadron_JetMass0toInf_jetFlavor_CA8andAK5.root", "jetAnalyzerCAPrunedJetMass/h2_SubJet1CSV_SubJet2CSV_BosonMatched_JetMass_dRsubjets",
+           0.244, "#splitline{QCD, CA R=0.8}{75<m_{jet}<135 GeV/c^{2} (pruned), Subjet CSVL}",
+           "#DeltaR(subjets)", "Tagging efficiency","Subjet_tag_correlation_SubjetCSVL_CAPrunedJetMass_QCD_Unweighted.eps", 0., 0.3);
+
+  plot_eff("output_files_v2/QCDPythia6_HiggsTagging_Unweighted_dRBhadron_JetMass0toInf_jetFlavor_CA8andAK5.root", "jetAnalyzerCAPrunedJetMass_bQuarksGSP/h2_SubJet1CSV_SubJet2CSV_BosonMatched_JetMass_dRsubjets",
+           0.244, "#splitline{QCD, CA R=0.8}{75<m_{jet}<135 GeV/c^{2} (pruned), Subjet CSVL}",
+           "#DeltaR(subjets)", "Tagging efficiency","Subjet_tag_correlation_SubjetCSVL_CAPrunedJetMass_QCD_bQuarksGSP_Unweighted.eps", 0., 1.0);
+
+  plot_eff("output_files_v2/QCDPythia6_HiggsTagging_Unweighted_dRBhadron_JetMass0toInf_jetFlavor_CA8andAK5.root", "jetAnalyzerCAPrunedJetMass_bQuarksME/h2_SubJet1CSV_SubJet2CSV_BosonMatched_JetMass_dRsubjets",
+           0.244, "#splitline{QCD, CA R=0.8}{75<m_{jet}<135 GeV/c^{2} (pruned), Subjet CSVL}",
+           "#DeltaR(subjets)", "Tagging efficiency","Subjet_tag_correlation_SubjetCSVL_CAPrunedJetMass_QCD_bQuarksME_Unweighted.eps", 0., 1.0);
+
+  plot_eff("output_files_v2/QCDPythia6_HiggsTagging_Unweighted_dRBhadron_JetMass0toInf_jetFlavor_CA8andAK5.root", "jetAnalyzerCAPrunedJetMass_cQuarks/h2_SubJet1CSV_SubJet2CSV_BosonMatched_JetMass_dRsubjets",
+           0.244, "#splitline{QCD, CA R=0.8}{75<m_{jet}<135 GeV/c^{2} (pruned), Subjet CSVL}",
+           "#DeltaR(subjets)", "Tagging efficiency","Subjet_tag_correlation_SubjetCSVL_CAPrunedJetMass_QCD_cQuarks_Unweighted.eps", 0., 0.65);
+
+  plot_eff("output_files_v2/QCDPythia6_HiggsTagging_Unweighted_dRBhadron_JetMass0toInf_jetFlavor_CA8andAK5.root", "jetAnalyzerCAPrunedJetMass_udsQuarks/h2_SubJet1CSV_SubJet2CSV_BosonMatched_JetMass_dRsubjets",
+           0.244, "#splitline{QCD, CA R=0.8}{75<m_{jet}<135 GeV/c^{2} (pruned), Subjet CSVL}",
+           "#DeltaR(subjets)", "Tagging efficiency","Subjet_tag_correlation_SubjetCSVL_CAPrunedJetMass_QCD_udsQuarks_Unweighted.eps", 0., 0.27);
+
+  plot_eff("output_files_v2/QCDPythia6_HiggsTagging_Unweighted_dRBhadron_JetMass0toInf_jetFlavor_CA8andAK5.root", "jetAnalyzerCAPrunedJetMass_gluons/h2_SubJet1CSV_SubJet2CSV_BosonMatched_JetMass_dRsubjets",
+           0.244, "#splitline{QCD, CA R=0.8}{75<m_{jet}<135 GeV/c^{2} (pruned), Subjet CSVL}",
+           "#DeltaR(subjets)", "Tagging efficiency","Subjet_tag_correlation_SubjetCSVL_CAPrunedJetMass_QCD_gluons_Unweighted.eps", 0., 0.25);
 
   plot_eff_NoErrors("output_files_v2/QCDPythia6_HiggsTagging_dRBhadron_jetFlavor_CA8andAK5.root", "jetAnalyzerCAPrunedJetMass/h2_SubJet1CSV_SubJet2CSV_BosonMatched_JetMass_dRsubjets",
                     0.244, "#splitline{QCD, CA R=0.8}{75<m_{jet}<135 GeV/c^{2} (pruned), Subjet CSVL}",
                     "#DeltaR(subjets)", "Tagging efficiency","Subjet_tag_correlation_SubjetCSVL_CAPrunedJetMass_QCD.eps", 0., 0.15);
 
   // CSVM
-  plot_eff("output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRBhadron_CA8andAK5.root", "jetAnalyzerCAPrunedJetMass/h2_SubJet1CSV_SubJet2CSV_BosonMatched_JetMass_dRsubjets",
-           0.679, "#splitline{H(120)#rightarrowb#bar{b}, CA R=0.8}{75<m_{jet}<135 GeV/c^{2} (pruned), Subjet CSVM}",
-           "#DeltaR(subjets)", "Tagging efficiency","Subjet_tag_correlation_SubjetCSVM_CAPrunedJetMass_HiggsToBBbar_BprimeBprimeToBHBHinc_M-1500.eps");
+  // BprimeBprimeToBHBHinc
+//   plot_eff("output_files_v2/BprimeBprimeToBHBHinc_M-1500_HiggsTagging_dRBhadron_CA8andAK5.root", "jetAnalyzerCAPrunedJetMass/h2_SubJet1CSV_SubJet2CSV_BosonMatched_JetMass_dRsubjets",
+//            0.679, "#splitline{H(120)#rightarrowb#bar{b}, CA R=0.8}{75<m_{jet}<135 GeV/c^{2} (pruned), Subjet CSVM}",
+//            "#DeltaR(subjets)", "Tagging efficiency","Subjet_tag_correlation_SubjetCSVM_CAPrunedJetMass_HiggsToBBbar_BprimeBprimeToBHBHinc_M-1500.eps");
 
 //   plot_eff("output_files_v2/BprimeBprimeToBHBHinc_M-1000_HiggsTagging_dRBhadron_CA8andAK5.root", "jetAnalyzerCAPrunedJetMass/h2_SubJet1CSV_SubJet2CSV_BosonMatched_JetMass_dRsubjets",
 //            0.679, "#splitline{H(120)#rightarrowb#bar{b}, CA R=0.8}{75<m_{jet}<135 GeV/c^{2} (pruned), Subjet CSVM}",
 //            "#DeltaR(subjets)", "Tagging efficiency","Subjet_tag_correlation_SubjetCSVM_CAPrunedJetMass_HiggsToBBbar_BprimeBprimeToBHBHinc_M-1000.eps");
-
-  plot_eff("output_files_v2/BprimeBprimeToBZBZinc_M-1200_HiggsTagging_dRBhadron_LightFlavor_CA8andAK5.root", "jetAnalyzerCAPrunedJetMass/h2_SubJet1CSV_SubJet2CSV_BosonMatched_JetMass_dRsubjets",
-           0.679, "#splitline{Z#rightarrowq#bar{q} (q=u,d,s), CA R=0.8}{75<m_{jet}<135 GeV/c^{2} (pruned), Subjet CSVM}",
-           "#DeltaR(subjets)", "Tagging efficiency","Subjet_tag_correlation_SubjetCSVM_CAPrunedJetMass_ZToQQbarLight_BprimeBprimeToBZBZinc_M-1200.eps", 0., 0.03);
-
-  plot_eff_NoErrors("output_files_v2/QCDPythia6_HiggsTagging_dRBhadron_jetFlavor_CA8andAK5.root", "jetAnalyzerCAPrunedJetMass/h2_SubJet1CSV_SubJet2CSV_BosonMatched_JetMass_dRsubjets",
-                    0.679, "#splitline{QCD, CA R=0.8}{75<m_{jet}<135 GeV/c^{2} (pruned), Subjet CSVM}",
-                    "#DeltaR(subjets)", "Tagging efficiency","Subjet_tag_correlation_SubjetCSVM_CAPrunedJetMass_QCD.eps", 0., 0.06);
+  // BprimeBprimeToBZBZinc
+//   plot_eff("output_files_v2/BprimeBprimeToBZBZinc_M-1200_HiggsTagging_dRBhadron_LightFlavor_CA8andAK5.root", "jetAnalyzerCAPrunedJetMass/h2_SubJet1CSV_SubJet2CSV_BosonMatched_JetMass_dRsubjets",
+//            0.679, "#splitline{Z#rightarrowq#bar{q} (q=u,d,s), CA R=0.8}{75<m_{jet}<135 GeV/c^{2} (pruned), Subjet CSVM}",
+//            "#DeltaR(subjets)", "Tagging efficiency","Subjet_tag_correlation_SubjetCSVM_CAPrunedJetMass_ZToQQbarLight_BprimeBprimeToBZBZinc_M-1200.eps", 0., 0.03);
+  // QCD
+//   plot_eff("output_files_v2/QCDPythia6_HiggsTagging_Unweighted_dRBhadron_JetMass0toInf_jetFlavor_CA8andAK5.root", "jetAnalyzerCAPrunedJetMass/h2_SubJet1CSV_SubJet2CSV_BosonMatched_JetMass_dRsubjets",
+//            0.679, "#splitline{QCD, CA R=0.8}{75<m_{jet}<135 GeV/c^{2} (pruned), Subjet CSVM}",
+//            "#DeltaR(subjets)", "Tagging efficiency","Subjet_tag_correlation_SubjetCSVM_CAPrunedJetMass_QCD_Unweighted.eps", 0., 0.1);
+//
+//   plot_eff("output_files_v2/QCDPythia6_HiggsTagging_Unweighted_dRBhadron_JetMass0toInf_jetFlavor_CA8andAK5.root", "jetAnalyzerCAPrunedJetMass_bQuarksGSP/h2_SubJet1CSV_SubJet2CSV_BosonMatched_JetMass_dRsubjets",
+//            0.679, "#splitline{QCD, CA R=0.8}{75<m_{jet}<135 GeV/c^{2} (pruned), Subjet CSVM}",
+//            "#DeltaR(subjets)", "Tagging efficiency","Subjet_tag_correlation_SubjetCSVM_CAPrunedJetMass_QCD_bQuarksGSP_Unweighted.eps", 0., 1.0);
+//
+//   plot_eff("output_files_v2/QCDPythia6_HiggsTagging_Unweighted_dRBhadron_JetMass0toInf_jetFlavor_CA8andAK5.root", "jetAnalyzerCAPrunedJetMass_bQuarksME/h2_SubJet1CSV_SubJet2CSV_BosonMatched_JetMass_dRsubjets",
+//            0.679, "#splitline{QCD, CA R=0.8}{75<m_{jet}<135 GeV/c^{2} (pruned), Subjet CSVM}",
+//            "#DeltaR(subjets)", "Tagging efficiency","Subjet_tag_correlation_SubjetCSVM_CAPrunedJetMass_QCD_bQuarksME_Unweighted.eps", 0., 1.0);
+//
+//   plot_eff("output_files_v2/QCDPythia6_HiggsTagging_Unweighted_dRBhadron_JetMass0toInf_jetFlavor_CA8andAK5.root", "jetAnalyzerCAPrunedJetMass_cQuarks/h2_SubJet1CSV_SubJet2CSV_BosonMatched_JetMass_dRsubjets",
+//            0.679, "#splitline{QCD, CA R=0.8}{75<m_{jet}<135 GeV/c^{2} (pruned), Subjet CSVM}",
+//            "#DeltaR(subjets)", "Tagging efficiency","Subjet_tag_correlation_SubjetCSVM_CAPrunedJetMass_QCD_cQuarks_Unweighted.eps", 0., 0.3);
+//
+//   plot_eff("output_files_v2/QCDPythia6_HiggsTagging_Unweighted_dRBhadron_JetMass0toInf_jetFlavor_CA8andAK5.root", "jetAnalyzerCAPrunedJetMass_udsQuarks/h2_SubJet1CSV_SubJet2CSV_BosonMatched_JetMass_dRsubjets",
+//            0.679, "#splitline{QCD, CA R=0.8}{75<m_{jet}<135 GeV/c^{2} (pruned), Subjet CSVM}",
+//            "#DeltaR(subjets)", "Tagging efficiency","Subjet_tag_correlation_SubjetCSVM_CAPrunedJetMass_QCD_udsQuarks_Unweighted.eps", 0., 0.04);
+//
+//   plot_eff("output_files_v2/QCDPythia6_HiggsTagging_Unweighted_dRBhadron_JetMass0toInf_jetFlavor_CA8andAK5.root", "jetAnalyzerCAPrunedJetMass_gluons/h2_SubJet1CSV_SubJet2CSV_BosonMatched_JetMass_dRsubjets",
+//            0.679, "#splitline{QCD, CA R=0.8}{75<m_{jet}<135 GeV/c^{2} (pruned), Subjet CSVM}",
+//            "#DeltaR(subjets)", "Tagging efficiency","Subjet_tag_correlation_SubjetCSVM_CAPrunedJetMass_QCD_gluons_Unweighted.eps", 0., 0.04);
+//
+//   plot_eff_NoErrors("output_files_v2/QCDPythia6_HiggsTagging_dRBhadron_jetFlavor_CA8andAK5.root", "jetAnalyzerCAPrunedJetMass/h2_SubJet1CSV_SubJet2CSV_BosonMatched_JetMass_dRsubjets",
+//                     0.679, "#splitline{QCD, CA R=0.8}{75<m_{jet}<135 GeV/c^{2} (pruned), Subjet CSVM}",
+//                     "#DeltaR(subjets)", "Tagging efficiency","Subjet_tag_correlation_SubjetCSVM_CAPrunedJetMass_QCD.eps", 0., 0.06);
 
 }

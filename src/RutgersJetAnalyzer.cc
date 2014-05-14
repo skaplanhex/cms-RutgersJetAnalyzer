@@ -21,10 +21,6 @@
 // system include files
 #include <memory>
 
-// FastJet include files
-#include "fastjet/PseudoJet.hh"
-// N-subjettiness include files
-#include "RutgersSandbox/RutgersJetAnalyzer/plugins/Njettiness.hh"
 // user include files
 #include <boost/shared_ptr.hpp>
 #include "FWCore/Framework/interface/Frameworkfwd.h"
@@ -100,8 +96,6 @@ private:
     const bool             useEventWeight;
     const edm::InputTag    genParticleTag;
     const edm::InputTag    jetsTag;
-    const bool             useGroomedJets;
-    const edm::InputTag    groomedJetsTag;
     const bool             useSubJets;
     const edm::InputTag    groomedBasicJetsTag;
     const bool             useAK5Jets;
@@ -122,8 +116,6 @@ private:
     const double           jetAbsEtaMax;
     const double           jetMassMin;
     const double           jetMassMax;
-    const bool             useOnePassKtAxes;
-    const bool             useGroomedJetSubstr;
     const bool             useUncorrMassForMassDrop;
     const std::string      bdiscriminator;
     const bool             doJetFlavor;
@@ -132,8 +124,6 @@ private:
     const bool             findGluonSplitting;
     const bool             findMatrixElement;
     const bool             eventDisplayPrintout;
-
-    Njettiness nsubjettinessCalculator;
 
     edm::Service<TFileService> fs;
 
@@ -279,8 +269,6 @@ RutgersJetAnalyzer::RutgersJetAnalyzer(const edm::ParameterSet& iConfig) :
   useEventWeight(iConfig.getParameter<bool>("UseEventWeight")),
   genParticleTag(iConfig.getParameter<edm::InputTag>("GenParticleTag")),
   jetsTag(iConfig.getParameter<edm::InputTag>("JetsTag")),
-  useGroomedJets(iConfig.getParameter<bool>("UseGroomedJets")),
-  groomedJetsTag(iConfig.getParameter<edm::InputTag>("GroomedJetsTag")),
   useSubJets(iConfig.getParameter<bool>("UseSubJets")),
   groomedBasicJetsTag(iConfig.getParameter<edm::InputTag>("GroomedBasicJetsTag")),
   useAK5Jets( iConfig.exists("UseAK5Jets") ? iConfig.getParameter<bool>("UseAK5Jets") : false ),
@@ -301,8 +289,6 @@ RutgersJetAnalyzer::RutgersJetAnalyzer(const edm::ParameterSet& iConfig) :
   jetAbsEtaMax(iConfig.getParameter<double>("JetAbsEtaMax")),
   jetMassMin(iConfig.getParameter<double>("JetMassMin")),
   jetMassMax(iConfig.getParameter<double>("JetMassMax")),
-  useOnePassKtAxes( iConfig.exists("UseOnePassKtAxes") ? iConfig.getParameter<bool>("UseOnePassKtAxes") : true ),
-  useGroomedJetSubstr( iConfig.exists("UseGroomedJetSubstructure") ? iConfig.getParameter<bool>("UseGroomedJetSubstructure") : false ),
   useUncorrMassForMassDrop( iConfig.exists("UseUncorrMassForMassDrop") ? iConfig.getParameter<bool>("UseUncorrMassForMassDrop") : true ),
   bdiscriminator(iConfig.getParameter<std::string>("Bdiscriminator")),
   doJetFlavor(iConfig.getParameter<bool>("DoJetFlavor")),
@@ -310,8 +296,7 @@ RutgersJetAnalyzer::RutgersJetAnalyzer(const edm::ParameterSet& iConfig) :
   useAltGSPbDef( iConfig.exists("UseAltGSPbDef") ? iConfig.getParameter<bool>("UseAltGSPbDef") : false ),
   findGluonSplitting( iConfig.exists("FindGluonSplitting") ? iConfig.getParameter<bool>("FindGluonSplitting") : false ),
   findMatrixElement( iConfig.exists("FindMatrixElement") ? iConfig.getParameter<bool>("FindMatrixElement") : false ),
-  eventDisplayPrintout( iConfig.exists("EventDisplayPrintout") ? iConfig.getParameter<bool>("EventDisplayPrintout") : false ),
-  nsubjettinessCalculator(( useOnePassKtAxes ? Njettiness::onepass_kt_axes : Njettiness::kt_axes ), NsubParameters(1.0, jetRadius, jetRadius))
+  eventDisplayPrintout( iConfig.exists("EventDisplayPrintout") ? iConfig.getParameter<bool>("EventDisplayPrintout") : false )
 
 {
     //now do what ever initialization is needed
@@ -549,9 +534,6 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
 
     edm::Handle<PatJetCollection> jets;
     iEvent.getByLabel(jetsTag,jets);
-
-    edm::Handle<PatJetCollection> groomedJets;
-    if( useGroomedJets ) iEvent.getByLabel(groomedJetsTag,groomedJets);
 
     edm::Handle<PatJetCollection> groomedBasicJets;
     if( useSubJets ) iEvent.getByLabel(groomedBasicJetsTag,groomedBasicJets);
@@ -886,25 +868,7 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
       h1_JetEta->Fill(it->eta(), eventWeight);
 
 
-      double jetMass = it->mass();
-      PatJetCollection::const_iterator groomedJetMatch;
-      bool groomedJetMatchFound = false;
-      if( useGroomedJets )
-      {
-        double dR = jetRadius;
-        for(PatJetCollection::const_iterator gjIt = groomedJets->begin(); gjIt != groomedJets->end(); ++gjIt)
-        {
-          double dR_temp = reco::deltaR( it->p4(), gjIt->p4() );
-          if( dR_temp < dR )
-          {
-            groomedJetMatchFound = true;
-            dR = dR_temp;
-            jetMass = gjIt->mass();
-            groomedJetMatch = gjIt;
-          }
-        }
-        if( !groomedJetMatchFound ) edm::LogError("NoMatchingGroomedJet") << "Matching groomed jet not found. Using the original jet mass.";
-      }
+      double jetMass = it->userFloat("ca8PFJetsCHSPrunedMass");
 
       h2_JetPt_JetPtOverGenJetPt->Fill(jetPt, (it->genJet()!=0 ? jetPt/(it->genJet()->pt()) : -10.), eventWeight);
       h2_JetPt_JetMass->Fill(jetPt, jetMass, eventWeight);
@@ -981,12 +945,13 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
       }
 
 
+      PatJetCollection::const_iterator groomedBasicJetMatch;
       // vector of pointers to subjets
       std::vector<const pat::Jet*> subjets;
       if( useSubJets )
       {
         double dR = jetRadius;
-        PatJetCollection::const_iterator groomedBasicJetMatch;
+        
         for(PatJetCollection::const_iterator gbjIt = groomedBasicJets->begin(); gbjIt != groomedBasicJets->end(); ++gbjIt)
         {
           double dR_temp = reco::deltaR( it->p4(), gbjIt->p4() );
@@ -998,7 +963,6 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
         }
         //std::cout << "number of subjets: " << groomedBasicJetMatch->numberOfDaughters() << std::endl;
         //std::cout << "jet pt: " << it->correctedJet("Uncorrected").p4().pt() << " eta=" << it->correctedJet("Uncorrected").p4().eta() << " phi=" << it->correctedJet("Uncorrected").p4().phi() << " nd=" << it->numberOfDaughters() << std::endl;
-        //std::cout << "groomed jet pt: " << groomedJetMatch->correctedJet("Uncorrected").p4().pt() << " eta=" << groomedJetMatch->correctedJet("Uncorrected").p4().eta() << " phi=" << groomedJetMatch->correctedJet("Uncorrected").p4().phi() << " nd=" << groomedJetMatch->numberOfDaughters() << std::endl;
         //std::cout << "groomed basic jet pt: " << groomedBasicJetMatch->p4().pt() << " eta=" << groomedBasicJetMatch->p4().eta() << " phi=" << groomedBasicJetMatch->p4().phi() << std::endl;
         for(unsigned d=0; d<groomedBasicJetMatch->numberOfDaughters(); ++d)
         {
@@ -1390,26 +1354,8 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
       else if(dRsubjets>=0.6 && dRsubjets<0.8) h2_SubJet1CSV_SubJet2CSV_BosonMatched_JetMass_dRsubjets0p6to0p8->Fill(subJet1_CSV_discr, subJet2_CSV_discr, eventWeight);
 
 
-      PatJetCollection::const_iterator substructJet = it;
-      if( useGroomedJetSubstr && groomedJetMatchFound ) substructJet = groomedJetMatch;
-      // N-subjettiness
-      std::vector<fastjet::PseudoJet> fjConstituents;
-      std::vector<edm::Ptr<reco::PFCandidate> > constituents = substructJet->getPFConstituents();
-      std::vector<edm::Ptr<reco::PFCandidate> >::const_iterator m;
-      for ( m = constituents.begin(); m != constituents.end(); ++m )
-      {
-        reco::PFCandidatePtr constit = *m;
-        if (constit->pt() == 0)
-        {
-          edm::LogWarning("NullTransverseMomentum") << "dropping input candidate with pt=0";
-          continue;
-        }
-        fjConstituents.push_back(fastjet::PseudoJet(constit->px(),constit->py(),constit->pz(),constit->energy()));
-        fjConstituents.back().set_user_index(m - constituents.begin());
-      }
-
-      double tau1 = nsubjettinessCalculator.getTau(1,fjConstituents);
-      double tau2 = nsubjettinessCalculator.getTau(2,fjConstituents);
+      double tau1 = it->userFloat("NjettinessCA8:tau1");
+      double tau2 = it->userFloat("NjettinessCA8:tau2");
       double tau2overtau1 = (tau1>0 ? tau2/tau1 : -10.);
 
       int nTracks = it->associatedTracks().size();
@@ -1531,9 +1477,9 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
       {
         double fatJetMass = jetMass;
         double subjetMass = ( subjets.size()>1 ? std::max( subjets.at(0)->mass(), subjets.at(1)->mass() ) : 0. );
-        if( useUncorrMassForMassDrop && groomedJetMatchFound && subjets.size()>1 )
+        if( useUncorrMassForMassDrop && subjets.size()>1 )
         {
-          fatJetMass = groomedJetMatch->correctedJet("Uncorrected").mass();
+          fatJetMass = groomedBasicJetMatch->correctedJet("Uncorrected").mass();
           subjetMass = std::max( subjets.at(0)->correctedJet("Uncorrected").mass(), subjets.at(1)->correctedJet("Uncorrected").mass() );
         }
         double massDrop = ( jetMass>0. ? subjetMass/fatJetMass : -10.);

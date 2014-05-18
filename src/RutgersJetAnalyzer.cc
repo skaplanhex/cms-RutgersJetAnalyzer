@@ -945,36 +945,40 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
       }
 
 
+      bool groomedBasicJetMatchFound = false;
       PatJetCollection::const_iterator groomedBasicJetMatch;
+      // try to find matching groomed fat jet
+      double dR = jetRadius;
+      for(PatJetCollection::const_iterator gbjIt = groomedBasicJets->begin(); gbjIt != groomedBasicJets->end(); ++gbjIt)
+      {
+        double dR_temp = reco::deltaR( it->p4(), gbjIt->p4() );
+        if( dR_temp < dR )
+        {
+          dR = dR_temp;
+          groomedBasicJetMatch = gbjIt;
+          groomedBasicJetMatchFound = true;
+        }
+      }
       // vector of pointers to subjets
       std::vector<const pat::Jet*> subjets;
       if( useSubJets )
       {
-        double dR = jetRadius;
-        
-        for(PatJetCollection::const_iterator gbjIt = groomedBasicJets->begin(); gbjIt != groomedBasicJets->end(); ++gbjIt)
-        {
-          double dR_temp = reco::deltaR( it->p4(), gbjIt->p4() );
-          if( dR_temp < dR )
-          {
-            dR = dR_temp;
-            groomedBasicJetMatch = gbjIt;
-          }
-        }
         //std::cout << "number of subjets: " << groomedBasicJetMatch->numberOfDaughters() << std::endl;
         //std::cout << "jet pt: " << it->correctedJet("Uncorrected").p4().pt() << " eta=" << it->correctedJet("Uncorrected").p4().eta() << " phi=" << it->correctedJet("Uncorrected").p4().phi() << " nd=" << it->numberOfDaughters() << std::endl;
         //std::cout << "groomed basic jet pt: " << groomedBasicJetMatch->p4().pt() << " eta=" << groomedBasicJetMatch->p4().eta() << " phi=" << groomedBasicJetMatch->p4().phi() << std::endl;
-        for(unsigned d=0; d<groomedBasicJetMatch->numberOfDaughters(); ++d)
+        if ( groomedBasicJetMatchFound )
         {
-          //std::cout << "subjet " << d << ": pt=" << groomedBasicJetMatch->daughter(d)->p4().pt()  << " eta=" << groomedBasicJetMatch->daughter(d)->p4().eta()  << " phi=" << groomedBasicJetMatch->daughter(d)->p4().phi() << std::endl;
-          const reco::Candidate *subjet =  groomedBasicJetMatch->daughter(d);
-          const pat::Jet *patsubjet = dynamic_cast<const pat::Jet*>(subjet);
-          subjets.push_back(patsubjet);
+          for(unsigned d=0; d<groomedBasicJetMatch->numberOfDaughters(); ++d)
+          {
+            //std::cout << "subjet " << d << ": pt=" << groomedBasicJetMatch->daughter(d)->p4().pt()  << " eta=" << groomedBasicJetMatch->daughter(d)->p4().eta()  << " phi=" << groomedBasicJetMatch->daughter(d)->p4().phi() << std::endl;
+            const reco::Candidate *subjet =  groomedBasicJetMatch->daughter(d);
+            const pat::Jet *patsubjet = dynamic_cast<const pat::Jet*>(subjet);
+            subjets.push_back(patsubjet);
+          }
         }
 
-
         if( subjets.size()<2 )
-          edm::LogError("TooFewSubjets") << "Less than two subjets found.";
+          edm::LogError("TooFewSubjets") << "Less than two subjets (" << subjets.size() << ") found.";
         else
         {
           if( subJetMode=="Kt" || subJetMode=="Pruned" )

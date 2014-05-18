@@ -924,7 +924,17 @@ if options.doBTagging:
     process.combinedSecondaryVertexCA8.trackPseudoSelection.jetDeltaRMax = cms.double(options.jetRadius) # default is 0.3
     process.combinedSecondaryVertexBJetTagsAOD.jetTagComputer = cms.string('combinedSecondaryVertexCA8')
     process.combinedInclusiveSecondaryVertexBJetTagsAOD.jetTagComputer = cms.string('combinedSecondaryVertexCA8')
-    
+
+#-------------------------------------
+## Various additional options
+for m in getattr(process,'jetAnalyzerSequence').moduleNames():
+    if not options.doBosonMatching:
+        setattr( getattr(process,m), 'DoBosonMatching', cms.bool(False) )
+    if not options.applyBosonIsolation:
+        setattr( getattr(process,m), 'ApplyBosonIsolation', cms.bool(False) )
+    if options.useEventWeight:
+        setattr( getattr(process,m), 'UseEventWeight', cms.bool(True) )
+
 #-------------------------------------
 ## Path definition
 process.p = cms.Path(

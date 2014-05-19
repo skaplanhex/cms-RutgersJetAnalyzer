@@ -102,6 +102,21 @@ options.register('runOnTopBkg', False,
     VarParsing.varType.bool,
     "Run on top background"
 )
+options.register('csvDiscriminator', 'combinedSecondaryVertexBJetTags',
+    VarParsing.multiplicity.singleton,
+    VarParsing.varType.string,
+    "CSV discriminator name"
+)
+options.register('useSVClustering', False,
+    VarParsing.multiplicity.singleton,
+    VarParsing.varType.bool,
+    "Use SV clustering"
+)
+options.register('useSVMomentum', False,
+    VarParsing.multiplicity.singleton,
+    VarParsing.varType.bool,
+    "Use SV momentum"
+)
 ## 'maxEvents' is already registered by the Framework, changing default value
 options.setDefault('maxEvents', 100)
 
@@ -166,9 +181,9 @@ process.options   = cms.untracked.PSet( wantSummary = cms.untracked.bool(options
 ## Input files
 process.source = cms.Source("PoolSource",
     fileNames = cms.untracked.vstring(
-        'file:patTuple_PF2PAT_v2.root'
-        #'file:/cms/ferencek/store/ferencek/WWtoAnything_ptmin500_TuneZ2Star_8TeV-pythia6-tauola/Summer12_DR53X-PU_S10_START53_V7A-v1_PATTuple_v2/6950c4b6452599a829ed09f6192c8cf5/patTuple_PF2PAT_v2_1_2_NZA.root'
-        #'file:/cms/ferencek/store/skaplan/BprimeBprimeToBHBHinc_M-1000_TuneZ2star_8TeV-madgraph/Summer12_DR53X-PU_S10_START53_V7C-v1_PATTuple_v2/6950c4b6452599a829ed09f6192c8cf5/patTuple_PF2PAT_v2_1_1_bnp.root'
+        # 'file:patTuple_PF2PAT_v2.root'
+        # 'file:/cms/ferencek/store/ferencek/WWtoAnything_ptmin500_TuneZ2Star_8TeV-pythia6-tauola/Summer12_DR53X-PU_S10_START53_V7A-v1_PATTuple_v2/6950c4b6452599a829ed09f6192c8cf5/patTuple_PF2PAT_v2_1_2_NZA.root'
+        'file:/cms/ferencek/store/skaplan/BprimeBprimeToBHBHinc_M-1000_TuneZ2star_8TeV-madgraph/Summer12_DR53X-PU_S10_START53_V7C-v1_PATTuple_v2/6950c4b6452599a829ed09f6192c8cf5/patTuple_PF2PAT_v2_1_1_bnp.root'
         #'file:/cms/ferencek/store/skaplan/BprimeBprimeToBHBHinc_M-1500_TuneZ2star_8TeV-madgraph/Summer12_DR53X-PU_S10_START53_V7C-v1_PATTuple_v2/6950c4b6452599a829ed09f6192c8cf5/patTuple_PF2PAT_v2_1_1_djM.root'
         #'file:/cms/ferencek/store/ferencek/TprimeToBWinc_M-1000_TuneZ2star_8TeV-madgraph/Summer12_DR53X-PU_S10_START53_V7A-v1_PATTuple_v2/6950c4b6452599a829ed09f6192c8cf5/patTuple_PF2PAT_v2_1_1_9ZZ.root'
         #'file:/cms/ferencek/store/ferencek/BprimeBprimeToBZBZinc_M-1200_TuneZ2star_8TeV-madgraph/Summer12_DR53X-PU_S10_START53_V7C-v1_PATTuple_v2/6950c4b6452599a829ed09f6192c8cf5/patTuple_PF2PAT_v2_1_1_vSQ.root'
@@ -598,25 +613,61 @@ process.ca8PFJetsCHSTrimmedMass = ca8PFJetsCHSPrunedLinks.clone(
 process.patJets.userData.userFloats.src += ['ca8PFJetsCHSPrunedMass','ca8PFJetsCHSFilteredMass','ca8PFJetsCHSTrimmedMass']
 
 #-------------------------------------
-## Enable clustering-based jet-SV association for IVF vertices and AK5 jets
-#process.inclusiveSecondaryVertexFinderTagInfosAODPFlow = process.inclusiveSecondaryVertexFinderTagInfosAODPFlow.clone(
-    #useSVClustering = cms.bool(True),
-    ##useSVMomentum   = cms.bool(True), # otherwise using SV flight direction
-    #jetAlgorithm    = cms.string("AntiKt"),
-    #rParam          = cms.double(0.5),
-    #ghostRescaling  = cms.double(1e-18)
-#)
-## Enable clustering-based jet-SV association for IVF vertices and pruned subjets of CA8 jets
-#process.inclusiveSecondaryVertexFinderTagInfosCA8PrunedSubjetsPFCHS = process.inclusiveSecondaryVertexFinderTagInfosCA8PrunedSubjetsPFCHS.clone(
-    #useSVClustering = cms.bool(True),
-    ##useSVMomentum   = cms.bool(True), # otherwise using SV flight direction
-    #jetAlgorithm    = cms.string("CambridgeAachen"),
-    #rParam          = cms.double(0.8),
-    #ghostRescaling  = cms.double(1e-18),
-    #fatJets         = cms.InputTag("ca8PFJetsCHS"),
-    #groomedFatJets   = cms.InputTag("ca8PFJetsCHSPruned")
-#)
-
+if options.useSVClustering:
+    ## Enable clustering-based jet-SV association for IVF vertices and AK5 jets
+    #process.inclusiveSecondaryVertexFinderTagInfosAODPFlow = process.inclusiveSecondaryVertexFinderTagInfosAODPFlow.clone(
+        #useSVClustering = cms.bool(True),
+        ##useSVMomentum   = cms.bool(True), # otherwise using SV flight direction
+        #jetAlgorithm    = cms.string("AntiKt"),
+        #rParam          = cms.double(0.5),
+        #ghostRescaling  = cms.double(1e-18)
+    #)
+    ## Enable clustering-based jet-SV association for IVF vertices and subjets of CA8 jets
+    process.inclusiveSecondaryVertexFinderTagInfosCA8FilteredSubjetsPFCHS = process.inclusiveSecondaryVertexFinderTagInfosCA8FilteredSubjetsPFCHS.clone(
+        useSVClustering = cms.bool(True),
+        useSVMomentum   = cms.bool(options.useSVMomentum), # otherwise using SV flight direction
+        jetAlgorithm    = cms.string("CambridgeAachen"),
+        rParam          = cms.double(0.8),
+        ghostRescaling  = cms.double(1e-18),
+        fatJets         = cms.InputTag("ca8PFJetsCHS"),
+        groomedFatJets   = cms.InputTag("ca8PFJetsCHSFiltered")
+    )
+    process.inclusiveSecondaryVertexFinderTagInfosCA8MDBDRSFilteredSubjetsPFCHS = process.inclusiveSecondaryVertexFinderTagInfosCA8MDBDRSFilteredSubjetsPFCHS.clone(
+        useSVClustering = cms.bool(True),
+        useSVMomentum   = cms.bool(options.useSVMomentum), # otherwise using SV flight direction
+        jetAlgorithm    = cms.string("CambridgeAachen"),
+        rParam          = cms.double(0.8),
+        ghostRescaling  = cms.double(1e-18),
+        fatJets         = cms.InputTag("ca8PFJetsCHS"),
+        groomedFatJets   = cms.InputTag("ca8PFJetsCHSMDBDRSFiltered")
+    )
+    process.inclusiveSecondaryVertexFinderTagInfosCA8KtBDRSFilteredSubjetsPFCHS = process.inclusiveSecondaryVertexFinderTagInfosCA8KtBDRSFilteredSubjetsPFCHS.clone(
+        useSVClustering = cms.bool(True),
+        useSVMomentum   = cms.bool(options.useSVMomentum), # otherwise using SV flight direction
+        jetAlgorithm    = cms.string("CambridgeAachen"),
+        rParam          = cms.double(0.8),
+        ghostRescaling  = cms.double(1e-18),
+        fatJets         = cms.InputTag("ca8PFJetsCHS"),
+        groomedFatJets   = cms.InputTag("ca8PFJetsCHSKtBDRSFiltered")
+    )
+    process.inclusiveSecondaryVertexFinderTagInfosCA8PrunedSubjetsPFCHS = process.inclusiveSecondaryVertexFinderTagInfosCA8PrunedSubjetsPFCHS.clone(
+        useSVClustering = cms.bool(True),
+        useSVMomentum   = cms.bool(options.useSVMomentum), # otherwise using SV flight direction
+        jetAlgorithm    = cms.string("CambridgeAachen"),
+        rParam          = cms.double(0.8),
+        ghostRescaling  = cms.double(1e-18),
+        fatJets         = cms.InputTag("ca8PFJetsCHS"),
+        groomedFatJets   = cms.InputTag("ca8PFJetsCHSPruned")
+    )
+    process.inclusiveSecondaryVertexFinderTagInfosCA8KtSubjetsPFCHS = process.inclusiveSecondaryVertexFinderTagInfosCA8KtSubjetsPFCHS.clone(
+        useSVClustering = cms.bool(True),
+        useSVMomentum   = cms.bool(options.useSVMomentum), # otherwise using SV flight direction
+        jetAlgorithm    = cms.string("CambridgeAachen"),
+        rParam          = cms.double(0.8),
+        ghostRescaling  = cms.double(1e-18),
+        fatJets         = cms.InputTag("ca8PFJetsCHS"),
+        groomedFatJets   = cms.InputTag("ca8PFJetsCHSKtPruned")
+    )
 #-------------------------------------
 ## New jet flavor still requires some cfg-level adjustments for subjets until it is better integrated into PAT
 ## Adjust the jet flavor for CA8 filtered subjets
@@ -724,7 +775,7 @@ process.jetAnalyzerCA8FatJets_PrunedSubjets = cms.EDAnalyzer('RutgersJetAnalyzer
     JetAbsEtaMax              = cms.double(1.5),
     JetMassMin                = cms.double(75.),
     JetMassMax                = cms.double(135.),
-    Bdiscriminator            = cms.string("combinedSecondaryVertexBJetTags"),
+    Bdiscriminator            = cms.string(options.csvDiscriminator),
     DoJetFlavor               = cms.bool(False),
     JetFlavorPdgIds           = cms.vint32(5)
 )
@@ -750,7 +801,7 @@ process.jetAnalyzerCA8FatJets_FilteredSubjets = cms.EDAnalyzer('RutgersJetAnalyz
     JetAbsEtaMax              = cms.double(1.5),
     JetMassMin                = cms.double(75.),
     JetMassMax                = cms.double(135.),
-    Bdiscriminator            = cms.string("combinedSecondaryVertexBJetTags"),
+    Bdiscriminator            = cms.string(options.csvDiscriminator),
     DoJetFlavor               = cms.bool(False),
     JetFlavorPdgIds           = cms.vint32(5)
 )
@@ -776,7 +827,7 @@ process.jetAnalyzerCA8FatJets_MDBDRSFilteredSubjets = cms.EDAnalyzer('RutgersJet
     JetAbsEtaMax              = cms.double(1.5),
     JetMassMin                = cms.double(75.),
     JetMassMax                = cms.double(135.),
-    Bdiscriminator            = cms.string("combinedSecondaryVertexBJetTags"),
+    Bdiscriminator            = cms.string(options.csvDiscriminator),
     DoJetFlavor               = cms.bool(False),
     JetFlavorPdgIds           = cms.vint32(5)
 )
@@ -802,7 +853,7 @@ process.jetAnalyzerCA8FatJets_KtBDRSFilteredSubjets = cms.EDAnalyzer('RutgersJet
     JetAbsEtaMax              = cms.double(1.5),
     JetMassMin                = cms.double(75.),
     JetMassMax                = cms.double(135.),
-    Bdiscriminator            = cms.string("combinedSecondaryVertexBJetTags"),
+    Bdiscriminator            = cms.string(options.csvDiscriminator),
     DoJetFlavor               = cms.bool(False),
     JetFlavorPdgIds           = cms.vint32(5)
 )
@@ -828,7 +879,7 @@ process.jetAnalyzerCA8FatJets_KtSubjets = cms.EDAnalyzer('RutgersJetAnalyzer',
     JetAbsEtaMax              = cms.double(1.5),
     JetMassMin                = cms.double(75.),
     JetMassMax                = cms.double(135.),
-    Bdiscriminator            = cms.string("combinedSecondaryVertexBJetTags"),
+    Bdiscriminator            = cms.string(options.csvDiscriminator),
     DoJetFlavor               = cms.bool(False),
     JetFlavorPdgIds           = cms.vint32(5)
 )

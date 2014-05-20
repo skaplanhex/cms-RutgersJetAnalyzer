@@ -27,6 +27,21 @@ options.register('outFilename', 'outfile',
     VarParsing.varType.string,
     "Output file name"
 )
+options.register('useExternalInput', False,
+    VarParsing.multiplicity.singleton,
+    VarParsing.varType.bool,
+    "Use external input"
+)
+options.register('externalInput', '',
+    VarParsing.multiplicity.singleton,
+    VarParsing.varType.string,
+    "Path of an external list of input files"
+)
+options.register('dumpPythonCfg', '',
+    VarParsing.multiplicity.singleton,
+    VarParsing.varType.string,
+    "Name of the rewritten cfg file"
+)
 options.register('reportEvery', 10,
     VarParsing.multiplicity.singleton,
     VarParsing.varType.int,
@@ -192,6 +207,9 @@ process.source = cms.Source("PoolSource",
         #'file:/cms/ferencek/store/ferencek/RadionToHHTo4B_M-1500_TuneZ2star_8TeV-nm-madgraph/Summer12_DR53X-PU_S10_START53_V7C-v1_PATTuple_v2/6950c4b6452599a829ed09f6192c8cf5/patTuple_PF2PAT_v2_1_1_fdQ.root'
     )
 )
+# If using external input files
+if options.useExternalInput:
+    process.source.fileNames = cms.untracked.vstring( open(options.externalInput,"r").read().splitlines() )
 
 #-------------------------------------
 outFilename = string.replace(options.outFilename,'.root','') + '_mc.root'
@@ -999,3 +1017,7 @@ del process.out
 
 ## Schedule definition
 process.schedule = cms.Schedule(process.p)
+
+## Rewrite the cfg file
+if options.dumpPythonCfg != '':
+    open(options.dumpPythonCfg,'w').write(process.dumpPython())

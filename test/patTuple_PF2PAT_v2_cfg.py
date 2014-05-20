@@ -130,8 +130,7 @@ process.out = cms.OutputModule("PoolOutputModule",
 postfix = "PFlow"
 jetAlgo="AK7"
 usePF2PAT(process,runPF2PAT=True, jetAlgo=jetAlgo, runOnMC=not options.runOnData, postfix=postfix,
-          jetCorrections=inputJetCorrLabelAK7, pvCollection=cms.InputTag('goodOfflinePrimaryVertices'),
-          doJTA=False, doBTagging=False, doJetID=False)
+          jetCorrections=inputJetCorrLabelAK7, pvCollection=cms.InputTag('goodOfflinePrimaryVertices'))
 
 ## Top projections in PF2PAT
 getattr(process,"pfNoPileUp"+postfix).enable = options.usePFchs
@@ -154,8 +153,8 @@ switchJetCollection(process,
 )
 
 from PhysicsTools.PatAlgos.tools.coreTools import *
-## Remove jets and taus from the PAT sequence (jets will be created on-the-fly at the analysis level)
-removeSpecificPATObjects(process,names=['Jets','Taus'],postfix=postfix)
+## Remove taus from the PAT sequence
+removeSpecificPATObjects(process,names=['Taus'],postfix=postfix)
 
 ## Produce a collection of good primary vertices
 from PhysicsTools.SelectorUtils.pvSelector_cfi import pvSelector

@@ -52,17 +52,17 @@
 // class declaration
 //
 
-struct ordering_dR {
+struct orderBydR {
     const pat::Jet* mJet;
-    ordering_dR(const pat::Jet* fJet) : mJet(fJet) {}
+    orderBydR(const pat::Jet* fJet) : mJet(fJet) {}
     bool operator ()(const pat::Jet* const& a, const pat::Jet* const& b) {
       return reco::deltaR( mJet->p4(), a->p4() ) < reco::deltaR( mJet->p4(), b->p4() );
     }
 };
 
-struct ordering_Pt {
+struct orderByPt {
     const std::string mCorrLevel;
-    ordering_Pt(const std::string fCorrLevel) : mCorrLevel(fCorrLevel) {}
+    orderByPt(const std::string fCorrLevel) : mCorrLevel(fCorrLevel) {}
     bool operator ()(const pat::Jet* const& a, const pat::Jet* const& b) {
       if( mCorrLevel=="Uncorrected" )
         return a->correctedJet("Uncorrected").pt() > b->correctedJet("Uncorrected").pt();
@@ -215,10 +215,14 @@ private:
     TH2D *h2_JetPt_JetCSV_BosonMatched_JetMass;
     TH2D *h2_JetPt_SubJetMinCSV_BosonMatched_JetMass;
     TH2D *h2_JetPt_SubJetMaxCSV_BosonMatched_JetMass;
-
+    // JP plots
     TH2D *h2_JetPt_JetJP_BosonMatched_JetMass;
     TH2D *h2_JetPt_SubJetMinJP_BosonMatched_JetMass;
     TH2D *h2_JetPt_SubJetMaxJP_BosonMatched_JetMass;
+    // JBP plots
+    TH2D *h2_JetPt_JetJBP_BosonMatched_JetMass;
+    TH2D *h2_JetPt_SubJetMinJBP_BosonMatched_JetMass;
+    TH2D *h2_JetPt_SubJetMaxJBP_BosonMatched_JetMass;
 
     TH2D *h2_JetPt_AK5JetCSV_BosonMatched_JetMass;
     TH2D *h2_JetPt_AK5JetMinCSV_BosonMatched_JetMass;
@@ -408,6 +412,10 @@ RutgersJetAnalyzer::RutgersJetAnalyzer(const edm::ParameterSet& iConfig) :
     h2_JetPt_JetJP_BosonMatched_JetMass = fs->make<TH2D>("h2_JetPt_JetJP_BosonMatched_JetMass",";p_{T} [GeV];Jet JP Discr",ptBins,ptMin,ptMax,100,0.,2.);
     h2_JetPt_SubJetMinJP_BosonMatched_JetMass = fs->make<TH2D>("h2_JetPt_SubJetMinJP_BosonMatched_JetMass",";p_{T} [GeV];SubJet min JP Discr",ptBins,ptMin,ptMax,100,0.,2.);
     h2_JetPt_SubJetMaxJP_BosonMatched_JetMass = fs->make<TH2D>("h2_JetPt_SubJetMaxJP_BosonMatched_JetMass",";p_{T} [GeV];SubJet max JP Discr",ptBins,ptMin,ptMax,100,0.,2.);
+
+    h2_JetPt_JetJBP_BosonMatched_JetMass = fs->make<TH2D>("h2_JetPt_JetJBP_BosonMatched_JetMass",";p_{T} [GeV];Jet JBP Discr",ptBins,ptMin,ptMax,100,0.,10.);
+    h2_JetPt_SubJetMinJBP_BosonMatched_JetMass = fs->make<TH2D>("h2_JetPt_SubJetMinJBP_BosonMatched_JetMass",";p_{T} [GeV];SubJet min JBP Discr",ptBins,ptMin,ptMax,100,0.,10.);
+    h2_JetPt_SubJetMaxJBP_BosonMatched_JetMass = fs->make<TH2D>("h2_JetPt_SubJetMaxJBP_BosonMatched_JetMass",";p_{T} [GeV];SubJet max JBP Discr",ptBins,ptMin,ptMax,100,0.,10.);
 
     h2_JetPt_AK5JetCSV_BosonMatched_JetMass = fs->make<TH2D>("h2_JetPt_AK5JetCSV_BosonMatched_JetMass",";p_{T} [GeV];AK5 Jet CSV Discr",ptBins,ptMin,ptMax,100,0.,1.);
     h2_JetPt_AK5JetMinCSV_BosonMatched_JetMass = fs->make<TH2D>("h2_JetPt_AK5JetMinCSV_BosonMatched_JetMass",";p_{T} [GeV];AK5 Jets min CSV Discr",ptBins,ptMin,ptMax,100,0.,1.);
@@ -986,20 +994,20 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
             if( subjets.size()>2 )
             {
               edm::LogError("TooManySubjets") << "More than two subjets found. Will take the two subjets closest to the jet axis.";
-              std::sort(subjets.begin(), subjets.end(), ordering_dR(&(*it)));
+              std::sort(subjets.begin(), subjets.end(), orderBydR(&(*it)));
               subjets.erase(subjets.begin()+2,subjets.end());
               //for(unsigned i=0; i<subjets.size(); ++i)
                 //std::cout << "dR(jet,subjet) for subjet" << i << ": " << reco::deltaR( it->p4(), subjets.at(i)->p4() ) << std::endl;
             }
             // sort subjets by uncorrected Pt
-            std::sort(subjets.begin(), subjets.end(), ordering_Pt("Uncorrected"));
+            std::sort(subjets.begin(), subjets.end(), orderByPt("Uncorrected"));
             //for(unsigned i=0; i<subjets.size(); ++i)
               //std::cout << "Uncorrected Pt for subjet" << i << ": " << subjets.at(i)->correctedJet("Uncorrected").pt() << std::endl;
           }
           else if( subJetMode=="Filtered" )
           {
             // sort subjets by uncorrected Pt
-            std::sort(subjets.begin(), subjets.end(), ordering_Pt("Uncorrected"));
+            std::sort(subjets.begin(), subjets.end(), orderByPt("Uncorrected"));
             //for(unsigned i=0; i<subjets.size(); ++i)
               //std::cout << "Uncorrected Pt for subjet" << i << ": " << subjets.at(i)->correctedJet("Uncorrected").pt() << std::endl;
           }
@@ -1119,8 +1127,10 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
       // get b-tag discriminators
       double jet_CSV_discr = it->bDiscriminator((bdiscriminator).c_str());
       double jet_JP_discr = it->bDiscriminator("jetProbabilityBJetTags");
+      double jet_JBP_discr = it->bDiscriminator("jetBProbabilityBJetTags");
       double subJet1_CSV_discr = -999., subJet2_CSV_discr = -999.;
       double subJet1_JP_discr = -999., subJet2_JP_discr = -999.;
+      double subJet1_JBP_discr = -999., subJet2_JBP_discr = -999.;
       double ak5Jet_CSV_discr = -999., ak5Jet1_CSV_discr = -999., ak5Jet2_CSV_discr = -999.;
       if( subjets.size()>1 )
       {
@@ -1129,6 +1139,9 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
 
         subJet1_JP_discr = subjets.at(0)->bDiscriminator("jetProbabilityBJetTags");
         subJet2_JP_discr = subjets.at(1)->bDiscriminator("jetProbabilityBJetTags");
+
+        subJet1_JBP_discr = subjets.at(0)->bDiscriminator("jetBProbabilityBJetTags");
+        subJet2_JBP_discr = subjets.at(1)->bDiscriminator("jetBProbabilityBJetTags");
       }
       if( matchedAK5Jets.size()>0 )
         ak5Jet_CSV_discr = matchedAK5Jets.at(sortedMatchedAK5JetsIdx.back())->bDiscriminator(bdiscriminator.c_str());
@@ -1141,6 +1154,8 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
       double maxSubJet_CSV_discr = std::max(subJet1_CSV_discr, subJet2_CSV_discr);
       double minSubJet_JP_discr = std::min(subJet1_JP_discr, subJet2_JP_discr);
       double maxSubJet_JP_discr = std::max(subJet1_JP_discr, subJet2_JP_discr);
+      double minSubJet_JBP_discr = std::min(subJet1_JBP_discr, subJet2_JBP_discr);
+      double maxSubJet_JBP_discr = std::max(subJet1_JBP_discr, subJet2_JBP_discr);
       double minAK5Jets_CSV_discr = std::min(ak5Jet1_CSV_discr, ak5Jet2_CSV_discr);
       double jet_DoubleB_discr = it->bDiscriminator("doubleSecondaryVertexHighEffBJetTags");
 
@@ -1328,15 +1343,19 @@ RutgersJetAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
       h1_SubJetMaxCSVDiscr_BosonMatched_JetMass->Fill( maxSubJet_CSV_discr, eventWeight);
       h1_JetDoubleBDiscr_BosonMatched_JetMass->Fill( jet_DoubleB_discr, eventWeight);
 
-      h2_JetPt_JetCSV_BosonMatched_JetMass->Fill(jetPt, jet_CSV_discr, eventWeight);;
+      h2_JetPt_JetCSV_BosonMatched_JetMass->Fill(jetPt, jet_CSV_discr, eventWeight);
       h2_JetPt_SubJetMinCSV_BosonMatched_JetMass->Fill(jetPt, minSubJet_CSV_discr, eventWeight);
       h2_JetPt_SubJetMaxCSV_BosonMatched_JetMass->Fill(jetPt, maxSubJet_CSV_discr, eventWeight);
 
-      h2_JetPt_JetJP_BosonMatched_JetMass->Fill(jetPt, jet_JP_discr, eventWeight);;
+      h2_JetPt_JetJP_BosonMatched_JetMass->Fill(jetPt, jet_JP_discr, eventWeight);
       h2_JetPt_SubJetMinJP_BosonMatched_JetMass->Fill(jetPt, minSubJet_JP_discr, eventWeight);
       h2_JetPt_SubJetMaxJP_BosonMatched_JetMass->Fill(jetPt, maxSubJet_JP_discr, eventWeight);
 
-      h2_JetPt_AK5JetCSV_BosonMatched_JetMass->Fill(jetPt, ak5Jet_CSV_discr, eventWeight);;
+      h2_JetPt_JetJBP_BosonMatched_JetMass->Fill(jetPt, jet_JBP_discr, eventWeight);
+      h2_JetPt_SubJetMinJBP_BosonMatched_JetMass->Fill(jetPt, minSubJet_JBP_discr, eventWeight);
+      h2_JetPt_SubJetMaxJBP_BosonMatched_JetMass->Fill(jetPt, maxSubJet_JBP_discr, eventWeight);
+
+      h2_JetPt_AK5JetCSV_BosonMatched_JetMass->Fill(jetPt, ak5Jet_CSV_discr, eventWeight);
       h2_JetPt_AK5JetMinCSV_BosonMatched_JetMass->Fill(jetPt, minAK5Jets_CSV_discr, eventWeight);
 
       if( jet_CSV_discr>0.244 ) h1_JetPt_BosonMatched_JetMass_CSVL->Fill(jetPt, eventWeight);

@@ -35,7 +35,7 @@ def main():
 
   # make sure all necessary input parameters are provided
   if not (options.main_workdir and options.dataset_list and options.cmssw_cfg and options.crab_cfg_template):
-    print usage
+    parser.print_help()
     sys.exit()
 
   main_workdir = options.main_workdir
@@ -110,7 +110,9 @@ def main():
     else:
       crab_cfg_content = re.sub('CFG_PARAMETERS','noprint',crab_cfg_content)
     crab_cfg_content = re.sub('WORKING_DIR',os.path.join(main_workdir,dataset),crab_cfg_content)
-    crab_cfg_content = re.sub('PUBLICATION_NAME',line_elements[9] + (('_' + line_elements[4]) if line_elements[4] != '-' else ''),crab_cfg_content)
+    publication_name = line_elements[9] + (('_' + line_elements[4]) if line_elements[4] != '-' else '')
+    crab_cfg_content = re.sub('REMOTE_DIR', os.getenv('LOGNAME') + '/' + line_elements[0].split('/')[1 ] + '/' + publication_name,crab_cfg_content)
+    crab_cfg_content = re.sub('PUBLICATION_NAME',publication_name,crab_cfg_content)
 
     # create a CRAB cfg file
     crab_cfg_name = os.path.join(cfg_files_dir,dataset + '_crab.cfg')

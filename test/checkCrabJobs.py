@@ -39,7 +39,7 @@ def main():
 
   # make sure all necessary input parameters are provided
   if not options.main_workdir:
-    print usage
+    parser.print_help()
     sys.exit()
 
   if len(sys.argv)>4:

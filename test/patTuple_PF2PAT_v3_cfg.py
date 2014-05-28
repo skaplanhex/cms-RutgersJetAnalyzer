@@ -56,6 +56,12 @@ options.register('usePFchs',
     VarParsing.varType.bool,
     "Use PFchs"
 )
+options.register('useExtPFchs',
+    False,
+    VarParsing.multiplicity.singleton,
+    VarParsing.varType.bool,
+    "Use extended PFchs"
+)
 options.register('useHLTFiltering',
     False,
     VarParsing.multiplicity.singleton,
@@ -152,6 +158,9 @@ usePF2PAT(process,runPF2PAT=True, jetAlgo=jetAlgo, runOnMC=not options.runOnData
 
 ## Top projections in PF2PAT
 getattr(process,"pfPileUp"+postfix).checkClosestZVertex = False
+if options.useExtPFchs:
+    getattr(process,"pfPileUp"+postfix).useJets = True
+    getattr(process,"pfPileUp"+postfix).useMuons = True
 getattr(process,"pfNoPileUp"+postfix).enable = options.usePFchs
 getattr(process,"pfNoMuon"+postfix).enable = True
 getattr(process,"pfNoElectron"+postfix).enable = True

@@ -75,7 +75,7 @@ std::string getHistName(std::string grooming = "Pruned",std::string algo = "CSV"
   else
     return "jetAnalyzerCA8FatJets_"+grooming+"Subjets/h2_JetPt_SubJetMin"+algo+"_BosonMatched_JetMass"; 
 }
-void plotEfficiencyCurves(std::map< std::string,TGraph* > graphs, const string& fTitle, const string& fXAxisTitle, const string& fYAxisTitle, const string& fOutputFile, const double fXmin, const double fXmax, const double fYmin, const double fYmax,const Int_t fLogy=0, const double fOPL1=0.244, const double fOPM1=0.679, const double fOPT1=0.898){
+void plotEfficiencyCurves(std::map< std::string,TGraph* > graphs, const string& fTitle, const string& fXAxisTitle, const string& fYAxisTitle, const string& fExtraInfo, const string& fOutputFile, const double fXmin, const double fXmax, const double fYmin, const double fYmax,const Int_t fLogy=0, const double fOPL1=0.244, const double fOPM1=0.679, const double fOPT1=0.898){
 
   gROOT->SetBatch(kTRUE);
   setEXOStyle();
@@ -127,6 +127,10 @@ void plotEfficiencyCurves(std::map< std::string,TGraph* > graphs, const string& 
   l1.SetTextSize(0.045);
   l1.SetTextFont(62);
   l1.DrawLatex(0.14,0.96, "CMS Simulation Preliminary, #sqrt{s} = 8 TeV");
+
+  l1.SetTextFont(42);
+  l1.SetTextSize(0.025);
+  l1.DrawLatex(0.48,0.18, fExtraInfo.c_str());
   c->SaveAs(fOutputFile.c_str());
   delete c;
   delete legend;
@@ -355,189 +359,74 @@ void makePlots()
   graphsPt700ToInf["Subjet CSV (MDBDRS)"]=getEfficiencyCurve("BprimeM1500_MDPlots.root","QCDPythia6_MDPlots.root",getHistName("MDBDRSFiltered","CSV",true),700,1100);
   graphsPt700ToInf["Subjet CSV (kTBDRS)"]=getEfficiencyCurve("BprimeM1500_MDPlots.root","QCDPythia6_MDPlots.root",getHistName("KtBDRSFiltered","CSV",true),700,1100);
 
-  plotEfficiencyCurves(graphsPt300To500,"#splitline{CA R=0.8, 300<p_{T}<500 GeV/c}{75<m_{jet}<135 GeV/c^{2} (pruned)}", "b-tagging efficiency (H(120)#rightarrowb#bar{b})", "Misidentification probability (QCD)","test.png",0, 1, 1E-3, 1,1);
-  plotEfficiencyCurves(graphsPt700ToInf,"#splitline{CA R=0.8, p_{T}>700 GeV/c}{75<m_{jet}<135 GeV/c^{2} (pruned)}", "b-tagging efficiency (H(120)#rightarrowb#bar{b})", "Misidentification probability (QCD)","test2.png",0, 1, 1E-3, 1,1);
+  plotEfficiencyCurves(graphsPt300To500,"#splitline{CA R=0.8, 300<p_{T}<500 GeV/c}{75<m_{jet}<135 GeV/c^{2} (pruned)}", "b-tagging efficiency (H(120)#rightarrowb#bar{b})", "Misidentification probability (QCD)","","btagperfcomp_Pt300to500.png",0, 1, 1E-3, 1,1);
+  plotEfficiencyCurves(graphsPt700ToInf,"#splitline{CA R=0.8, p_{T}>700 GeV/c}{75<m_{jet}<135 GeV/c^{2} (pruned)}", "b-tagging efficiency (H(120)#rightarrowb#bar{b})", "Misidentification probability (QCD)","","btagperfcomp_Pt700toInf.png",0, 1, 1E-3, 1,1);
+
+  graphsPt300To500.clear();
+  graphsPt700ToInf.clear();
+
+  graphsPt300To500["Fat Jet CSV (BTV-13-001)"]=getEfficiencyCurve("BPrimeM1000plots.root","QCDPythia6Plots.root",getHistName("Pruned","CSVL",false),300,500);
+  graphsPt300To500["Subjet CSV (Pruned)"]=getEfficiencyCurve("BprimeM1000_IVF_ExplicitJTA_Plots.root","QCDPythia6_IVF_ExplicitJTA_Plots.root",getHistName("Pruned","CSV",true),300,500);
+  graphsPt300To500["Subjet CSV (Filtered)"]=getEfficiencyCurve("BprimeM1000_IVF_ExplicitJTA_Plots.root","QCDPythia6_IVF_ExplicitJTA_Plots.root",getHistName("Filtered","CSV",true),300,500);
+  graphsPt300To500["Subjet CSV (kT)"]=getEfficiencyCurve("BprimeM1000_IVF_ExplicitJTA_Plots.root","QCDPythia6_IVF_ExplicitJTA_Plots.root",getHistName("Kt","CSV",true),300,500);
+  graphsPt300To500["Subjet CSV (MDBDRS)"]=getEfficiencyCurve("BprimeM1000_IVF_ExplicitJTA_Plots.root","QCDPythia6_IVF_ExplicitJTA_Plots.root",getHistName("MDBDRSFiltered","CSV",true),300,500);
+  graphsPt300To500["Subjet CSV (kTBDRS)"]=getEfficiencyCurve("BprimeM1000_IVF_ExplicitJTA_Plots.root","QCDPythia6_IVF_ExplicitJTA_Plots.root",getHistName("KtBDRSFiltered","CSV",true),300,500);
 
 
-// efficiency_curves_comp_xrange("BPrimeM1000plots.root", "BPrimeM1000plots_newcuts.root",
-//          "QCDPythia6Plots.root", "QCDPythia6Plots_NewCuts.root",
-//          "jetAnalyzerCA8FatJets_PrunedSubjets/h2_JetPt_JetCSVL_BosonMatched_JetMass", "jetAnalyzerCA8FatJets_PrunedSubjets/h2_JetPt_SubJetMinCSVL_BosonMatched_JetMass",
-//          "jetAnalyzerCA8FatJets_PrunedSubjets/h2_JetPt_JetCSVL_BosonMatched_JetMass", "jetAnalyzerCA8FatJets_PrunedSubjets/h2_JetPt_SubJetMinCSVL_BosonMatched_JetMass",
-//          300, 500, "#splitline{CA R=0.8, 300<p_{T}<500 GeV/c}{75<m_{jet}<135 GeV/c^{2} (pruned)}", "b-tagging efficiency (H(120)#rightarrowb#bar{b})", "Misidentification probability (QCD)","Fat jet CSV (BTV-13-001)", "Subjet CSV",
-//          0, 1, 1E-3, 1, "b-tag_eff_vs_mistag_CA8_QCDBkg_Pt300to500_JetMass_Pruned.png", 1);
-// efficiency_curves_comp_xrange("BPrimeM1500plots.root", "BPrimeM1500plots_newcuts.root",
-//          "QCDPythia6Plots.root", "QCDPythia6Plots_NewCuts.root",
-//          "jetAnalyzerCA8FatJets_PrunedSubjets/h2_JetPt_JetCSVL_BosonMatched_JetMass", "jetAnalyzerCA8FatJets_PrunedSubjets/h2_JetPt_SubJetMinCSVL_BosonMatched_JetMass",
-//          "jetAnalyzerCA8FatJets_PrunedSubjets/h2_JetPt_JetCSVL_BosonMatched_JetMass", "jetAnalyzerCA8FatJets_PrunedSubjets/h2_JetPt_SubJetMinCSVL_BosonMatched_JetMass",
-//          700, 1100, "#splitline{CA R=0.8, p_{T}>700 GeV/c}{75<m_{jet}<135 GeV/c^{2} (pruned)}", "b-tagging efficiency (H(120)#rightarrowb#bar{b})", "Misidentification probability (QCD)","Fat jet CSV (BTV-13-001)", "Subjet CSV",
-//          0, 1, 1E-3, 1, "b-tag_eff_vs_mistag_CA8_QCDBkg_Pt700toInf_JetMass_Pruned.png", 1);
+  graphsPt700ToInf["Fat Jet CSV (BTV-13-001)"]=getEfficiencyCurve("BPrimeM1500plots.root","QCDPythia6Plots.root",getHistName("Pruned","CSVL",false),700,1100);
+  graphsPt700ToInf["Subjet CSV (Pruned)"]=getEfficiencyCurve("BprimeM1500_IVF_ExplicitJTA_Plots.root","QCDPythia6_IVF_ExplicitJTA_Plots.root",getHistName("Pruned","CSV",true),700,1100);
+  graphsPt700ToInf["Subjet CSV (Filtered)"]=getEfficiencyCurve("BprimeM1500_IVF_ExplicitJTA_Plots.root","QCDPythia6_IVF_ExplicitJTA_Plots.root",getHistName("Filtered","CSV",true),700,1100);
+  graphsPt700ToInf["Subjet CSV (kT)"]=getEfficiencyCurve("BprimeM1500_IVF_ExplicitJTA_Plots.root","QCDPythia6_IVF_ExplicitJTA_Plots.root",getHistName("Kt","CSV",true),700,1100);
+  graphsPt700ToInf["Subjet CSV (MDBDRS)"]=getEfficiencyCurve("BprimeM1500_IVF_ExplicitJTA_Plots.root","QCDPythia6_IVF_ExplicitJTA_Plots.root",getHistName("MDBDRSFiltered","CSV",true),700,1100);
+  graphsPt700ToInf["Subjet CSV (kTBDRS)"]=getEfficiencyCurve("BprimeM1500_IVF_ExplicitJTA_Plots.root","QCDPythia6_IVF_ExplicitJTA_Plots.root",getHistName("KtBDRSFiltered","CSV",true),700,1100);
+
+  plotEfficiencyCurves(graphsPt300To500,"#splitline{CA R=0.8, 300<p_{T}<500 GeV/c}{75<m_{jet}<135 GeV/c^{2} (pruned)}", "b-tagging efficiency (H(120)#rightarrowb#bar{b})", "Misidentification probability (QCD)","#splitline{IVF}{Explicit JTA}","btagperfcomp_Pt300to500_IVF_ExplicitJTA.png",0, 1, 1E-3, 1,1);
+  plotEfficiencyCurves(graphsPt700ToInf,"#splitline{CA R=0.8, p_{T}>700 GeV/c}{75<m_{jet}<135 GeV/c^{2} (pruned)}", "b-tagging efficiency (H(120)#rightarrowb#bar{b})", "Misidentification probability (QCD)","#splitline{IVF}{Explicit JTA}","btagperfcomp_Pt700toInf_IVF_ExplicitJTA.png",0, 1, 1E-3, 1,1);
+
+  graphsPt300To500.clear();
+  graphsPt700ToInf.clear();
+
+  graphsPt300To500["Fat Jet CSV (BTV-13-001)"]=getEfficiencyCurve("BPrimeM1000plots.root","QCDPythia6Plots.root",getHistName("Pruned","CSVL",false),300,500);
+  graphsPt300To500["Subjet CSV (Pruned)"]=getEfficiencyCurve("BprimeBprimeToBHBHinc_M-1000_HiggsTagging_IVF_ExplicitJTA_SVClustering.root","QCDPythia6_HiggsTagging_IVF_ExplicitJTA_SVClustering.root",getHistName("Pruned","CSV",true),300,500);
+  graphsPt300To500["Subjet CSV (Filtered)"]=getEfficiencyCurve("BprimeBprimeToBHBHinc_M-1000_HiggsTagging_IVF_ExplicitJTA_SVClustering.root","QCDPythia6_HiggsTagging_IVF_ExplicitJTA_SVClustering.root",getHistName("Filtered","CSV",true),300,500);
+  graphsPt300To500["Subjet CSV (kT)"]=getEfficiencyCurve("BprimeBprimeToBHBHinc_M-1000_HiggsTagging_IVF_ExplicitJTA_SVClustering.root","QCDPythia6_HiggsTagging_IVF_ExplicitJTA_SVClustering.root",getHistName("Kt","CSV",true),300,500);
+  graphsPt300To500["Subjet CSV (MDBDRS)"]=getEfficiencyCurve("BprimeBprimeToBHBHinc_M-1000_HiggsTagging_IVF_ExplicitJTA_SVClustering.root","QCDPythia6_HiggsTagging_IVF_ExplicitJTA_SVClustering.root",getHistName("MDBDRSFiltered","CSV",true),300,500);
+  graphsPt300To500["Subjet CSV (kTBDRS)"]=getEfficiencyCurve("BprimeBprimeToBHBHinc_M-1000_HiggsTagging_IVF_ExplicitJTA_SVClustering.root","QCDPythia6_HiggsTagging_IVF_ExplicitJTA_SVClustering.root",getHistName("KtBDRSFiltered","CSV",true),300,500);
 
 
-// efficiency_curves_comp_xrange("BPrimeM1000plots.root", "BPrimeM1000plots_newcuts.root",
-//          "QCDPythia6Plots.root", "QCDPythia6Plots_NewCuts.root",
-//          "jetAnalyzerCA8FatJets_FilteredSubjets/h2_JetPt_JetCSVL_BosonMatched_JetMass", "jetAnalyzerCA8FatJets_FilteredSubjets/h2_JetPt_SubJetMinCSVL_BosonMatched_JetMass",
-//          "jetAnalyzerCA8FatJets_FilteredSubjets/h2_JetPt_JetCSVL_BosonMatched_JetMass", "jetAnalyzerCA8FatJets_FilteredSubjets/h2_JetPt_SubJetMinCSVL_BosonMatched_JetMass",
-//          300, 500, "#splitline{CA R=0.8, 300<p_{T}<500 GeV/c}{75<m_{jet}<135 GeV/c^{2} (pruned)}", "b-tagging efficiency (H(120)#rightarrowb#bar{b})", "Misidentification probability (QCD)","Fat jet CSV (BTV-13-001)", "Subjet CSV",
-//          0, 1, 1E-3, 1, "b-tag_eff_vs_mistag_CA8_QCDBkg_Pt300to500_JetMass_Filtered.png", 1);
-// efficiency_curves_comp_xrange("BPrimeM1500plots.root", "BPrimeM1500plots_newcuts.root",
-//          "QCDPythia6Plots.root", "QCDPythia6Plots_NewCuts.root",
-//          "jetAnalyzerCA8FatJets_FilteredSubjets/h2_JetPt_JetCSVL_BosonMatched_JetMass", "jetAnalyzerCA8FatJets_FilteredSubjets/h2_JetPt_SubJetMinCSVL_BosonMatched_JetMass",
-//          "jetAnalyzerCA8FatJets_FilteredSubjets/h2_JetPt_JetCSVL_BosonMatched_JetMass", "jetAnalyzerCA8FatJets_FilteredSubjets/h2_JetPt_SubJetMinCSVL_BosonMatched_JetMass",
-//          700, 1100, "#splitline{CA R=0.8, p_{T}>700 GeV/c}{75<m_{jet}<135 GeV/c^{2} (pruned)}", "b-tagging efficiency (H(120)#rightarrowb#bar{b})", "Misidentification probability (QCD)","Fat jet CSV (BTV-13-001)", "Subjet CSV",
-//          0, 1, 1E-3, 1, "b-tag_eff_vs_mistag_CA8_QCDBkg_Pt700toInf_JetMass_Filtered.png", 1);
+  graphsPt700ToInf["Fat Jet CSV (BTV-13-001)"]=getEfficiencyCurve("BPrimeM1500plots.root","QCDPythia6Plots.root",getHistName("Pruned","CSVL",false),700,1100);
+  graphsPt700ToInf["Subjet CSV (Pruned)"]=getEfficiencyCurve("BprimeBprimeToBHBHinc_M-1500_HiggsTagging_IVF_ExplicitJTA_SVClustering.root","QCDPythia6_HiggsTagging_IVF_ExplicitJTA_SVClustering.root",getHistName("Pruned","CSV",true),700,1100);
+  graphsPt700ToInf["Subjet CSV (Filtered)"]=getEfficiencyCurve("BprimeBprimeToBHBHinc_M-1500_HiggsTagging_IVF_ExplicitJTA_SVClustering.root","QCDPythia6_HiggsTagging_IVF_ExplicitJTA_SVClustering.root",getHistName("Filtered","CSV",true),700,1100);
+  graphsPt700ToInf["Subjet CSV (kT)"]=getEfficiencyCurve("BprimeBprimeToBHBHinc_M-1500_HiggsTagging_IVF_ExplicitJTA_SVClustering.root","QCDPythia6_HiggsTagging_IVF_ExplicitJTA_SVClustering.root",getHistName("Kt","CSV",true),700,1100);
+  graphsPt700ToInf["Subjet CSV (MDBDRS)"]=getEfficiencyCurve("BprimeBprimeToBHBHinc_M-1500_HiggsTagging_IVF_ExplicitJTA_SVClustering.root","QCDPythia6_HiggsTagging_IVF_ExplicitJTA_SVClustering.root",getHistName("MDBDRSFiltered","CSV",true),700,1100);
+  graphsPt700ToInf["Subjet CSV (kTBDRS)"]=getEfficiencyCurve("BprimeBprimeToBHBHinc_M-1500_HiggsTagging_IVF_ExplicitJTA_SVClustering.root","QCDPythia6_HiggsTagging_IVF_ExplicitJTA_SVClustering.root",getHistName("KtBDRSFiltered","CSV",true),700,1100);
 
-// efficiency_curves_comp_xrange("BPrimeM1000plots.root", "BPrimeM1000plots_newcuts.root",
-//          "QCDPythia6Plots.root", "QCDPythia6Plots_NewCuts.root",
-//          "jetAnalyzerCA8FatJets_PrunedSubjets/h2_JetPt_JetCSVL_BosonMatched_JetMass", "jetAnalyzerCA8FatJets_KtSubjets/h2_JetPt_SubJetMinCSVL_BosonMatched_JetMass",
-//          "jetAnalyzerCA8FatJets_PrunedSubjets/h2_JetPt_JetCSVL_BosonMatched_JetMass", "jetAnalyzerCA8FatJets_KtSubjets/h2_JetPt_SubJetMinCSVL_BosonMatched_JetMass",
-//          300, 500, "#splitline{CA R=0.8, 300<p_{T}<500 GeV/c}{75<m_{jet}<135 GeV/c^{2} (pruned)}", "b-tagging efficiency (H(120)#rightarrowb#bar{b})", "Misidentification probability (QCD)","Fat jet CSV (BTV-13-001)", "Subjet CSV",
-//          0, 1, 1E-3, 1, "b-tag_eff_vs_mistag_CA8_QCDBkg_Pt300to500_JetMass_Kt.png", 1);
-// efficiency_curves_comp_xrange("BPrimeM1500plots.root", "BPrimeM1500plots_newcuts.root",
-//          "QCDPythia6Plots.root", "QCDPythia6Plots_NewCuts.root",
-//          "jetAnalyzerCA8FatJets_KtSubjets/h2_JetPt_JetCSVL_BosonMatched_JetMass", "jetAnalyzerCA8FatJets_KtSubjets/h2_JetPt_SubJetMinCSVL_BosonMatched_JetMass",
-//          "jetAnalyzerCA8FatJets_KtSubjets/h2_JetPt_JetCSVL_BosonMatched_JetMass", "jetAnalyzerCA8FatJets_KtSubjets/h2_JetPt_SubJetMinCSVL_BosonMatched_JetMass",
-//          700, 1100, "#splitline{CA R=0.8, p_{T}>700 GeV/c}{75<m_{jet}<135 GeV/c^{2} (pruned)}", "b-tagging efficiency (H(120)#rightarrowb#bar{b})", "Misidentification probability (QCD)","Fat jet CSV (BTV-13-001)", "Subjet CSV",
-//          0, 1, 1E-3, 1, "b-tag_eff_vs_mistag_CA8_QCDBkg_Pt700toInf_JetMass_Kt.png", 1);
+  plotEfficiencyCurves(graphsPt300To500,"#splitline{CA R=0.8, 300<p_{T}<500 GeV/c}{75<m_{jet}<135 GeV/c^{2} (pruned)}", "b-tagging efficiency (H(120)#rightarrowb#bar{b})", "Misidentification probability (QCD)","#splitline{IVF, SV Clustering}{Explicit JTA}","btagperfcomp_Pt300to500_IVF_ExplicitJTA_SVClustering.png",0, 1, 1E-3, 1,1);
+  plotEfficiencyCurves(graphsPt700ToInf,"#splitline{CA R=0.8, p_{T}>700 GeV/c}{75<m_{jet}<135 GeV/c^{2} (pruned)}", "b-tagging efficiency (H(120)#rightarrowb#bar{b})", "Misidentification probability (QCD)","#splitline{IVF, SV Clustering}{Explicit JTA}","btagperfcomp_Pt700toInf_IVF_ExplicitJTA_SVClustering.png",0, 1, 1E-3, 1,1);
 
-// efficiency_curves_comp_xrange("BPrimeM1000plots.root", "BprimeM1000_MDPlots.root",
-//          "QCDPythia6Plots.root", "QCDPythia6_MDPlots.root",
-//          "jetAnalyzerCA8FatJets_PrunedSubjets/h2_JetPt_JetCSVL_BosonMatched_JetMass", "jetAnalyzerCA8FatJets_MDBDRSFilteredSubjets/h2_JetPt_SubJetMinCSV_BosonMatched_JetMass",
-//          "jetAnalyzerCA8FatJets_PrunedSubjets/h2_JetPt_JetCSVL_BosonMatched_JetMass", "jetAnalyzerCA8FatJets_MDBDRSFilteredSubjets/h2_JetPt_SubJetMinCSV_BosonMatched_JetMass",
-//          300, 500, "#splitline{CA R=0.8, 300<p_{T}<500 GeV/c}{75<m_{jet}<135 GeV/c^{2} (pruned)}", "b-tagging efficiency (H(120)#rightarrowb#bar{b})", "Misidentification probability (QCD)","Fat jet CSV (BTV-13-001)", "Subjet CSV",
-//          0, 1, 1E-3, 1, "b-tag_eff_vs_mistag_CA8_QCDBkg_Pt300to500_JetMass_MDBDRSFiltered.png", 1);
+  graphsPt300To500.clear();
+  graphsPt700ToInf.clear();
 
-// efficiency_curves_comp_xrange("BPrimeM1500plots.root", "BprimeM1500_MDPlots.root",
-//          "QCDPythia6Plots.root", "QCDPythia6_MDPlots.root",
-//          "jetAnalyzerCA8FatJets_PrunedSubjets/h2_JetPt_JetCSVL_BosonMatched_JetMass", "jetAnalyzerCA8FatJets_MDBDRSFilteredSubjets/h2_JetPt_SubJetMinCSV_BosonMatched_JetMass",
-//          "jetAnalyzerCA8FatJets_PrunedSubjets/h2_JetPt_JetCSVL_BosonMatched_JetMass", "jetAnalyzerCA8FatJets_MDBDRSFilteredSubjets/h2_JetPt_SubJetMinCSV_BosonMatched_JetMass",
-//          700, 1100, "#splitline{CA R=0.8, p_{T}>700 GeV/c}{75<m_{jet}<135 GeV/c^{2} (pruned)}", "b-tagging efficiency (H(120)#rightarrowb#bar{b})", "Misidentification probability (QCD)","Fat jet CSV (BTV-13-001)", "Subjet CSV",
-//          0, 1, 1E-3, 1, "b-tag_eff_vs_mistag_CA8_QCDBkg_Pt700toInf_JetMass_MDBDRSFiltered.png", 1);
-
-// efficiency_curves_comp_xrange("BPrimeM1000plots.root", "BprimeM1000_MDPlots.root",
-//          "QCDPythia6Plots.root", "QCDPythia6_MDPlots.root",
-//          "jetAnalyzerCA8FatJets_PrunedSubjets/h2_JetPt_JetCSVL_BosonMatched_JetMass", "jetAnalyzerCA8FatJets_KtBDRSFilteredSubjets/h2_JetPt_SubJetMinCSV_BosonMatched_JetMass",
-//          "jetAnalyzerCA8FatJets_PrunedSubjets/h2_JetPt_JetCSVL_BosonMatched_JetMass", "jetAnalyzerCA8FatJets_KtBDRSFilteredSubjets/h2_JetPt_SubJetMinCSV_BosonMatched_JetMass",
-//          300, 500, "#splitline{CA R=0.8, 300<p_{T}<500 GeV/c}{75<m_{jet}<135 GeV/c^{2} (pruned)}", "b-tagging efficiency (H(120)#rightarrowb#bar{b})", "Misidentification probability (QCD)","Fat jet CSV (BTV-13-001)", "Subjet CSV",
-//          0, 1, 1E-3, 1, "b-tag_eff_vs_mistag_CA8_QCDBkg_Pt300to500_JetMass_KtBDRSFiltered.png", 1);
-
-// efficiency_curves_comp_xrange("BPrimeM1500plots.root", "BprimeM1500_MDPlots.root",
-//          "QCDPythia6Plots.root", "QCDPythia6_MDPlots.root",
-//          "jetAnalyzerCA8FatJets_PrunedSubjets/h2_JetPt_JetCSVL_BosonMatched_JetMass", "jetAnalyzerCA8FatJets_KtBDRSFilteredSubjets/h2_JetPt_SubJetMinCSV_BosonMatched_JetMass",
-//          "jetAnalyzerCA8FatJets_PrunedSubjets/h2_JetPt_JetCSVL_BosonMatched_JetMass", "jetAnalyzerCA8FatJets_KtBDRSFilteredSubjets/h2_JetPt_SubJetMinCSV_BosonMatched_JetMass",
-//          700, 1100, "#splitline{CA R=0.8, p_{T}>700 GeV/c}{75<m_{jet}<135 GeV/c^{2} (pruned)}", "b-tagging efficiency (H(120)#rightarrowb#bar{b})", "Misidentification probability (QCD)","Fat jet CSV (BTV-13-001)", "Subjet CSV",
-//          0, 1, 1E-3, 1, "b-tag_eff_vs_mistag_CA8_QCDBkg_Pt700toInf_JetMass_KtBDRSFiltered.png", 1);
-
-// efficiency_curves_comp_xrange("BPrimeM1000plots.root", "BPrimeM1000_IVFPlots.root",
-//          "QCDPythia6Plots.root", "QCDPythia6_IVFPlots.root",
-//          "jetAnalyzerCA8FatJets_PrunedSubjets/h2_JetPt_JetCSVL_BosonMatched_JetMass", "jetAnalyzerCA8FatJets_KtBDRSFilteredSubjets/h2_JetPt_SubJetMinCSV_BosonMatched_JetMass",
-//          "jetAnalyzerCA8FatJets_PrunedSubjets/h2_JetPt_JetCSVL_BosonMatched_JetMass", "jetAnalyzerCA8FatJets_KtBDRSFilteredSubjets/h2_JetPt_SubJetMinCSV_BosonMatched_JetMass",
-//          300, 500, "#splitline{CA R=0.8, 300<p_{T}<500 GeV/c}{75<m_{jet}<135 GeV/c^{2} (pruned)}", "b-tagging efficiency (H(120)#rightarrowb#bar{b})", "Misidentification probability (QCD)","Fat jet CSV (BTV-13-001)", "Subjet CSV",
-//          0, 1, 1E-3, 1, "b-tag_eff_vs_mistag_CA8_QCDBkg_Pt300to500_JetMass_IVF_KtBDRSFiltered.png", 1);
-
-// efficiency_curves_comp_xrange("BPrimeM1500plots.root", "BPrimeM1500_IVFPlots.root",
-//          "QCDPythia6Plots.root", "QCDPythia6_IVFPlots.root",
-//          "jetAnalyzerCA8FatJets_PrunedSubjets/h2_JetPt_JetCSVL_BosonMatched_JetMass", "jetAnalyzerCA8FatJets_KtBDRSFilteredSubjets/h2_JetPt_SubJetMinCSV_BosonMatched_JetMass",
-//          "jetAnalyzerCA8FatJets_PrunedSubjets/h2_JetPt_JetCSVL_BosonMatched_JetMass", "jetAnalyzerCA8FatJets_KtBDRSFilteredSubjets/h2_JetPt_SubJetMinCSV_BosonMatched_JetMass",
-//          700, 1100, "#splitline{CA R=0.8, p_{T}>700 GeV/c}{75<m_{jet}<135 GeV/c^{2} (pruned)}", "b-tagging efficiency (H(120)#rightarrowb#bar{b})", "Misidentification probability (QCD)","Fat jet CSV (BTV-13-001)", "Subjet CSV",
-//          0, 1, 1E-3, 1, "b-tag_eff_vs_mistag_CA8_QCDBkg_Pt700toInf_JetMass_IVF_KtBDRSFiltered.png", 1);
-// efficiency_curves_comp_xrange("BPrimeM1000plots.root", "BPrimeM1000_IVFPlots.root",
-//          "QCDPythia6Plots.root", "QCDPythia6_IVFPlots.root",
-//          "jetAnalyzerCA8FatJets_PrunedSubjets/h2_JetPt_JetCSVL_BosonMatched_JetMass", "jetAnalyzerCA8FatJets_MDBDRSFilteredSubjets/h2_JetPt_SubJetMinCSV_BosonMatched_JetMass",
-//          "jetAnalyzerCA8FatJets_PrunedSubjets/h2_JetPt_JetCSVL_BosonMatched_JetMass", "jetAnalyzerCA8FatJets_MDBDRSFilteredSubjets/h2_JetPt_SubJetMinCSV_BosonMatched_JetMass",
-//          300, 500, "#splitline{CA R=0.8, 300<p_{T}<500 GeV/c}{75<m_{jet}<135 GeV/c^{2} (pruned)}", "b-tagging efficiency (H(120)#rightarrowb#bar{b})", "Misidentification probability (QCD)","Fat jet CSV (BTV-13-001)", "Subjet CSV",
-//          0, 1, 1E-3, 1, "b-tag_eff_vs_mistag_CA8_QCDBkg_Pt300to500_JetMass_IVF_MDBDRSFiltered.png", 1);
-
-// efficiency_curves_comp_xrange("BPrimeM1500plots.root", "BPrimeM1500_IVFPlots.root",
-//          "QCDPythia6Plots.root", "QCDPythia6_IVFPlots.root",
-//          "jetAnalyzerCA8FatJets_PrunedSubjets/h2_JetPt_JetCSVL_BosonMatched_JetMass", "jetAnalyzerCA8FatJets_MDBDRSFilteredSubjets/h2_JetPt_SubJetMinCSV_BosonMatched_JetMass",
-//          "jetAnalyzerCA8FatJets_PrunedSubjets/h2_JetPt_JetCSVL_BosonMatched_JetMass", "jetAnalyzerCA8FatJets_MDBDRSFilteredSubjets/h2_JetPt_SubJetMinCSV_BosonMatched_JetMass",
-//          700, 1100, "#splitline{CA R=0.8, p_{T}>700 GeV/c}{75<m_{jet}<135 GeV/c^{2} (pruned)}", "b-tagging efficiency (H(120)#rightarrowb#bar{b})", "Misidentification probability (QCD)","Fat jet CSV (BTV-13-001)", "Subjet CSV",
-//          0, 1, 1E-3, 1, "b-tag_eff_vs_mistag_CA8_QCDBkg_Pt700toInf_JetMass_IVF_MDBDRSFiltered.png", 1);
-
-// efficiency_curves_comp_xrange("BPrimeM1000plots.root", "BPrimeM1000_IVFPlots.root",
-//          "QCDPythia6Plots.root", "QCDPythia6_IVFPlots.root",
-//          "jetAnalyzerCA8FatJets_PrunedSubjets/h2_JetPt_JetCSVL_BosonMatched_JetMass", "jetAnalyzerCA8FatJets_KtSubjets/h2_JetPt_SubJetMinCSV_BosonMatched_JetMass",
-//          "jetAnalyzerCA8FatJets_PrunedSubjets/h2_JetPt_JetCSVL_BosonMatched_JetMass", "jetAnalyzerCA8FatJets_KtSubjets/h2_JetPt_SubJetMinCSV_BosonMatched_JetMass",
-//          300, 500, "#splitline{CA R=0.8, 300<p_{T}<500 GeV/c}{75<m_{jet}<135 GeV/c^{2} (pruned)}", "b-tagging efficiency (H(120)#rightarrowb#bar{b})", "Misidentification probability (QCD)","Fat jet CSV (BTV-13-001)", "Subjet CSV",
-//          0, 1, 1E-3, 1, "b-tag_eff_vs_mistag_CA8_QCDBkg_Pt300to500_JetMass_IVF_Kt.png", 1);
-
-// efficiency_curves_comp_xrange("BPrimeM1500plots.root", "BPrimeM1500_IVFPlots.root",
-//          "QCDPythia6Plots.root", "QCDPythia6_IVFPlots.root",
-//          "jetAnalyzerCA8FatJets_PrunedSubjets/h2_JetPt_JetCSVL_BosonMatched_JetMass", "jetAnalyzerCA8FatJets_KtSubjets/h2_JetPt_SubJetMinCSV_BosonMatched_JetMass",
-//          "jetAnalyzerCA8FatJets_PrunedSubjets/h2_JetPt_JetCSVL_BosonMatched_JetMass", "jetAnalyzerCA8FatJets_KtSubjets/h2_JetPt_SubJetMinCSV_BosonMatched_JetMass",
-//          700, 1100, "#splitline{CA R=0.8, p_{T}>700 GeV/c}{75<m_{jet}<135 GeV/c^{2} (pruned)}", "b-tagging efficiency (H(120)#rightarrowb#bar{b})", "Misidentification probability (QCD)","Fat jet CSV (BTV-13-001)", "Subjet CSV",
-//          0, 1, 1E-3, 1, "b-tag_eff_vs_mistag_CA8_QCDBkg_Pt700toInf_JetMass_IVF_Kt.png", 1);
-
-// efficiency_curves_comp_xrange("BPrimeM1000plots.root", "BPrimeM1000_IVFPlots.root",
-//          "QCDPythia6Plots.root", "QCDPythia6_IVFPlots.root",
-//          "jetAnalyzerCA8FatJets_PrunedSubjets/h2_JetPt_JetCSVL_BosonMatched_JetMass", "jetAnalyzerCA8FatJets_FilteredSubjets/h2_JetPt_SubJetMinCSV_BosonMatched_JetMass",
-//          "jetAnalyzerCA8FatJets_PrunedSubjets/h2_JetPt_JetCSVL_BosonMatched_JetMass", "jetAnalyzerCA8FatJets_FilteredSubjets/h2_JetPt_SubJetMinCSV_BosonMatched_JetMass",
-//          300, 500, "#splitline{CA R=0.8, 300<p_{T}<500 GeV/c}{75<m_{jet}<135 GeV/c^{2} (pruned)}", "b-tagging efficiency (H(120)#rightarrowb#bar{b})", "Misidentification probability (QCD)","Fat jet CSV (BTV-13-001)", "Subjet CSV",
-//          0, 1, 1E-3, 1, "b-tag_eff_vs_mistag_CA8_QCDBkg_Pt300to500_JetMass_IVF_Filtered.png", 1);
-
-// efficiency_curves_comp_xrange("BPrimeM1500plots.root", "BPrimeM1500_IVFPlots.root",
-//          "QCDPythia6Plots.root", "QCDPythia6_IVFPlots.root",
-//          "jetAnalyzerCA8FatJets_PrunedSubjets/h2_JetPt_JetCSVL_BosonMatched_JetMass", "jetAnalyzerCA8FatJets_FilteredSubjets/h2_JetPt_SubJetMinCSV_BosonMatched_JetMass",
-//          "jetAnalyzerCA8FatJets_PrunedSubjets/h2_JetPt_JetCSVL_BosonMatched_JetMass", "jetAnalyzerCA8FatJets_FilteredSubjets/h2_JetPt_SubJetMinCSV_BosonMatched_JetMass",
-//          700, 1100, "#splitline{CA R=0.8, p_{T}>700 GeV/c}{75<m_{jet}<135 GeV/c^{2} (pruned)}", "b-tagging efficiency (H(120)#rightarrowb#bar{b})", "Misidentification probability (QCD)","Fat jet CSV (BTV-13-001)", "Subjet CSV",
-//          0, 1, 1E-3, 1, "b-tag_eff_vs_mistag_CA8_QCDBkg_Pt700toInf_JetMass_IVF_Filtered.png", 1);
-// efficiency_curves_comp_xrange("BPrimeM1000plots.root", "BPrimeM1000_IVFPlots.root",
-//          "QCDPythia6Plots.root", "QCDPythia6_IVFPlots.root",
-//          "jetAnalyzerCA8FatJets_PrunedSubjets/h2_JetPt_JetCSVL_BosonMatched_JetMass", "jetAnalyzerCA8FatJets_PrunedSubjets/h2_JetPt_SubJetMinCSV_BosonMatched_JetMass",
-//          "jetAnalyzerCA8FatJets_PrunedSubjets/h2_JetPt_JetCSVL_BosonMatched_JetMass", "jetAnalyzerCA8FatJets_PrunedSubjets/h2_JetPt_SubJetMinCSV_BosonMatched_JetMass",
-//          300, 500, "#splitline{CA R=0.8, 300<p_{T}<500 GeV/c}{75<m_{jet}<135 GeV/c^{2} (pruned)}", "b-tagging efficiency (H(120)#rightarrowb#bar{b})", "Misidentification probability (QCD)","Fat jet CSV (BTV-13-001)", "Subjet CSV",
-//          0, 1, 1E-3, 1, "b-tag_eff_vs_mistag_CA8_QCDBkg_Pt300to500_JetMass_IVF_Pruned.png", 1);
-
-// efficiency_curves_comp_xrange("BPrimeM1500plots.root", "BPrimeM1500_IVFPlots.root",
-//          "QCDPythia6Plots.root", "QCDPythia6_IVFPlots.root",
-//          "jetAnalyzerCA8FatJets_PrunedSubjets/h2_JetPt_JetCSVL_BosonMatched_JetMass", "jetAnalyzerCA8FatJets_PrunedSubjets/h2_JetPt_SubJetMinCSV_BosonMatched_JetMass",
-//          "jetAnalyzerCA8FatJets_PrunedSubjets/h2_JetPt_JetCSVL_BosonMatched_JetMass", "jetAnalyzerCA8FatJets_PrunedSubjets/h2_JetPt_SubJetMinCSV_BosonMatched_JetMass",
-//          700, 1100, "#splitline{CA R=0.8, p_{T}>700 GeV/c}{75<m_{jet}<135 GeV/c^{2} (pruned)}", "b-tagging efficiency (H(120)#rightarrowb#bar{b})", "Misidentification probability (QCD)","Fat jet CSV (BTV-13-001)", "Subjet CSV",
-//          0, 1, 1E-3, 1, "b-tag_eff_vs_mistag_CA8_QCDBkg_Pt700toInf_JetMass_IVF_Pruned.png", 1);
+  graphsPt300To500["Fat Jet CSV (BTV-13-001)"]=getEfficiencyCurve("BPrimeM1000plots.root","QCDPythia6Plots.root",getHistName("Pruned","CSVL",false),300,500);
+  graphsPt300To500["Subjet CSV (Pruned)"]=getEfficiencyCurve("BprimeBprimeToBHBHinc_M-1000_HiggsTagging_IVF_ExplicitJTA_SVClustering_SVMomentum.root","QCDPythia6_HiggsTagging_IVF_ExplicitJTA_SVClustering_SVMomentum.root",getHistName("Pruned","CSV",true),300,500);
+  graphsPt300To500["Subjet CSV (Filtered)"]=getEfficiencyCurve("BprimeBprimeToBHBHinc_M-1000_HiggsTagging_IVF_ExplicitJTA_SVClustering_SVMomentum.root","QCDPythia6_HiggsTagging_IVF_ExplicitJTA_SVClustering_SVMomentum.root",getHistName("Filtered","CSV",true),300,500);
+  graphsPt300To500["Subjet CSV (kT)"]=getEfficiencyCurve("BprimeBprimeToBHBHinc_M-1000_HiggsTagging_IVF_ExplicitJTA_SVClustering_SVMomentum.root","QCDPythia6_HiggsTagging_IVF_ExplicitJTA_SVClustering_SVMomentum.root",getHistName("Kt","CSV",true),300,500);
+  graphsPt300To500["Subjet CSV (MDBDRS)"]=getEfficiencyCurve("BprimeBprimeToBHBHinc_M-1000_HiggsTagging_IVF_ExplicitJTA_SVClustering_SVMomentum.root","QCDPythia6_HiggsTagging_IVF_ExplicitJTA_SVClustering_SVMomentum.root",getHistName("MDBDRSFiltered","CSV",true),300,500);
+  graphsPt300To500["Subjet CSV (kTBDRS)"]=getEfficiencyCurve("BprimeBprimeToBHBHinc_M-1000_HiggsTagging_IVF_ExplicitJTA_SVClustering_SVMomentum.root","QCDPythia6_HiggsTagging_IVF_ExplicitJTA_SVClustering_SVMomentum.root",getHistName("KtBDRSFiltered","CSV",true),300,500);
 
 
+  graphsPt700ToInf["Fat Jet CSV (BTV-13-001)"]=getEfficiencyCurve("BPrimeM1500plots.root","QCDPythia6Plots.root",getHistName("Pruned","CSVL",false),700,1100);
+  graphsPt700ToInf["Subjet CSV (Pruned)"]=getEfficiencyCurve("BprimeBprimeToBHBHinc_M-1500_HiggsTagging_IVF_ExplicitJTA_SVClustering_SVMomentum.root","QCDPythia6_HiggsTagging_IVF_ExplicitJTA_SVClustering_SVMomentum.root",getHistName("Pruned","CSV",true),700,1100);
+  graphsPt700ToInf["Subjet CSV (Filtered)"]=getEfficiencyCurve("BprimeBprimeToBHBHinc_M-1500_HiggsTagging_IVF_ExplicitJTA_SVClustering_SVMomentum.root","QCDPythia6_HiggsTagging_IVF_ExplicitJTA_SVClustering_SVMomentum.root",getHistName("Filtered","CSV",true),700,1100);
+  graphsPt700ToInf["Subjet CSV (kT)"]=getEfficiencyCurve("BprimeBprimeToBHBHinc_M-1500_HiggsTagging_IVF_ExplicitJTA_SVClustering_SVMomentum.root","QCDPythia6_HiggsTagging_IVF_ExplicitJTA_SVClustering_SVMomentum.root",getHistName("Kt","CSV",true),700,1100);
+  graphsPt700ToInf["Subjet CSV (MDBDRS)"]=getEfficiencyCurve("BprimeBprimeToBHBHinc_M-1500_HiggsTagging_IVF_ExplicitJTA_SVClustering_SVMomentum.root","QCDPythia6_HiggsTagging_IVF_ExplicitJTA_SVClustering_SVMomentum.root",getHistName("MDBDRSFiltered","CSV",true),700,1100);
+  graphsPt700ToInf["Subjet CSV (kTBDRS)"]=getEfficiencyCurve("BprimeBprimeToBHBHinc_M-1500_HiggsTagging_IVF_ExplicitJTA_SVClustering_SVMomentum.root","QCDPythia6_HiggsTagging_IVF_ExplicitJTA_SVClustering_SVMomentum.root",getHistName("KtBDRSFiltered","CSV",true),700,1100);
 
-//   //CSV
-//   //b-tagging efficiency vs mistag rate (CA8 jets, both subjets b-tagged)
-//   efficiency_curves_comp_xrange("BprimeM1000_MDPlots.root", "BprimeM1000_MDPlots.root",
-//                          "QCDPythia6_MDPlots.root", "QCDPythia6_MDPlots.root",
-//                          "jetAnalyzerCA8FatJets_KtBDRSFilteredSubjets/h2_JetPt_JetCSV_BosonMatched_JetMass", "jetAnalyzerCA8FatJets_KtBDRSFilteredSubjets/h2_JetPt_SubJetMinCSV_BosonMatched_JetMass",
-//                          "jetAnalyzerCA8FatJets_KtBDRSFilteredSubjets/h2_JetPt_JetCSV_BosonMatched_JetMass", "jetAnalyzerCA8FatJets_KtBDRSFilteredSubjets/h2_JetPt_SubJetMinCSV_BosonMatched_JetMass",
-//                          300, 500, "#splitline{CA R=0.8, 300<p_{T}<500 GeV/c}{75<m_{jet}<135 GeV/c^{2} (pruned)}", "b-tagging efficiency (H(120)#rightarrowb#bar{b})", "Misidentification probability (QCD)","Fat jet CSV", "Subjet CSV",
-//                          0, 1, 1E-3, 1, "b-tag_eff_vs_mistag_CA8_QCDBkg_Pt300to500_JetMass_KtBDRSFiltered.png", 1);
+  plotEfficiencyCurves(graphsPt300To500,"#splitline{CA R=0.8, 300<p_{T}<500 GeV/c}{75<m_{jet}<135 GeV/c^{2} (pruned)}", "b-tagging efficiency (H(120)#rightarrowb#bar{b})", "Misidentification probability (QCD)","#splitline{IVF, SV Clustering By SV Momentum}{Explicit JTA}","btagperfcomp_Pt300to500_IVF_ExplicitJTA_SVClustering_SVMomentum.png",0, 1, 1E-3, 1,1);
+  plotEfficiencyCurves(graphsPt700ToInf,"#splitline{CA R=0.8, p_{T}>700 GeV/c}{75<m_{jet}<135 GeV/c^{2} (pruned)}", "b-tagging efficiency (H(120)#rightarrowb#bar{b})", "Misidentification probability (QCD)","#splitline{IVF, SV Clustering By SV Momentum}{Explicit JTA}","btagperfcomp_Pt700toInf_IVF_ExplicitJTA_SVClustering_SVMomentum.png",0, 1, 1E-3, 1,1);
 
-//   efficiency_curves_comp_xrange("BprimeM1500_MDPlots.root", "BprimeM1500_MDPlots.root",
-//                          "QCDPythia6_MDPlots.root", "QCDPythia6_MDPlots.root",
-//                          "jetAnalyzerCA8FatJets_KtBDRSFilteredSubjets/h2_JetPt_JetCSV_BosonMatched_JetMass", "jetAnalyzerCA8FatJets_KtBDRSFilteredSubjets/h2_JetPt_SubJetMinCSV_BosonMatched_JetMass",
-//                          "jetAnalyzerCA8FatJets_KtBDRSFilteredSubjets/h2_JetPt_JetCSV_BosonMatched_JetMass", "jetAnalyzerCA8FatJets_KtBDRSFilteredSubjets/h2_JetPt_SubJetMinCSV_BosonMatched_JetMass",
-//                          700, 1100, "#splitline{CA R=0.8, p_{T}>700 GeV/c}{75<m_{jet}<135 GeV/c^{2} (pruned)}", "b-tagging efficiency (H(120)#rightarrowb#bar{b})", "Misidentification probability (QCD)","Fat jet CSV", "Subjet CSV",
-//                          0, 1, 1E-3, 1, "b-tag_eff_vs_mistag_CA8_QCDBkg_Pt700toInf_JetMass_KtBDRSFiltered.png", 1);
+  graphsPt300To500.clear();
+  graphsPt700ToInf.clear();
 
-//   //JP
-//   efficiency_curves_comp_xrange("BprimeBprimeToBHBHinc_M-1000_HiggsTagging.root", "BprimeBprimeToBHBHinc_M-1000_HiggsTagging.root",
-//                          "QCDPythia6_HiggsTagging.root", "QCDPythia6_HiggsTagging.root",
-//                          "jetAnalyzerCA8FatJets_PrunedSubjets/h2_JetPt_JetJP_BosonMatched_JetMass", "jetAnalyzerCA8FatJets_PrunedSubjets/h2_JetPt_SubJetMinJP_BosonMatched_JetMass;",
-//                          "jetAnalyzerCA8FatJets_PrunedSubjets/h2_JetPt_JetJP_BosonMatched_JetMass", "jetAnalyzerCA8FatJets_PrunedSubjets/h2_JetPt_SubJetMinJP_BosonMatched_JetMass",
-//                          300, 500, "#splitline{CA R=0.8, 300<p_{T}<500 GeV/c}{75<m_{jet}<135 GeV/c^{2} (pruned)}", "b-tagging efficiency (H(120)#rightarrowb#bar{b})", "Misidentification probability (QCD)","Fat jet JP", "Subjet JP",
-//                          0, 1, 1E-3, 1, "b-tag_eff_vs_mistag_CA8_QCDBkg_Pt300to500_JetMass_JPPruned.png", 1,0.275,0.545,0.790,0.275,0.545,0.790);
-//   efficiency_curves_comp_xrange("BprimeBprimeToBHBHinc_M-1500_HiggsTagging.root", "BprimeBprimeToBHBHinc_M-1500_HiggsTagging.root",
-//                          "QCDPythia6_HiggsTagging.root", "QCDPythia6_HiggsTagging.root",
-//                          "jetAnalyzerCA8FatJets_PrunedSubjets/h2_JetPt_JetJP_BosonMatched_JetMass", "jetAnalyzerCA8FatJets_PrunedSubjets/h2_JetPt_SubJetMinJP_BosonMatched_JetMass;",
-//                          "jetAnalyzerCA8FatJets_PrunedSubjets/h2_JetPt_JetJP_BosonMatched_JetMass", "jetAnalyzerCA8FatJets_PrunedSubjets/h2_JetPt_SubJetMinJP_BosonMatched_JetMass",
-//                          700, 1100, "#splitline{CA R=0.8, p_{T}>700 GeV/c}{75<m_{jet}<135 GeV/c^{2} (pruned)}", "b-tagging efficiency (H(120)#rightarrowb#bar{b})", "Misidentification probability (QCD)","Fat jet JP", "Subjet JP",
-//                          0, 1, 1E-3, 1, "b-tag_eff_vs_mistag_CA8_QCDBkg_Pt700toInf_JetMass_JPPruned.png", 1,0.275,0.545,0.790,0.275,0.545,0.790);
 
-// //JPB
-//   efficiency_curves_comp_xrange("BprimeBprimeToBHBHinc_M-1000_HiggsTagging.root", "BprimeBprimeToBHBHinc_M-1000_HiggsTagging.root",
-//                          "QCDPythia6_HiggsTagging.root", "QCDPythia6_HiggsTagging.root",
-//                          "jetAnalyzerCA8FatJets_PrunedSubjets/h2_JetPt_JetJBP_BosonMatched_JetMass", "jetAnalyzerCA8FatJets_PrunedSubjets/h2_JetPt_SubJetMinJBP_BosonMatched_JetMass;",
-//                          "jetAnalyzerCA8FatJets_PrunedSubjets/h2_JetPt_JetJBP_BosonMatched_JetMass", "jetAnalyzerCA8FatJets_PrunedSubjets/h2_JetPt_SubJetMinJBP_BosonMatched_JetMass",
-//                          300, 500, "#splitline{CA R=0.8, 300<p_{T}<500 GeV/c}{75<m_{jet}<135 GeV/c^{2} (pruned)}", "b-tagging efficiency (H(120)#rightarrowb#bar{b})", "Misidentification probability (QCD)","Fat jet JBP", "Subjet JBP",
-//                          0, 1, 1E-3, 1, "b-tag_eff_vs_mistag_CA8_QCDBkg_Pt300to500_JetMass_JBPPruned.png", 1,1.33, 2.55, 3.74, 1.33, 2.55, 3.74);
-//   efficiency_curves_comp_xrange("BprimeBprimeToBHBHinc_M-1500_HiggsTagging.root", "BprimeBprimeToBHBHinc_M-1500_HiggsTagging.root",
-//                          "QCDPythia6_HiggsTagging.root", "QCDPythia6_HiggsTagging.root",
-//                          "jetAnalyzerCA8FatJets_PrunedSubjets/h2_JetPt_JetJBP_BosonMatched_JetMass", "jetAnalyzerCA8FatJets_PrunedSubjets/h2_JetPt_SubJetMinJBP_BosonMatched_JetMass;",
-//                          "jetAnalyzerCA8FatJets_PrunedSubjets/h2_JetPt_JetJBP_BosonMatched_JetMass", "jetAnalyzerCA8FatJets_PrunedSubjets/h2_JetPt_SubJetMinJBP_BosonMatched_JetMass",
-//                          700, 1100, "#splitline{CA R=0.8, p_{T}>700 GeV/c}{75<m_{jet}<135 GeV/c^{2} (pruned)}", "b-tagging efficiency (H(120)#rightarrowb#bar{b})", "Misidentification probability (QCD)","Fat jet JBP", "Subjet JBP",
-//                          0, 1, 1E-3, 1, "b-tag_eff_vs_mistag_CA8_QCDBkg_Pt700toInf_JetMass_JBPPruned.png", 1,1.33, 2.55, 3.74, 1.33, 2.55, 3.74);
 }

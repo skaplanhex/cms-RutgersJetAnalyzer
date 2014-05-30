@@ -371,7 +371,7 @@ void makePlots()
   graphsPt300To500["Fat Jet CSV"]=getEfficiencyCurve("BprimeBprimeToBHBHinc_M-1000_HiggsTagging.root","QCDPythia6_HiggsTagging.root",getHistName("Pruned","CSV",false),300,500);
   graphsPt300To500["Fat Jet JP"]=getEfficiencyCurve("BprimeBprimeToBHBHinc_M-1000_HiggsTagging.root","QCDPythia6_HiggsTagging.root",getHistName("Pruned","JP",false),300,500);
   graphsPt300To500["Fat Jet JBP"]=getEfficiencyCurve("BprimeBprimeToBHBHinc_M-1000_HiggsTagging.root","QCDPythia6_HiggsTagging.root",getHistName("Pruned","JBP",false),300,500);
-  graphsPt300To500["Fat Jet CSV (Explicit JTA)"]=getEfficiencyCurve("BprimeM1000_IVF_ExplicitJTA_Plots.root","QCDPythia6_IVF_ExplicitJTA_Plots.root",getHistName("Pruned","JP",false),300,500);
+  graphsPt300To500["Fat Jet CSV (Explicit JTA)"]=getEfficiencyCurve("BprimeM1000_IVF_ExplicitJTA_Plots.root","QCDPythia6_IVF_ExplicitJTA_Plots.root",getHistName("Pruned","CSV",false),300,500);
   graphsPt300To500["Fat Jet JP (Explicit JTA)"]=getEfficiencyCurve("BprimeM1000_IVF_ExplicitJTA_Plots.root","QCDPythia6_IVF_ExplicitJTA_Plots.root",getHistName("Pruned","JP",false),300,500);
   graphsPt300To500["Fat Jet JBP (Explicit JTA)"]=getEfficiencyCurve("BprimeM1000_IVF_ExplicitJTA_Plots.root","QCDPythia6_IVF_ExplicitJTA_Plots.root",getHistName("Pruned","JBP",false),300,500);
 

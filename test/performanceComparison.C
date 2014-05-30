@@ -366,4 +366,24 @@ void makePlots()
 
   plotEfficiencyCurves(graphsPt300To500,"#splitline{CA R=0.8, 300<p_{T}<500 GeV/c}{75<m_{jet}<135 GeV/c^{2} (pruned)}", "b-tagging efficiency (H(120)#rightarrowb#bar{b})", "Misidentification probability (QCD)","Extended PFchs","btagperfcomp_Pt300to500_PATTuple_v3_ExtPFchs.png",0, 1, 1E-3, 1,1);
 
+  // Fat Jet Plots
+  graphsPt300To500["Fat Jet CSV (BTV-13-001)"]=getEfficiencyCurve("BPrimeM1000plots.root","QCDPythia6Plots.root",getHistName("Pruned","CSVL",false),300,500);
+  graphsPt300To500["Fat Jet CSV"]=getEfficiencyCurve("BprimeBprimeToBHBHinc_M-1000_HiggsTagging.root","QCDPythia6_HiggsTagging.root",getHistName("Pruned","CSV",false),300,500);
+  graphsPt300To500["Fat Jet JP"]=getEfficiencyCurve("BprimeBprimeToBHBHinc_M-1000_HiggsTagging.root","QCDPythia6_HiggsTagging.root",getHistName("Pruned","JP",false),300,500);
+  graphsPt300To500["Fat Jet JBP"]=getEfficiencyCurve("BprimeBprimeToBHBHinc_M-1000_HiggsTagging.root","QCDPythia6_HiggsTagging.root",getHistName("Pruned","JBP",false),300,500);
+  graphsPt300To500["Fat Jet CSV (Explicit JTA)"]=getEfficiencyCurve("BprimeM1000_IVF_ExplicitJTA_Plots.root","QCDPythia6_IVF_ExplicitJTA_Plots.root",getHistName("Pruned","JP",false),300,500);
+  graphsPt300To500["Fat Jet JP (Explicit JTA)"]=getEfficiencyCurve("BprimeM1000_IVF_ExplicitJTA_Plots.root","QCDPythia6_IVF_ExplicitJTA_Plots.root",getHistName("Pruned","JP",false),300,500);
+  graphsPt300To500["Fat Jet JBP (Explicit JTA)"]=getEfficiencyCurve("BprimeM1000_IVF_ExplicitJTA_Plots.root","QCDPythia6_IVF_ExplicitJTA_Plots.root",getHistName("Pruned","JBP",false),300,500);
+
+  graphsPt700ToInf["Fat Jet CSV (BTV-13-001)"]=getEfficiencyCurve("BPrimeM1500plots.root","QCDPythia6Plots.root",getHistName("Pruned","CSVL",false),700,1100);
+  graphsPt700ToInf["Fat Jet CSV"]=getEfficiencyCurve("BprimeBprimeToBHBHinc_M-1500_HiggsTagging.root","QCDPythia6_HiggsTagging.root",getHistName("Pruned","CSV",false),700,1100);
+  graphsPt700ToInf["Fat Jet JP"]=getEfficiencyCurve("BprimeBprimeToBHBHinc_M-1500_HiggsTagging.root","QCDPythia6_HiggsTagging.root",getHistName("Pruned","JP",false),700,1100);
+  graphsPt700ToInf["Fat Jet JBP"]=getEfficiencyCurve("BprimeBprimeToBHBHinc_M-1500_HiggsTagging.root","QCDPythia6_HiggsTagging.root",getHistName("Pruned","JBP",false),700,1100);
+  graphsPt700ToInf["Fat Jet CSV (Explicit JTA)"]=getEfficiencyCurve("BprimeM1500_IVF_ExplicitJTA_Plots.root","QCDPythia6_IVF_ExplicitJTA_Plots.root",getHistName("Pruned","CSV",false),700,1100);
+  graphsPt700ToInf["Fat Jet JP (Explicit JTA)"]=getEfficiencyCurve("BprimeM1500_IVF_ExplicitJTA_Plots.root","QCDPythia6_IVF_ExplicitJTA_Plots.root",getHistName("Pruned","JP",false),700,1100);
+  graphsPt700ToInf["Fat Jet JBP (Explicit JTA)"]=getEfficiencyCurve("BprimeM1500_IVF_ExplicitJTA_Plots.root","QCDPythia6_IVF_ExplicitJTA_Plots.root",getHistName("Pruned","JBP",false),700,1100);
+
+  plotEfficiencyCurves(graphsPt300To500,"#splitline{CA R=0.8, 300<p_{T}<500 GeV/c}{75<m_{jet}<135 GeV/c^{2} (pruned)}", "b-tagging efficiency (H(120)#rightarrowb#bar{b})", "Misidentification probability (QCD)","","btagperfcomp_Pt300to500_FatJetComparison.png",0, 1, 1E-3, 1,1);
+  plotEfficiencyCurves(graphsPt700ToInf,"#splitline{CA R=0.8, p_{T}>700 GeV/c}{75<m_{jet}<135 GeV/c^{2} (pruned)}", "b-tagging efficiency (H(120)#rightarrowb#bar{b})", "Misidentification probability (QCD)","","btagperfcomp_Pt700toInf_FatJetComparison.png",0, 1, 1E-3, 1,1);
+
 }
